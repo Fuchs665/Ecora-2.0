@@ -1,0 +1,6 @@
+{
+  "name": "Ecora",
+  "description": "A premium and highly discreet mobile application tailored for the adult lifestyle/swinger community.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
