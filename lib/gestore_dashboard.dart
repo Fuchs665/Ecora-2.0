@@ -21,7 +21,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
     // Read current host profile
     final hostProfile = SupabaseClient.instance.currentProfileNotifier.value;
     if (hostProfile == null) {
-      return const Scaffold(body: Center(child: Text("Access restricted.")));
+      return const Scaffold(body: Center(child: Text("Accesso limitato.")));
     }
 
     final double bottomPadding = MediaQuery.of(context).padding.bottom;
@@ -151,7 +151,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
                         ),
                     ],
                   ),
-                  label: "Inspector",
+                  label: "Ispettore",
                 ),
                 // Plus button placeholder block in bottom navigation
                 const BottomNavigationBarItem(
@@ -159,15 +159,15 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
                     opacity: 0,
                     child: Icon(Icons.add, size: 24),
                   ),
-                  label: "Creator",
+                  label: "Creatore",
                 ),
                 const BottomNavigationBarItem(
                   icon: Icon(Icons.forum, size: 26),
-                  label: "Chats",
+                  label: "Chat",
                 ),
                 const BottomNavigationBarItem(
                   icon: Icon(Icons.security, size: 26),
-                  label: "Shield",
+                  label: "Scudo",
                 ),
               ],
             ),
@@ -220,7 +220,7 @@ class ClubDashboardScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
                 Text(
-                  "CLUB HUB CONSOLE",
+                  "CONSOLLE CLUB",
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 18,
@@ -230,7 +230,7 @@ class ClubDashboardScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "Owner Dashboard • Live Tables",
+                  "Dashboard Organizzatore • Tavoli Attivi",
                   style: TextStyle(fontSize: 12, color: textSecondary),
                 ),
               ],
@@ -260,14 +260,14 @@ class ClubDashboardScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                "PENDING ACCESS CLEARANCE",
+                                "APPROVAZIONI ACCESSO IN ATTESA",
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: textPrimary,
                                     fontSize: 13),
                               ),
                               Text(
-                                "$pendingCount guests are waiting for trust & safety screening.",
+                                "$pendingCount ospiti in attesa di screening di sicurezza e fiducia.",
                                 style: const TextStyle(
                                     color: textSecondary, fontSize: 12),
                               ),
@@ -284,7 +284,7 @@ class ClubDashboardScreen extends StatelessWidget {
             ],
 
             const Text(
-              "YOUR ACTIVE SELECTION TABLES",
+              "I TUOI TAVOLI ATTIVI",
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
@@ -346,7 +346,7 @@ class ClubDashboardScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "${event.currentApprovedCount} / ${event.maxParticipants} couples checked-in",
+                                "${event.currentApprovedCount} / ${event.maxParticipants} coppie confermate",
                                 style: const TextStyle(
                                     fontSize: 12,
                                     color: premiumGold,
@@ -355,7 +355,7 @@ class ClubDashboardScreen extends StatelessWidget {
                               if (eventInquiries > 0) ...[
                                 const SizedBox(height: 4),
                                 Text(
-                                  "$eventInquiries pending inquiries",
+                                  "$eventInquiries richieste in attesa",
                                   style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.red,
@@ -415,7 +415,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
               Icon(Icons.shield, color: premiumGold),
               SizedBox(width: 10),
               Text(
-                "TRUST & SAFETY PROFILE",
+                "PROFILO DI SICUREZZA E FIDUCIA",
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -437,7 +437,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                     color: textPrimary),
               ),
               Text(
-                "Applying for: ${eventObj.title}",
+                "Richiesta per: ${eventObj.title}",
                 style: const TextStyle(fontSize: 12, color: premiumGold),
               ),
               const SizedBox(height: 16),
@@ -453,7 +453,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                   children: [
                     Column(
                       children: [
-                        const Text("GENDER",
+                        const Text("GENERE",
                             style:
                                 TextStyle(fontSize: 9, color: textSecondary)),
                         Text(applicant.gender,
@@ -465,10 +465,10 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                     ),
                     Column(
                       children: [
-                        const Text("AGE",
+                        const Text("ETÀ",
                             style:
                                 TextStyle(fontSize: 9, color: textSecondary)),
-                        Text("${applicant.age} yrs",
+                        Text("${applicant.age} anni",
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: textPrimary,
@@ -477,7 +477,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                     ),
                     Column(
                       children: [
-                        const Text("NO-SHOWS",
+                        const Text("ASSENZE (NO-SHOW)",
                             style:
                                 TextStyle(fontSize: 9, color: textSecondary)),
                         Text(
@@ -510,8 +510,8 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                     Expanded(
                       child: Text(
                         applicant.noShows == 0
-                            ? "Zero history of no-shows. HIGH-TRUST attendee."
-                            : "Alert: Profile has historic no-shows.",
+                            ? "Nessuna assenza passata. Partecipante ad ALTA AFFIDABILITÀ."
+                            : "Attenzione: Il profilo ha assenze passate.",
                         style: TextStyle(
                           fontSize: 11,
                           color: applicant.noShows == 0
@@ -537,7 +537,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                   _selectedRequestToReview = null;
                 });
               },
-              child: const Text("DISMISS/REJECT",
+              child: const Text("RIFIUTA",
                   style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
@@ -552,7 +552,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                   _selectedRequestToReview = null;
                 });
               },
-              child: const Text("APPROVE GUEST",
+              child: const Text("APPROVA OSPITE",
                   style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
@@ -574,7 +574,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "GUEST REQUEST INSPECTOR",
+                "ISPETTORE RICHIESTE OSPITI",
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 18,
@@ -584,7 +584,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                 ),
               ),
               const Text(
-                "Pre-screening & Trust Clearance Console",
+                "Consolle di Pre-screening e Approvazione",
                 style: TextStyle(fontSize: 12, color: textSecondary),
               ),
               const SizedBox(height: 16),
@@ -598,7 +598,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                 color: premiumGold, size: 54),
                             SizedBox(height: 16),
                             Text(
-                              "All guest loops cleared. Perfect high trust table alignment.",
+                              "Tutti i profili ospiti sono approvati. Tavolo ad alta affidabilità allineato.",
                               style:
                                   TextStyle(fontSize: 13, color: textSecondary),
                               textAlign: TextAlign.center,
@@ -637,12 +637,12 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                               fontSize: 14),
                                         ),
                                         Text(
-                                          "Applied to: ${eventObj.title}",
+                                          "Richiesta per: ${eventObj.title}",
                                           style: const TextStyle(
                                               fontSize: 12, color: premiumGold),
                                         ),
                                         Text(
-                                          "Gender: ${applicant.gender}  •  Age: ${applicant.age} anni",
+                                          "Genere: ${applicant.gender}  •  Età: ${applicant.age} anni",
                                           style: const TextStyle(
                                               fontSize: 11,
                                               color: textSecondary),
@@ -663,7 +663,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                           context, req, applicant, eventObj);
                                     },
                                     child: const Text(
-                                      "SCREEN",
+                                      "VALUTA",
                                       style: TextStyle(
                                           color: matteDark,
                                           fontWeight: FontWeight.bold,
@@ -734,7 +734,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    "CREATE DISCREET GATHERING",
+                    "CREA INCONTRO RISERVATO",
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 16,
@@ -755,7 +755,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 controller: _titleController,
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 decoration: InputDecoration(
-                  labelText: "Gathering Title (e.g. Amber Masked Ball)",
+                  labelText: "Titolo Incontro (es. Ballo in Maschera Ambra)",
                   labelStyle:
                       const TextStyle(color: textSecondary, fontSize: 12),
                   floatingLabelStyle: const TextStyle(color: premiumGold),
@@ -779,7 +779,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 maxLines: 4,
                 decoration: InputDecoration(
-                  labelText: "Discreet Concept / Entry Protocol",
+                  labelText: "Concept Riservato / Protocollo d'Ingresso",
                   labelStyle:
                       const TextStyle(color: textSecondary, fontSize: 12),
                   floatingLabelStyle: const TextStyle(color: premiumGold),
@@ -803,7 +803,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   labelText:
-                      "Private Location Address (Disclosed strictly on approval)",
+                      "Indirizzo della Location Privata (Svelato solo dopo l'approvazione)",
                   labelStyle:
                       const TextStyle(color: textSecondary, fontSize: 12),
                   floatingLabelStyle: const TextStyle(color: premiumGold),
@@ -823,7 +823,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
               const SizedBox(height: 20),
 
               Text(
-                "Maximum Couples Attendance Limit: ${_maxParticipants.toInt()}",
+                "Limite Massimo Coppie Partecipanti: ${_maxParticipants.toInt()}",
                 style: const TextStyle(color: textSecondary, fontSize: 13),
               ),
               Slider(
@@ -842,7 +842,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
 
               // Mock Image List Selection
               const Text(
-                "EVENT COVER (Supabase Storage upload simulation)",
+                "COPERTINA EVENTO (Simulazione caricamento storage)",
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 11,
@@ -921,7 +921,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                     }
                   },
                   child: const Text(
-                    "UPLOAD EVENT TO ECO-SYSTEM",
+                    "CARICA EVENTO NEL CLUB",
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
@@ -955,7 +955,7 @@ class ClubMessagesScreen extends StatelessWidget {
                 Icon(Icons.forum, color: textSecondary, size: 54),
                 SizedBox(height: 16),
                 Text(
-                  "Club Lounges Secured",
+                  "Stanze del Club Protette",
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -963,7 +963,7 @@ class ClubMessagesScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  "Private channels will open for confirmed matching attendees once requests are verified.",
+                  "I canali privati si apriranno per i partecipanti confermati una volta verificate le richieste.",
                   style: TextStyle(
                       fontSize: 12, color: textSecondary, height: 1.5),
                   textAlign: TextAlign.center,

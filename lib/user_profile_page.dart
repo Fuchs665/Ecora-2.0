@@ -138,7 +138,7 @@ class UserProfilePage extends StatelessWidget {
                         Icon(Icons.diamond, color: premiumGold, size: 16),
                         SizedBox(width: 8),
                         Text(
-                          "HIGH TRUST ACCOUNT",
+                          "ACCOUNT AD ALTA AFFIDABILITÀ",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
@@ -158,17 +158,17 @@ class UserProfilePage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   StatMetricField(
-                    label: "Attended",
+                    label: "Presenze",
                     value: "${profile.participationsCount}",
                     indicatorColor: premiumGold,
                   ),
                   StatMetricField(
-                    label: "No-Shows",
+                    label: "No-Show",
                     value: "${profile.noShows}",
                     indicatorColor: profile.noShows > 2 ? Colors.red : textSecondary,
                   ),
                   StatMetricField(
-                    label: "Organized",
+                    label: "Organizzati",
                     value: profile.role == "gestore" ? "45" : "0",
                     indicatorColor: premiumGold,
                   ),
@@ -192,11 +192,11 @@ class UserProfilePage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
                             Text(
-                              "Privacy Shield Active",
+                              "Scudo Privacy Attivo",
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: textPrimary),
                             ),
                             Text(
-                              "Your real portrait, age, and statistics are visible only to verified clubs when requesting attendance.",
+                              "La tua vera foto, l'età e le statistiche sono visibili solo ai club verificati quando richiedi la partecipazione.",
                               style: TextStyle(fontSize: 11, color: textSecondary, height: 1.35),
                             )
                           ],
@@ -219,7 +219,7 @@ class UserProfilePage extends StatelessWidget {
                   ),
                   onPressed: onLogout,
                   child: Text(
-                    "LOGOUT ECO-SYSTEM",
+                    "ESCI DAL CLUB",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,

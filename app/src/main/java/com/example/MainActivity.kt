@@ -196,23 +196,12 @@ fun AuthScreen(
             textAlign = TextAlign.Center
         )
 
-        Text(
-            text = "DISCREET ECO-SYSTEM",
-            style = TextStyle(
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight.Medium,
-                fontSize = 11.sp,
-                letterSpacing = 3.sp,
-                color = TextSecondary
-            ),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
-        )
+        Spacer(modifier = Modifier.height(36.dp))
 
         // --- ACCOUNT ROLE GATE SELECTOR ---
         Text(
-            text = "CHOOSE SELECTIVE ENTRY PROTOCOL",
-            style = TextStyle(fontSize = 10.sp, letterSpacing = 1.5.sp, color = PremiumGold, fontWeight = FontWeight.Bold),
+            text = "Io sono",
+            style = TextStyle(fontSize = 11.sp, letterSpacing = 1.0.sp, color = PremiumGold, fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
@@ -267,7 +256,7 @@ fun AuthScreen(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Discreet Identifier / Email", color = TextSecondary) },
+            label = { Text("Email", color = TextSecondary) },
             leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email", tint = PremiumGold) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = PremiumGold,
@@ -283,7 +272,7 @@ fun AuthScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Security Access Key", color = TextSecondary) },
+            label = { Text("Password", color = TextSecondary) },
             leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Passcode", tint = PremiumGold) },
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -320,12 +309,12 @@ fun AuthScreen(
                 .height(48.dp)
         ) {
             Text(
-                text = "ACCESS ECO-SYSTEM",
+                text = "Login",
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize = 12.sp,
-                    letterSpacing = 1.5.sp,
+                    fontSize = 14.sp,
+                    letterSpacing = 1.0.sp,
                     color = MatteDark
                 )
             )

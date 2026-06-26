@@ -53,12 +53,12 @@ fun EventDetailsPage(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Event Details", style = TextStyle(fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)) },
+                title = { Text("Dettagli Evento", style = TextStyle(fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = "Indietro",
                             tint = PremiumGold
                         )
                     }
@@ -110,7 +110,7 @@ fun EventDetailsPage(
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "${(event.tableCompletionPercentage * 100).toInt()}% FILLED",
+                        text = "${(event.tableCompletionPercentage * 100).toInt()}% RISERVATO",
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.sp,
@@ -171,7 +171,7 @@ fun EventDetailsPage(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Table Limit: ${event.maxParticipants} couples max (${event.currentApprovedCount} confirmed)",
+                        text = "Capacità Tavolo: max ${event.maxParticipants} coppie (${event.currentApprovedCount} confermate)",
                         style = TextStyle(fontSize = 13.sp, color = TextSecondary)
                     )
                 }
@@ -179,7 +179,7 @@ fun EventDetailsPage(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "THE CONCEPT",
+                    text = "IL CONCEPT",
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
@@ -199,7 +199,7 @@ fun EventDetailsPage(
 
                 // --- CRITICAL PRIVACY BY DESIGN LOCATION COMPONENT ---
                 Text(
-                    text = "DISCREET LOCATION GATING",
+                    text = "ACCESSO INDIRIZZO RISERVATO",
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
@@ -227,7 +227,7 @@ fun EventDetailsPage(
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Text(
-                                    text = "INVITATION APPROVED",
+                                    text = "INVITO APPROVATO",
                                     style = TextStyle(
                                         color = Color.Green,
                                         fontWeight = FontWeight.Bold,
@@ -240,7 +240,7 @@ fun EventDetailsPage(
                             Spacer(modifier = Modifier.height(12.dp))
 
                             Text(
-                                text = "Address Revealed:",
+                                text = "Indirizzo Sbloccato:",
                                 style = TextStyle(fontSize = 12.sp, color = TextSecondary)
                             )
                             Text(
@@ -260,7 +260,7 @@ fun EventDetailsPage(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column {
-                                    Text("Precise Coordinates", fontSize = 10.sp, color = TextSecondary)
+                                    Text("Coordinate di Precisione", fontSize = 10.sp, color = TextSecondary)
                                     Text("Lat: ${event.latitude} / Lng: ${event.longitude}", fontSize = 12.sp, color = PremiumGold, fontWeight = FontWeight.SemiBold)
                                 }
                                 Icon(
@@ -317,7 +317,7 @@ fun EventDetailsPage(
 
                         // Lock Overlay Text Displays "Florence South Area - Location revealed after approval"
                         Column(
-                            modifier = Modifier
+                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -331,7 +331,7 @@ fun EventDetailsPage(
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = "Florence South Area",
+                                text = "Zona Firenze Sud",
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp,
@@ -341,7 +341,7 @@ fun EventDetailsPage(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Exact location & GPS coordinates are revealed strictly after the host approves your invitation request.",
+                                text = "L'indirizzo esatto e le coordinate GPS sono sbloccati esclusivamente dopo l'approvazione dell'organizzatore.",
                                 style = TextStyle(
                                     fontSize = 11.sp,
                                     color = TextSecondary,
@@ -354,7 +354,7 @@ fun EventDetailsPage(
                             if (requestStatus == "pending") {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "REQUEST PENDING APPROVAL",
+                                    text = "RICHIESTA IN ATTESA DI APPROVAZIONE",
                                     style = TextStyle(
                                         color = PremiumGold,
                                         fontWeight = FontWeight.Bold,
@@ -390,7 +390,7 @@ fun EventDetailsPage(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "REQUEST PRIVATE INVITATION",
+                                text = "RICHIEDI INVITO PRIVATO",
                                 style = TextStyle(
                                     fontFamily = FontFamily.SansSerif,
                                     fontWeight = FontWeight.ExtraBold,
@@ -415,7 +415,7 @@ fun EventDetailsPage(
                                 .height(50.dp)
                         ) {
                             Text(
-                                text = "AWAITING HOST CLEARANCE",
+                                text = "IN ATTESA DI APPROVAZIONE",
                                 style = TextStyle(
                                     fontFamily = FontFamily.SansSerif,
                                     fontWeight = FontWeight.Bold,
@@ -441,7 +441,7 @@ fun EventDetailsPage(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "ATTENDANCE CONFIRMED",
+                                text = "PARTECIPAZIONE CONFERMATA",
                                 style = TextStyle(
                                     fontFamily = FontFamily.SansSerif,
                                     fontWeight = FontWeight.Bold,
@@ -465,7 +465,7 @@ fun EventDetailsPage(
                                 .height(50.dp)
                         ) {
                             Text(
-                                text = "REQUEST DECLINED",
+                                text = "RICHIESTA DECLINATA",
                                 style = TextStyle(
                                     fontFamily = FontFamily.SansSerif,
                                     fontWeight = FontWeight.Bold,

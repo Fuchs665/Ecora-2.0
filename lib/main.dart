@@ -196,7 +196,7 @@ class SupabaseClient {
 
     final hostUser = SupabaseProfile(
       id: "user-gestore-456",
-      fullName: "Villa Secret Club",
+      fullName: "Club Segreto della Villa",
       role: "gestore",
       age: 40,
       gender: "Donna",
@@ -239,9 +239,9 @@ class SupabaseClient {
     _events = [
       SupabaseEvent(
         id: "event-1",
-        title: "Golden Velvet Soiree",
+        title: "Serata Velluto Dorato",
         description:
-            "An ultra-exclusive champagne reception inside Florence's most beautiful private terrace. Designed for open-minded couples looking for meaningful conversations in absolute secrecy. Smart formal attire required.",
+            "Un ricevimento champagne ultra-esclusivo sulla terrazza privata più bella di Firenze. Progettato per coppie con mentalità aperta alla ricerca di conversazioni significative in assoluta riservatezza. Richiesto abbigliamento formale elegante.",
         organizerId: hostUser.id,
         latitude: florenceLat + 0.008,
         longitude: florenceLng + 0.006,
@@ -250,13 +250,13 @@ class SupabaseClient {
         eventDate: "2026-06-25T21:00:00",
         maxParticipants: 10,
         currentApprovedCount: 8,
-        locationName: "Private Luxury Villa, Florence Hills",
+        locationName: "Villa di Lusso Privata, Colline di Firenze",
       ),
       SupabaseEvent(
         id: "event-2",
-        title: "Midsummer Amber Eyes",
+        title: "Occhi d'Ambra di Mezza Estate",
         description:
-            "Discreet masquerade cocktail party. Strictly limited to 6 couples. Perfect visual atmosphere with glowing amber candles, private lounge, and soft ambient sounds.",
+            "Festa in maschera discreta con cocktail. Rigorosamente limitata a 6 coppie. Atmosfera visiva perfetta con candele d'ambra accese, salotto privato e suoni ambientali soffusi.",
         organizerId: hostUser.id,
         latitude: florenceLat - 0.004,
         longitude: florenceLng - 0.003,
@@ -265,13 +265,13 @@ class SupabaseClient {
         eventDate: "2026-06-28T22:30:00",
         maxParticipants: 6,
         currentApprovedCount: 5,
-        locationName: "Secluded Velvet Room, Florence South",
+        locationName: "Stanza di Velluto Riservata, Firenze Sud",
       ),
       SupabaseEvent(
         id: "event-3",
-        title: "Shadow Tapestry Meet",
+        title: "Incontro Trama d'Ombra",
         description:
-            "Discreet after-party gather for international luxury travelers. Pre-screening mandatory. Perfect security, dark elegant cocktail room, premium gold acoustics.",
+            "Incontro discreto post-serata per viaggiatori internazionali di lusso. Pre-screening obbligatorio. Massima sicurezza, elegante cocktail room scura, acustica premium d'oro.",
         organizerId: hostUser.id,
         latitude: florenceLat + 0.015,
         longitude: florenceLng - 0.012,
@@ -280,7 +280,7 @@ class SupabaseClient {
         eventDate: "2026-07-02T23:00:00",
         maxParticipants: 12,
         currentApprovedCount: 4,
-        locationName: "Secret Palace, Florence Airport Area",
+        locationName: "Palazzo Segreto, Area Aeroporto di Firenze",
       ),
     ];
 
@@ -651,26 +651,14 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 4),
-              const Text(
-                "DISCREET ECO-SYSTEM",
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 10,
-                  letterSpacing: 3,
-                  fontFamily: 'Sans-Serif',
-                  color: textSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
               const SizedBox(height: 40),
 
               // --- ACCOUNT ROLE GATE SELECTOR ---
               const Text(
-                "CHOOSE SELECTIVE ENTRY PROTOCOL",
+                "Io sono",
                 style: TextStyle(
-                  fontSize: 9,
-                  letterSpacing: 1.5,
+                  fontSize: 11,
+                  letterSpacing: 1.0,
                   color: premiumGold,
                   fontWeight: FontWeight.bold,
                 ),
@@ -697,16 +685,16 @@ class _AuthScreenState extends State<AuthScreen> {
                 controller: _emailController,
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 decoration: InputDecoration(
-                  labelText: "Discreet Identifier / Email",
+                  labelText: "Email",
                   labelStyle:
                       const TextStyle(color: textSecondary, fontSize: 12),
                   floatingLabelStyle: const TextStyle(color: premiumGold),
                   prefixIcon: const Icon(Icons.email_outlined,
                       color: premiumGold, size: 20),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        BorderSide(color: Colors.white.withOpacity(0.06)),
+                     borderRadius: BorderRadius.circular(12),
+                     borderSide:
+                         BorderSide(color: Colors.white.withOpacity(0.06)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -722,7 +710,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 obscureText: !_passwordVisible,
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 decoration: InputDecoration(
-                  labelText: "Security Access Key",
+                  labelText: "Password",
                   labelStyle:
                       const TextStyle(color: textSecondary, fontSize: 12),
                   floatingLabelStyle: const TextStyle(color: premiumGold),
@@ -774,7 +762,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         .login(_emailController.text, _selectedRole);
                   },
                   child: const Text(
-                    "ACCESS ECO-SYSTEM",
+                    "LOGIN",
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 12,
@@ -795,7 +783,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        "Secured strictly by Supabase encrypted tunnels. Absolute end-to-end anonymity. Your device identity is never recorded.",
+                        "Protetto rigorosamente da tunnel crittografati Supabase. Anonimato assoluto end-to-end. L'identità del tuo dispositivo non viene mai registrata.",
                         style: TextStyle(
                           color: textSecondary.withOpacity(0.8),
                           fontSize: 10,

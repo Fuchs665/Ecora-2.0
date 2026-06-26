@@ -21,7 +21,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Event Details",
+          "Dettagli Evento",
           style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5, fontSize: 16),
         ),
         leading: IconButton(
@@ -87,7 +87,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                "${(widget.event.tableCompletionPercentage * 100).toInt()}% FILLED",
+                                "${(widget.event.tableCompletionPercentage * 100).toInt()}% RISERVATO",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 10,
@@ -136,7 +136,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                 const Icon(Icons.people, color: textSecondary, size: 16),
                                 const SizedBox(width: 8),
                                 Text(
-                                  "Table Limit: ${widget.event.maxParticipants} couples max (${widget.event.currentApprovedCount} confirmed)",
+                                  "Limite tavolo: massimo ${widget.event.maxParticipants} coppie (${widget.event.currentApprovedCount} confermate)",
                                   style: const TextStyle(fontSize: 13, color: textSecondary),
                                 ),
                               ],
@@ -144,7 +144,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             const SizedBox(height: 20),
 
                             const Text(
-                              "THE CONCEPT",
+                              "IL CONCEPT",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
@@ -161,7 +161,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
 
                             // --- SHIELD DISCREET LOCATION VIEW COMPONENT ---
                             const Text(
-                              "DISCREET LOCATION GATING",
+                              "LOCALIZZAZIONE RISERVATA",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
@@ -193,7 +193,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                           ),
                                           const SizedBox(width: 10),
                                           const Text(
-                                            "INVITATION APPROVED",
+                                            "INVITO APPROVATO",
                                             style: TextStyle(
                                               color: Colors.green,
                                               fontWeight: FontWeight.bold,
@@ -205,7 +205,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                       ),
                                       const SizedBox(height: 12),
                                       const Text(
-                                        "Address Revealed:",
+                                        "Indirizzo Sbloccato:",
                                         style: TextStyle(fontSize: 12, color: textSecondary),
                                       ),
                                       Text(
@@ -226,7 +226,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                             Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                const Text("Precise Coordinates", style: TextStyle(fontSize: 10, color: textSecondary)),
+                                                const Text("Coordinate Precise", style: TextStyle(fontSize: 10, color: textSecondary)),
                                                 Text(
                                                   "Lat: ${widget.event.latitude.toStringAsFixed(5)} / Lng: ${widget.event.longitude.toStringAsFixed(5)}",
                                                   style: const TextStyle(fontSize: 12, color: premiumGold, fontWeight: FontWeight.bold),
@@ -296,19 +296,19 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                               const Icon(Icons.lock, color: premiumGold, size: 32),
                                               const SizedBox(height: 10),
                                               const Text(
-                                                "Florence South Area",
+                                                "Area Firenze Sud",
                                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textPrimary),
                                               ),
                                               const SizedBox(height: 4),
                                               const Text(
-                                                "Exact location & GPS coordinates are revealed strictly after the host approves your invitation request.",
+                                                "La posizione esatta e le coordinate GPS verranno sbloccate solo dopo che l'organizzatore avrà approvato la tua richiesta.",
                                                 style: TextStyle(fontSize: 11, color: textSecondary, height: 1.4),
                                                 textAlign: TextAlign.center,
                                               ),
                                               if (requestStatus == 'pending') ...[
                                                 const SizedBox(height: 10),
                                                 const Text(
-                                                  "REQUEST PENDING APPROVAL",
+                                                  "RICHIESTA IN ATTESA DI APPROVAZIONE",
                                                   style: TextStyle(color: premiumGold, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1.0),
                                                 ),
                                               ]
@@ -354,7 +354,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                               Icon(Icons.key, color: matteDark, size: 18),
                               SizedBox(width: 8),
                               Text(
-                                "REQUEST PRIVATE INVITATION",
+                                "RICHIEDI INVITO PRIVATO",
                                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.0),
                               ),
                             ],
@@ -374,7 +374,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                           ),
                           onPressed: null, // Disabled awaiting screening
                           child: const Text(
-                            "AWAITING HOST CLEARANCE",
+                            "IN ATTESA DI APPROVAZIONE",
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                           ),
                         ),
@@ -396,7 +396,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                               Icon(Icons.check, color: Colors.white, size: 20),
                               SizedBox(width: 8),
                               Text(
-                                "ATTENDANCE CONFIRMED",
+                                "PARTECIPAZIONE CONFERMATA",
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                               ),
                             ],
@@ -417,7 +417,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                           ),
                           onPressed: null,
                           child: const Text(
-                            "REQUEST DECLINED",
+                            "RICHIESTA RESPINTA",
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFEF5350)),
                           ),
                         ),

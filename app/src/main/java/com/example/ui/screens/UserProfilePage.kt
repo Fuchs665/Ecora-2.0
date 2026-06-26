@@ -181,7 +181,7 @@ fun UserProfilePage(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "HIGH TRUST ACCOUNT",
+                        text = "ACCOUNT AFFIDABILE",
                         style = TextStyle(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Bold,
@@ -204,17 +204,17 @@ fun UserProfilePage(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             StatMetricField(
-                label = "Attended",
+                label = "Partecipazioni",
                 value = "${profile.participationsCount}",
                 indicatorColor = PremiumGold
             )
             StatMetricField(
-                label = "No-Shows",
+                label = "No-Show",
                 value = "${profile.noShows}",
                 indicatorColor = if (profile.noShows > 2) Color.Red else TextSecondary
             )
             StatMetricField(
-                label = "Organized",
+                label = "Organizzati",
                 value = if (profile.role == "gestore") "45" else "0", // Clean counters: '0 Organized' for clients
                 indicatorColor = PremiumGold
             )
@@ -243,7 +243,7 @@ fun UserProfilePage(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text(
-                        text = "Privacy Shield Active",
+                        text = "Scudo Privacy Attivo",
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
@@ -251,7 +251,7 @@ fun UserProfilePage(
                         )
                     )
                     Text(
-                        text = "Your real portrait, age, and statistics are visible only to verified clubs when requesting attendance.",
+                        text = "La tua foto reale, l'età e le statistiche sono visibili esclusivamente ai club verificati quando richiedi di partecipare.",
                         style = TextStyle(
                             fontSize = 11.sp,
                             color = TextSecondary,
@@ -274,7 +274,7 @@ fun UserProfilePage(
                 .padding(bottom = 4.dp)
         ) {
             Text(
-                text = "LOGOUT ECO-SYSTEM",
+                text = "ESCI",
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Bold,

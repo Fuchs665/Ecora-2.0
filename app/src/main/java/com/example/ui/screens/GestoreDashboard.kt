@@ -70,7 +70,7 @@ fun GestoreDashboard(
                         selectedTab = 0
                         showCreateForm = false
                     },
-                    icon = { Icon(Icons.Filled.Dashboard, contentDescription = "Dashboard") },
+                    icon = { Icon(Icons.Filled.Dashboard, contentDescription = "Console") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = PremiumGold,
                         unselectedIconColor = TextSecondary,
@@ -97,7 +97,7 @@ fun GestoreDashboard(
                                 }
                             }
                         ) {
-                            Icon(Icons.Filled.VerifiedUser, contentDescription = "Inspector")
+                            Icon(Icons.Filled.VerifiedUser, contentDescription = "Richieste")
                         }
                     },
                     colors = NavigationBarItemDefaults.colors(
@@ -130,7 +130,7 @@ fun GestoreDashboard(
                         selectedTab = 3
                         showCreateForm = false
                     },
-                    icon = { Icon(Icons.Filled.Forum, contentDescription = "Chats") },
+                    icon = { Icon(Icons.Filled.Forum, contentDescription = "Messaggi") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = PremiumGold,
                         unselectedIconColor = TextSecondary,
@@ -146,7 +146,7 @@ fun GestoreDashboard(
                         selectedTab = 4
                         showCreateForm = false
                     },
-                    icon = { Icon(Icons.Filled.Security, contentDescription = "Club Shield") },
+                    icon = { Icon(Icons.Filled.Security, contentDescription = "Profilo Club") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = PremiumGold,
                         unselectedIconColor = TextSecondary,
@@ -169,7 +169,7 @@ fun GestoreDashboard(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Create Event",
+                    contentDescription = "Crea Evento",
                     tint = MatteDark,
                     modifier = Modifier.size(28.dp)
                 )
@@ -240,7 +240,7 @@ fun ClubDashboardScreen(
             // Club Info Welcome banner
             Column {
                 Text(
-                    text = "CLUB HUB CONSOLE",
+                    text = "CONSOLE CLUB",
                     style = TextStyle(
                         fontFamily = FontFamily.SansSerif,
                         fontWeight = FontWeight.ExtraBold,
@@ -250,7 +250,7 @@ fun ClubDashboardScreen(
                     )
                 )
                 Text(
-                    text = "Owner Dashboard • Live Tables",
+                    text = "Pannello Organizzatore • Eventi Attivi",
                     style = TextStyle(fontSize = 12.sp, color = TextSecondary)
                 )
             }
@@ -278,8 +278,8 @@ fun ClubDashboardScreen(
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("PENDING ACCESS CLEARANCE", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 14.sp)
-                            Text("$pendingCount guests are waiting for trust & safety screening.", color = TextSecondary, fontSize = 12.sp)
+                            Text("RICHIESTE IN ATTESA DI APPROVAZIONE", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 14.sp)
+                            Text("$pendingCount coppie sono in attesa della verifica affidabilità.", color = TextSecondary, fontSize = 12.sp)
                         }
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
@@ -293,7 +293,7 @@ fun ClubDashboardScreen(
 
         item {
             Text(
-                text = "YOUR ACTIVE SELECTION TABLES",
+                text = "I TUOI EVENTI ATTIVI",
                 style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 12.sp, color = PremiumGold, letterSpacing = 1.sp)
             )
         }
@@ -331,13 +331,13 @@ fun ClubDashboardScreen(
                             color = TextPrimary
                         )
                         Text(
-                            text = "${event.currentApprovedCount} / ${event.maxParticipants} couples checked-in",
+                            text = "${event.currentApprovedCount} / ${event.maxParticipants} coppie confermate",
                             fontSize = 12.sp,
                             color = PremiumGold
                         )
                         if (eventRequestsCount > 0) {
                             Text(
-                                text = "$eventRequestsCount pending inquiries",
+                                text = "$eventRequestsCount richieste in attesa",
                                 fontSize = 12.sp,
                                 color = Color.Red,
                                 fontWeight = FontWeight.Bold
@@ -372,7 +372,7 @@ fun RequestInspectorScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "GUEST REQUEST INSPECTOR",
+            text = "RICHIESTE RICEVUTE",
             style = TextStyle(
                 fontFamily = FontFamily.SansSerif,
                 fontWeight = FontWeight.ExtraBold,
@@ -382,7 +382,7 @@ fun RequestInspectorScreen(
             )
         )
         Text(
-            text = "Pre-screening & Trust Clearance Console",
+            text = "Pannello di Controllo e Verifica Affidabilità",
             style = TextStyle(fontSize = 12.sp, color = TextSecondary),
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -401,7 +401,7 @@ fun RequestInspectorScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "All guest loops cleared. Perfect high trust table alignment.",
+                        text = "Tutte le richieste sono state elaborate. Allineamento perfetto ad alta affidabilità.",
                         style = TextStyle(fontSize = 13.sp, color = TextSecondary),
                         textAlign = TextAlign.Center
                     )
@@ -434,12 +434,12 @@ fun RequestInspectorScreen(
                                     fontSize = 14.sp
                                 )
                                 Text(
-                                    text = "Applied to: ${eventObj.title}",
+                                    text = "Richiesta per: ${eventObj.title}",
                                     fontSize = 12.sp,
                                     color = PremiumGold
                                 )
                                 Text(
-                                    text = "Gender: ${applicant.gender}  •  Age: ${applicant.age} anni",
+                                    text = "Genere: ${applicant.gender}  •  Età: ${applicant.age} anni",
                                     fontSize = 11.sp,
                                     color = TextSecondary
                                 )
@@ -450,7 +450,7 @@ fun RequestInspectorScreen(
                                 modifier = Modifier.height(32.dp),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                             ) {
-                                Text("SCREEN", color = MatteDark, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                Text("VERIFICA", color = MatteDark, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             }
                         }
                     }
@@ -471,7 +471,7 @@ fun RequestInspectorScreen(
                         Icon(imageVector = Icons.Default.Shield, contentDescription = "Trust & Safety Shield", tint = PremiumGold)
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "TRUST & SAFETY PROFILE",
+                            text = "VERIFICA AFFIDABILITÀ",
                             style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 14.sp, letterSpacing = 1.sp, color = TextPrimary)
                         )
                     }
@@ -484,7 +484,7 @@ fun RequestInspectorScreen(
                             style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = TextPrimary)
                         )
                         Text(
-                            text = "Applying for: ${invitedEvent.title}",
+                            text = "Candidatura per: ${invitedEvent.title}",
                             fontSize = 12.sp,
                             color = PremiumGold,
                             modifier = Modifier.padding(bottom = 16.dp)
@@ -499,15 +499,15 @@ fun RequestInspectorScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("GENDER", fontSize = 9.sp, color = TextSecondary)
+                                Text("GENERE", fontSize = 9.sp, color = TextSecondary)
                                 Text(applicant.gender, fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 13.sp)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("AGE", fontSize = 9.sp, color = TextSecondary)
-                                Text("${applicant.age} yrs", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 13.sp)
+                                Text("ETÀ", fontSize = 9.sp, color = TextSecondary)
+                                Text("${applicant.age} anni", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 13.sp)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("NO-SHOWS", fontSize = 9.sp, color = TextSecondary)
+                                Text("MANCATE PARTECIPAZIONI", fontSize = 9.sp, color = TextSecondary)
                                 Text("${applicant.noShows}", fontWeight = FontWeight.Bold, color = if (applicant.noShows > 0) Color.Red else Color.Green, fontSize = 14.sp)
                             }
                         }
@@ -525,7 +525,7 @@ fun RequestInspectorScreen(
                             Icon(imageVector = Icons.Default.FavoriteBorder, contentDescription = "Trust Indicator", tint = PremiumGold, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = if (applicant.noShows == 0) "Zero history of no-shows. HIGH-TRUST attendee." else "Alert: Profile has historic no-shows.",
+                                text = if (applicant.noShows == 0) "Nessuna mancata partecipazione storica. Partecipante AD ALTA AFFIDABILITÀ." else "Attenzione: Profilo con mancate partecipazioni storiche.",
                                 fontSize = 11.sp,
                                 color = if (applicant.noShows == 0) Color.LightGray else Color.Red
                             )
@@ -541,7 +541,7 @@ fun RequestInspectorScreen(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
                     ) {
-                        Text("APPROVE GUEST", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("APPROVA OSPITE", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -553,7 +553,7 @@ fun RequestInspectorScreen(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8A80))
                     ) {
-                        Text("DISMISS/REJECT", color = MatteDark, fontWeight = FontWeight.Bold)
+                        Text("RIFIUTA RICHIESTA", color = MatteDark, fontWeight = FontWeight.Bold)
                     }
                 }
             )
@@ -596,7 +596,7 @@ fun CreateEventForm(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "CREATE DISCREET GATHERING",
+                text = "CREA EVENTO RISERVATO",
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.ExtraBold,
@@ -616,7 +616,7 @@ fun CreateEventForm(
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
-            label = { Text("Gathering Title (e.g. Amber Masked Ball)") },
+            label = { Text("Titolo dell'Evento (es. Ballo in Maschera Amber)") },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = PremiumGold,
                 unfocusedBorderColor = Color(0xFF424242),
@@ -629,7 +629,7 @@ fun CreateEventForm(
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
-            label = { Text("Discreet Concept / Entry Protocol") },
+            label = { Text("Concept Riservato / Protocollo di Ingresso") },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = PremiumGold,
                 unfocusedBorderColor = Color(0xFF424242),
@@ -643,7 +643,7 @@ fun CreateEventForm(
         OutlinedTextField(
             value = locationName,
             onValueChange = { locationName = it },
-            label = { Text("Private Location Address (Disclosed strictly on approval)") },
+            label = { Text("Indirizzo Privato (Sbloccato solo dopo l'approvazione)") },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = PremiumGold,
                 unfocusedBorderColor = Color(0xFF424242),
@@ -653,7 +653,7 @@ fun CreateEventForm(
         )
 
         // Capacity slider
-        Text("Maximum Couples Attendance Limit: $maxParticipants", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
+        Text("Limite Massimo di Coppie: $maxParticipants", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
         Slider(
             value = maxParticipants.toFloat(),
             onValueChange = { maxParticipants = it.toInt() },
@@ -665,7 +665,7 @@ fun CreateEventForm(
 
         // MOCK SUPABASE STORAGE BUCKET IMAGE PICKER SELECTION UI
         Text(
-            text = "EVENT COVER (Supabase Storage upload simulation)",
+            text = "COPERTINA EVENTO (Simulazione caricamento storage Supabase)",
             style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 11.sp, color = PremiumGold, letterSpacing = 1.sp)
         )
         Row(
@@ -728,7 +728,7 @@ fun CreateEventForm(
                 .fillMaxWidth()
                 .height(48.dp)
         ) {
-            Text("UPLOAD EVENT TO ECO-SYSTEM", color = MatteDark, fontWeight = FontWeight.Bold)
+            Text("PUBBLICA EVENTO NEL CLUB", color = MatteDark, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -753,12 +753,12 @@ fun ClubMessagesScreen() {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Club Lounges Secured",
+                text = "Stanze del Club Riservate",
                 style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextPrimary)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Private channels will open for confirmed matching attendees once requests are verified.",
+                text = "I canali privati si apriranno per i partecipanti confermati una volta verificate le richieste.",
                 style = TextStyle(fontSize = 12.sp, color = TextSecondary, lineHeight = 18.sp),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 24.dp)

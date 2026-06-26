@@ -82,7 +82,7 @@ fun ClientNavigationHub(
                     icon = {
                         Icon(
                             imageVector = if (selectedTab == 0) Icons.Filled.Explore else Icons.Outlined.Explore,
-                            contentDescription = "Discover"
+                            contentDescription = "Esplora"
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
@@ -112,7 +112,7 @@ fun ClientNavigationHub(
                         ) {
                             Icon(
                                 imageVector = if (selectedTab == 1) Icons.Filled.Notifications else Icons.Outlined.Notifications,
-                                contentDescription = "Alerts"
+                                contentDescription = "Notifiche"
                             )
                         }
                     },
@@ -131,7 +131,7 @@ fun ClientNavigationHub(
                     icon = {
                         Icon(
                             imageVector = if (selectedTab == 2) Icons.Filled.Forum else Icons.Outlined.Forum,
-                            contentDescription = "Chats"
+                            contentDescription = "Forum"
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
@@ -149,7 +149,7 @@ fun ClientNavigationHub(
                     icon = {
                         Icon(
                             imageVector = if (selectedTab == 3) Icons.Filled.Person else Icons.Outlined.Person,
-                            contentDescription = "Profile"
+                            contentDescription = "Profilo"
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
@@ -310,7 +310,7 @@ fun DiscoverScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Trending Tables",
+                text = "Tavoli del Momento",
                 style = TextStyle(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
@@ -334,7 +334,7 @@ fun DiscoverScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "List",
+                        text = "Lista",
                         style = TextStyle(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
@@ -352,7 +352,7 @@ fun DiscoverScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Map",
+                        text = "Mappa",
                         style = TextStyle(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
@@ -385,7 +385,7 @@ fun DiscoverScreen(
                             colors = CheckboxDefaults.colors(checkedColor = PremiumGold, checkmarkColor = MatteDark)
                         )
                         Text(
-                            text = "Filter by Location",
+                            text = "Filtra per posizione",
                             style = TextStyle(fontSize = 13.sp, color = TextPrimary, fontWeight = FontWeight.Bold)
                         )
                     }
@@ -396,7 +396,7 @@ fun DiscoverScreen(
                         )
                     } else {
                         Text(
-                            text = "Florence (All)",
+                            text = "Firenze (Tutti)",
                             style = TextStyle(color = TextSecondary, fontSize = 12.sp)
                         )
                     }
@@ -435,7 +435,7 @@ fun DiscoverScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "No discreet events within radius",
+                        text = "Nessun evento riservato nel raggio selezionato",
                         color = TextSecondary,
                         fontSize = 14.sp
                     )
@@ -469,7 +469,7 @@ fun DiscoverScreen(
                         )
                         Column {
                             Text(
-                                text = "PRECISE PRIVACY LOCK",
+                                text = "BLOCCO PRIVACY DI PRECISIONE",
                                 style = TextStyle(
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
@@ -479,7 +479,7 @@ fun DiscoverScreen(
                             )
                             Spacer(modifier = Modifier.height(3.dp))
                             Text(
-                                text = "Precise GPS and host details are locked until your profile is approved by the event organizer. Ecora prioritizes your anonymity.",
+                                text = "I dettagli GPS precisi e l'organizzatore sono bloccati finché il tuo profilo non viene approvato dall'organizzatore dell'evento. Ecora dà priorità al tuo anonimato.",
                                 style = TextStyle(
                                     fontSize = 11.sp,
                                     color = TextSecondary,
@@ -610,7 +610,7 @@ fun DiscoverScreen(
                         .padding(horizontal = 14.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "CartoDB Dark Mod Map — Tap glowing nodes for details",
+                        text = "Mappa Dark CartoDB — Tocca i nodi luminosi per i dettagli",
                         color = TextSecondary,
                         fontSize = 11.sp
                     )
@@ -656,13 +656,13 @@ fun DiscoverScreen(
                                         color = TextPrimary
                                     )
                                     Text(
-                                        text = "Table ${(ev.tableCompletionPercentage * 100).toInt()}% Reserved",
+                                        text = "Tavolo al ${(ev.tableCompletionPercentage * 100).toInt()}% Riservato",
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 12.sp,
                                         color = PremiumGold
                                     )
                                     Text(
-                                        text = if (hasApplied) "Request Active — Details pending" else "Florence South — Tap to request access",
+                                        text = if (hasApplied) "Richiesta Attiva — In attesa di approvazione" else "Firenze Sud — Tocca per richiedere l'accesso",
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         fontSize = 11.sp,
@@ -708,10 +708,10 @@ fun EventFeedCard(
 ) {
     val request = requests.find { it.userId == userId && it.eventId == event.id }
     val statusText = when (request?.status) {
-        "pending" -> "PENDING ACCESS"
-        "approved" -> "INVITATION APPROVED"
-        "rejected" -> "ACCESS DENIED"
-        else -> "REQUEST INVITATION"
+        "pending" -> "IN ATTESA DI APPROVAZIONE"
+        "approved" -> "INVITO APPROVATO"
+        "rejected" -> "RICHIESTA RESPINTA"
+        else -> "RICHIEDI INVITO PRIVATO"
     }
     val statusColor = when (request?.status) {
         "approved" -> Color(0xFF4CAF50)
@@ -762,7 +762,7 @@ fun EventFeedCard(
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
-                        text = "URGENT: ${(event.tableCompletionPercentage * 100).toInt()}% FILLED",
+                        text = "URGENTE: ${(event.tableCompletionPercentage * 100).toInt()}% RISERVATO",
                         style = TextStyle(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.ExtraBold,
@@ -829,7 +829,7 @@ fun EventFeedCard(
                         )
                         Spacer(modifier = Modifier.width(3.dp))
                         Text(
-                            text = "High Trust",
+                            text = "Verifica Affidabilità",
                             style = TextStyle(
                                 fontSize = 8.sp,
                                 fontWeight = FontWeight.Bold,
@@ -854,7 +854,7 @@ fun EventFeedCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "South Hills District, Florence (Approved Only)",
+                        text = "Zona Colline del Sud, Firenze (Solo Approvati)",
                         style = TextStyle(
                             fontSize = 11.sp,
                             color = TextSecondary,
@@ -880,11 +880,11 @@ fun EventFeedCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${event.currentApprovedCount} of ${event.maxParticipants} couples confirmed",
+                        text = "${event.currentApprovedCount} di ${event.maxParticipants} coppie confermate",
                         style = TextStyle(fontSize = 11.sp, color = PremiumGold, fontWeight = FontWeight.SemiBold)
                     )
                     Text(
-                        text = "${(event.tableCompletionPercentage * 100).toInt()}% spots taken",
+                        text = "${(event.tableCompletionPercentage * 100).toInt()}% posti riservati",
                         style = TextStyle(fontSize = 10.sp, color = TextSecondary)
                     )
                 }
@@ -917,7 +917,7 @@ fun NotificationsScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "NOTIFICATIONS",
+            text = "NOTIFICHE",
             style = TextStyle(
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 16.sp,
@@ -941,7 +941,7 @@ fun NotificationsScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Your private invitations feed is empty.",
+                        text = "Il tuo feed degli inviti privati è vuoto.",
                         style = TextStyle(fontSize = 13.sp, color = TextSecondary)
                     )
                 }
@@ -1023,14 +1023,14 @@ fun SwipeToDeleteNotificationRow(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (item.status == "approved") "Invitation Cleared" else "Request Refused",
+                        text = if (item.status == "approved") "Invito Approvato" else "Richiesta Rifiutata",
                         style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 13.sp, color = TextPrimary)
                     )
                     Text(
                         text = if (item.status == "approved") {
-                            "Status approved for ${item.eventTitle}. Live GPS Coordinates unlocked."
+                            "Stato approvato per ${item.eventTitle}. Coordinate GPS sbloccate."
                         } else {
-                            "Your application for ${item.eventTitle} was discreetly returned."
+                            "La tua richiesta per ${item.eventTitle} è stata riservatamente declinata."
                         },
                         style = TextStyle(fontSize = 12.sp, color = TextSecondary, lineHeight = 16.sp)
                     )
@@ -1065,7 +1065,7 @@ fun MessagesScreen() {
             .padding(16.dp)
     ) {
         Text(
-            text = "PRIVATE CHAT LOUNGES",
+            text = "STANZE CHAT PRIVATE",
             style = TextStyle(
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 16.sp,
@@ -1089,12 +1089,12 @@ fun MessagesScreen() {
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Discreet Conversations",
+                    text = "Conversazioni Riservate",
                     style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextPrimary)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Chat circles lock automatically in 'Tablo' custom privacy loops. You can communicate with other couples strictly after both invitations to a shared table are approved by the host.",
+                    text = "I cerchi di chat si bloccano automaticamente in cicli di privacy personalizzati 'Tablo'. Puoi comunicare con altre coppie rigorosamente dopo che entrambi gli inviti a un tavolo condiviso sono stati approvati dall'organizzatore.",
                     style = TextStyle(fontSize = 12.sp, color = TextSecondary, lineHeight = 18.sp),
                     textAlign = TextAlign.Center
                 )
@@ -1104,7 +1104,7 @@ fun MessagesScreen() {
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "ACTIVE CHAT LOOPS (0)",
+            text = "CHAT ATTIVE (0)",
             style = TextStyle(fontSize = 12.sp, color = TextSecondary, letterSpacing = 1.sp)
         )
 
@@ -1127,8 +1127,8 @@ fun MessagesScreen() {
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Text("Noble Villa Gathering Group", fontWeight = FontWeight.Bold, color = TextSecondary, fontSize = 14.sp)
-                    Text("Chat locked until table acceptance", color = Color(0x80FFA0A0), fontSize = 11.sp)
+                    Text("Gruppo di Incontro Villa Nobile", fontWeight = FontWeight.Bold, color = TextSecondary, fontSize = 14.sp)
+                    Text("Chat bloccata fino all'accettazione del tavolo", color = Color(0x80FFA0A0), fontSize = 11.sp)
                 }
             }
         }

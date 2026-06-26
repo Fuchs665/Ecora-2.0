@@ -42,7 +42,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
         )
       else
         const Center(
-            child: Text("No Profile Loaded",
+            child: Text("Nessun profilo caricato",
                 style: TextStyle(color: textPrimary))),
     ];
 
@@ -81,7 +81,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
             const BottomNavigationBarItem(
               icon: Icon(Icons.home, size: 28),
               activeIcon: Icon(Icons.home, color: premiumGold, size: 28),
-              label: "Explore",
+              label: "Esplora",
             ),
             BottomNavigationBarItem(
               icon: Stack(
@@ -120,7 +120,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
                   ),
                 ],
               ),
-              label: "Notifications",
+              label: "Notifiche",
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.chat_bubble, size: 26),
@@ -128,7 +128,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.person, size: 28),
-              label: "Profile",
+              label: "Profilo",
             ),
           ],
         ),
@@ -253,7 +253,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        "Trending Tables",
+                        "Tavoli del Momento",
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -283,7 +283,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  "List",
+                                  "Lista",
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
@@ -305,7 +305,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  "Map",
+                                  "Mappa",
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
@@ -355,7 +355,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 const Text(
-                                  "Filter by Location",
+                                  "Filtra per posizione",
                                   style: TextStyle(
                                       fontSize: 13,
                                       color: textPrimary,
@@ -366,7 +366,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             Text(
                               _isRadiusActive
                                   ? "${_radiusKm.toInt()} km"
-                                  : "Florence (All)",
+                                  : "Firenze (Tutti)",
                               style: const TextStyle(
                                 color: premiumGold,
                                 fontWeight: FontWeight.bold,
@@ -407,7 +407,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   color: textSecondary, size: 48),
                               SizedBox(height: 12),
                               Text(
-                                "No discreet events within radius",
+                                "Nessun evento riservato nel raggio selezionato",
                                 style: TextStyle(
                                     color: textSecondary, fontSize: 14),
                               ),
@@ -444,7 +444,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                 CrossAxisAlignment.start,
                                             children: const [
                                               Text(
-                                                "PRECISE PRIVACY LOCK",
+                                                "BLOCCO PRIVACY DI PRECISIONE",
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
@@ -454,7 +454,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                               ),
                                               SizedBox(height: 3),
                                               Text(
-                                                "Precise GPS and host details are locked until your profile is approved by the event organizer. Ecora prioritizes your anonymity.",
+                                                "I dettagli GPS precisi e l'organizzatore sono bloccati finché il tuo profilo non viene approvato dall'organizzatore dell'evento. Ecora dà priorità al tuo anonimato.",
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   color: textSecondary,
@@ -552,7 +552,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                 Colors.white.withOpacity(0.04)),
                                       ),
                                       child: const Text(
-                                        "CartoDB Dark Mod Map — Tap glowing nodes for details",
+                                        "Mappa Dark CartoDB — Tocca i nodi luminosi per i dettagli",
                                         style: TextStyle(
                                             color: textSecondary, fontSize: 11),
                                       ),
@@ -626,7 +626,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                             color: textPrimary),
                                                       ),
                                                       Text(
-                                                        "Table ${(_selectedPointEvent!.tableCompletionPercentage * 100).toInt()}% Reserved",
+                                                        "Tavolo al ${(_selectedPointEvent!.tableCompletionPercentage * 100).toInt()}% Riservato",
                                                         style: const TextStyle(
                                                             fontWeight:
                                                                 FontWeight.bold,
@@ -634,7 +634,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                             color: premiumGold),
                                                       ),
                                                       const Text(
-                                                        "Florence South — Tap to request access",
+                                                        "Firenze Sud — Tocca per richiedere l'accesso",
                                                         style: TextStyle(
                                                             fontSize: 11,
                                                             color:
@@ -861,7 +861,7 @@ class EventFeedCard extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      "URGENT: ${(event.tableCompletionPercentage * 100).toInt()}% FILLED",
+                      "URGENTE: ${(event.tableCompletionPercentage * 100).toInt()}% RISERVATO",
                       style: const TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w800,
@@ -910,7 +910,7 @@ class EventFeedCard extends StatelessWidget {
                                 color: premiumGold, size: 10),
                             SizedBox(width: 3),
                             Text(
-                              "High Trust",
+                              "Alta Affidabilità",
                               style: TextStyle(
                                 fontSize: 8,
                                 fontWeight: FontWeight.bold,
@@ -930,7 +930,7 @@ class EventFeedCard extends StatelessWidget {
                       Icon(Icons.location_on, color: premiumGold, size: 14),
                       SizedBox(width: 4),
                       Text(
-                        "South Hills District, Florence (Approved Only)",
+                        "Zona Colline del Sud, Firenze (Solo Approvati)",
                         style: TextStyle(fontSize: 11, color: textSecondary),
                       ),
                     ],
@@ -951,14 +951,14 @@ class EventFeedCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "${event.currentApprovedCount} of ${event.maxParticipants} couples confirmed",
+                        "${event.currentApprovedCount} di ${event.maxParticipants} coppie confermate",
                         style: const TextStyle(
                             fontSize: 11,
                             color: premiumGold,
                             fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        "${(event.tableCompletionPercentage * 100).toInt()}% spots taken",
+                        "${(event.tableCompletionPercentage * 100).toInt()}% posti riservati",
                         style:
                             const TextStyle(fontSize: 10, color: textSecondary),
                       )
@@ -1007,7 +1007,7 @@ class NotificationsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "NOTIFICATIONS",
+                "NOTIFICHE",
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
@@ -1026,7 +1026,7 @@ class NotificationsScreen extends StatelessWidget {
                                 color: textSecondary, size: 48),
                             SizedBox(height: 12),
                             Text(
-                              "Your private invitations feed is empty.",
+                              "Il tuo feed degli inviti privati è vuoto.",
                               style:
                                   TextStyle(fontSize: 13, color: textSecondary),
                             ),
@@ -1089,8 +1089,8 @@ class NotificationsScreen extends StatelessWidget {
                                         children: [
                                           Text(
                                             item.status == "approved"
-                                                ? "Invitation Cleared"
-                                                : "Request Refused",
+                                                ? "Invito Approvato"
+                                                : "Richiesta Rifiutata",
                                             style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 13,
@@ -1098,8 +1098,8 @@ class NotificationsScreen extends StatelessWidget {
                                           ),
                                           Text(
                                             item.status == "approved"
-                                                ? "Status approved for ${item.eventTitle}. Live GPS Coordinates unlocked."
-                                                : "Your application for ${item.eventTitle} was discreetly returned.",
+                                                ? "Stato approvato per ${item.eventTitle}. Coordinate GPS sbloccate."
+                                                : "La tua richiesta per ${item.eventTitle} è stata riservatamente declinata.",
                                             style: const TextStyle(
                                                 fontSize: 12,
                                                 color: textSecondary,
@@ -1146,7 +1146,7 @@ class MessagesScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "PRIVATE CHAT LOUNGES",
+                "STANZE CHAT PRIVATE",
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
@@ -1166,7 +1166,7 @@ class MessagesScreen extends StatelessWidget {
                       Icon(Icons.forum, color: premiumGold, size: 48),
                       SizedBox(height: 16),
                       Text(
-                        "Discreet Conversations",
+                        "Conversazioni Riservate",
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -1174,7 +1174,7 @@ class MessagesScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        "Chat circles lock automatically in 'Tablo' custom privacy loops. You can communicate with other couples strictly after both invitations to a shared table are approved by the host.",
+                        "I cerchi di chat si bloccano automaticamente in cicli di privacy personalizzati 'Tablo'. Puoi comunicare con altre coppie rigorosamente dopo che entrambi gli inviti a un tavolo condiviso sono stati approvati dall'organizzatore.",
                         style: TextStyle(
                             fontSize: 12, color: textSecondary, height: 1.5),
                         textAlign: TextAlign.center,
@@ -1185,7 +1185,7 @@ class MessagesScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               const Text(
-                "ACTIVE CHAT LOOPS (0)",
+                "CHAT ATTIVE (0)",
                 style: TextStyle(
                     fontSize: 12, color: textSecondary, letterSpacing: 1),
               ),
@@ -1214,14 +1214,14 @@ class MessagesScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
                             Text(
-                              "Noble Villa Gathering Group",
+                              "Gruppo di Incontro Villa Nobile",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: textSecondary,
                                   fontSize: 14),
                             ),
                             Text(
-                              "Chat locked until table acceptance",
+                              "Chat bloccata fino all'accettazione del tavolo",
                               style: TextStyle(
                                   color: Color(0x80FFA0A0), fontSize: 11),
                             ),
