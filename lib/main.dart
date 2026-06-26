@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'client_navigation_hub.dart';
 import 'gestore_dashboard.dart';
 
@@ -426,7 +427,16 @@ class SupabaseClient {
 
 // --- FLUTTER APPLICATION BARRIER ---
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Supabase.initialize(
+      url: 'https://fswzykzclfrpzlujhfg.supabase.co',
+      anonKey: 'sb_publishable_qv2R89l53F8gK_cJ6rS66Q_7TLWe_-B',
+    );
+  } catch (e) {
+    debugPrint("Supabase initialization caught exception (e.g. offline/mock environment): $e");
+  }
   runApp(const EcoraApp());
 }
 
