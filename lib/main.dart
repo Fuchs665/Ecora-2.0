@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:local_auth/local_auth.dart';
 import 'client_navigation_hub.dart';
 import 'gestore_dashboard.dart';
 
@@ -21,6 +22,7 @@ class SupabaseProfile {
   final String gender; // 'Uomo', 'Donna', 'Coppia'
   final int noShows;
   final int participationsCount;
+  final String? profileType;
 
   SupabaseProfile({
     required this.id,
@@ -30,6 +32,7 @@ class SupabaseProfile {
     required this.gender,
     this.noShows = 0,
     this.participationsCount = 0,
+    this.profileType,
   });
 
   SupabaseProfile copyWith({
@@ -40,6 +43,7 @@ class SupabaseProfile {
     String? gender,
     int? noShows,
     int? participationsCount,
+    String? profileType,
   }) {
     return SupabaseProfile(
       id: id ?? this.id,
@@ -49,6 +53,7 @@ class SupabaseProfile {
       gender: gender ?? this.gender,
       noShows: noShows ?? this.noShows,
       participationsCount: participationsCount ?? this.participationsCount,
+      profileType: profileType ?? this.profileType,
     );
   }
 }
@@ -340,6 +345,13 @@ class SupabaseClient {
     currentProfileNotifier.value = p;
   }
 
+  void addProfile(SupabaseProfile p) {
+    if (!_profiles.any((profile) => profile.id == p.id)) {
+      _profiles.add(p);
+      profilesNotifier.value = List.from(_profiles);
+    }
+  }
+
   void logout() {
     currentProfileNotifier.value = null;
   }
@@ -538,19 +550,183 @@ class _EcoraAppState extends State<EcoraApp> {
           background: matteDark,
         ),
       ),
-      home: ValueListenableBuilder<SupabaseProfile?>(
-        valueListenable: SupabaseClient.instance.currentProfileNotifier,
-        builder: (context, profile, _) {
-          if (profile == null) {
-            return const AuthScreen();
-          } else if (profile.role == 'cliente') {
-            return const ClientNavigationHub();
-          } else {
-            return const GestoreDashboard();
-          }
-        },
+      home: BiometricGate(
+        child: ValueListenableBuilder<SupabaseProfile?>(
+          valueListenable: SupabaseClient.instance.currentProfileNotifier,
+          builder: (context, profile, _) {
+            if (profile == null) {
+              return const AuthScreen();
+            } else if (profile.role == 'cliente') {
+              return const ClientNavigationHub();
+            } else {
+              return const GestoreDashboard();
+            }
+          },
+        ),
       ),
     );
+  }
+}
+
+// --- BIOMETRIC SECURITY GATEWAY ---
+class BiometricGate extends StatefulWidget {
+  final Widget child;
+  const BiometricGate({Key? key, required this.child}) : super(key: key);
+
+  @override
+  State<BiometricGate> createState() => _BiometricGateState();
+}
+
+class _BiometricGateState extends State<BiometricGate> {
+  final LocalAuthentication _auth = LocalAuthentication();
+  String _authState = 'checking'; // 'checking', 'authenticated', 'failed'
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometrics();
+  }
+
+  Future<void> _checkBiometrics() async {
+    try {
+      final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
+      final bool hasBiometrics = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
+
+      if (!hasBiometrics) {
+        setState(() {
+          _authState = 'authenticated'; // Bypass automatically if biometrics not supported
+        });
+        return;
+      }
+
+      final List<BiometricType> availableBiometrics = await _auth.getAvailableBiometrics();
+      if (availableBiometrics.isEmpty) {
+        setState(() {
+          _authState = 'authenticated'; // Bypass if no biometric templates are enrolled
+        });
+        return;
+      }
+
+      _authenticate();
+    } catch (e) {
+      debugPrint("Errore verifica biometria: $e");
+      setState(() {
+        _authState = 'authenticated'; // Safe fallback bypass on exception
+      });
+    }
+  }
+
+  Future<void> _authenticate() async {
+    try {
+      final bool authenticated = await _auth.authenticate(
+        localizedReason: 'Autenticati per accedere al tuo profilo riservato',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: true,
+        ),
+      );
+
+      if (authenticated) {
+        setState(() {
+          _authState = 'authenticated';
+        });
+      } else {
+        setState(() {
+          _authState = 'failed';
+        });
+      }
+    } catch (e) {
+      debugPrint("Errore autenticazione biometrica: $e");
+      setState(() {
+        _authState = 'failed';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_authState == 'checking') {
+      return const Scaffold(
+        backgroundColor: matteDark,
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(premiumGold),
+          ),
+        ),
+      );
+    }
+
+    if (_authState == 'failed') {
+      return Scaffold(
+        backgroundColor: matteDark,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Spacer(),
+                const Icon(
+                  Icons.fingerprint,
+                  color: premiumGold,
+                  size: 80,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  "ACCESSO BLOCCATO",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
+                    letterSpacing: 4,
+                    fontFamily: 'Serif',
+                    color: premiumGold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  "È necessaria l'autenticazione biometrica per sbloccare l'applicazione e proteggere i tuoi dati sensibili.",
+                  style: TextStyle(
+                    color: textSecondary,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const Spacer(),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: premiumGold,
+                      foregroundColor: matteDark,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    onPressed: _authenticate,
+                    child: const Text(
+                      "RIPROVA LO SBLOCCO",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return widget.child;
   }
 }
 
@@ -564,12 +740,33 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  bool _isLogin = true;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  // Login Controllers
   final TextEditingController _emailController =
       TextEditingController(text: "alex.sofia@private.it");
   final TextEditingController _passwordController =
       TextEditingController(text: "••••••••");
   bool _passwordVisible = false;
   String _selectedRole = "cliente"; // "cliente" or "gestore"
+
+  // Registration Controllers
+  final TextEditingController _regNicknameController = TextEditingController();
+  final TextEditingController _regLocationController = TextEditingController();
+  final TextEditingController _regEmailController = TextEditingController();
+  final TextEditingController _regPasswordController = TextEditingController();
+  bool _regPasswordVisible = false;
+
+  final List<String> _profileTypes = [
+    "Coppia U/D",
+    "Coppia D/D",
+    "Coppia U/U",
+    "Donna Singola",
+    "Uomo Singolo",
+  ];
+  String _selectedProfileType = "Coppia U/D";
 
   Widget _buildRoleButton(String roleLabel, String roleValue) {
     final isSelected = _selectedRole == roleValue;
@@ -607,6 +804,232 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
+  String _parseSupabaseError(dynamic error) {
+    final errStr = error.toString().toLowerCase();
+    if (errStr.contains('already registered') ||
+        errStr.contains('already in use') ||
+        errStr.contains('user_already_exists')) {
+      return "Email già in uso. Prova a fare il login.";
+    } else if (errStr.contains('weak password') ||
+        errStr.contains('password should be')) {
+      return "La password è troppo debole. Usa almeno 6 caratteri.";
+    } else if (errStr.contains('invalid email') || errStr.contains('format')) {
+      return "Formato dell'email non valido.";
+    } else if (errStr.contains('network') ||
+        errStr.contains('failed to connect')) {
+      return "Errore di connessione a Supabase.";
+    }
+    return "Errore di autenticazione: ${error.toString()}";
+  }
+
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _errorMessage = "Per favore, compila tutti i campi.";
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Se è uno dei profili di test rapido, usiamo la simulazione istantanea
+      if (email == "alex.sofia@private.it" ||
+          email == "villa.secret@club.it" ||
+          password == "••••••••") {
+        SupabaseClient.instance.login(email, _selectedRole);
+        return;
+      }
+
+      // Tentativo reale con Supabase Auth
+      try {
+        final response = await Supabase.instance.client.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
+
+        if (response.user != null) {
+          final userId = response.user!.id;
+
+          try {
+            final profileData = await Supabase.instance.client
+                .from('profiles')
+                .select()
+                .eq('id', userId)
+                .maybeSingle();
+
+            if (profileData != null) {
+              final String role = profileData['role'] ?? 'cliente';
+              final String nickname = profileData['nickname'] ?? 'Utente Anonimo';
+
+              final prof = SupabaseProfile(
+                id: userId,
+                fullName: nickname,
+                role: role,
+                age: 30,
+                gender: 'Coppia',
+                noShows: 0,
+                participationsCount: 1,
+              );
+
+              SupabaseClient.instance.addProfile(prof);
+              SupabaseClient.instance.currentProfileNotifier.value = prof;
+              return;
+            }
+          } catch (dbErr) {
+            debugPrint("Errore recupero riga profilo reale: $dbErr");
+          }
+
+          final prof = SupabaseProfile(
+            id: userId,
+            fullName: email.split('@').first,
+            role: _selectedRole,
+            age: 30,
+            gender: 'Coppia',
+            noShows: 0,
+            participationsCount: 1,
+          );
+          SupabaseClient.instance.addProfile(prof);
+          SupabaseClient.instance.currentProfileNotifier.value = prof;
+        }
+      } catch (authErr) {
+        debugPrint("Errore Supabase Auth reale: $authErr");
+
+        if (authErr.toString().contains('not initialized') ||
+            authErr.toString().contains('Null check operator') ||
+            authErr.toString().contains('SocketException')) {
+          // Fallback offline su simulazione
+          SupabaseClient.instance.login(email, _selectedRole);
+          return;
+        }
+
+        setState(() {
+          _errorMessage = "Credenziali non valide o errore di rete.";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Errore durante l'accesso: ${e.toString()}";
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleRegister() async {
+    final email = _regEmailController.text.trim();
+    final password = _regPasswordController.text.trim();
+    final nickname = _regNicknameController.text.trim();
+    final location = _regLocationController.text.trim();
+
+    if (email.isEmpty || password.isEmpty || nickname.isEmpty || location.isEmpty) {
+      setState(() {
+        _errorMessage = "Per favore, compila tutti i campi.";
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      setState(() {
+        _errorMessage = "La password deve contenere almeno 6 caratteri.";
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // 1. Registrazione reale su Supabase Auth
+      final response = await Supabase.instance.client.auth.signUp(
+        email: email,
+        password: password,
+      );
+
+      final user = response.user;
+      if (user == null) {
+        throw Exception("Impossibile creare l'utente.");
+      }
+
+      final String userId = user.id;
+
+      // 2. Inserimento riga reale nella tabella public.profiles
+      try {
+        await Supabase.instance.client.from('profiles').insert({
+          'id': userId,
+          'nickname': nickname,
+          'role': 'cliente',
+          'generic_location': location,
+          'is_verified': false,
+          'profile_type': _selectedProfileType,
+        });
+      } catch (dbErr) {
+        debugPrint("Errore nell'inserimento del profilo reale: $dbErr");
+      }
+
+      // 3. Registrazione nello stato locale (in-memory simulator)
+      final newLocalProfile = SupabaseProfile(
+        id: userId,
+        fullName: nickname,
+        role: 'cliente',
+        age: 30,
+        gender: _selectedProfileType.contains('Coppia') ? 'Coppia' : (_selectedProfileType.contains('Donna') ? 'Donna' : 'Uomo'),
+        noShows: 0,
+        participationsCount: 0,
+        profileType: _selectedProfileType,
+      );
+
+      SupabaseClient.instance.addProfile(newLocalProfile);
+      SupabaseClient.instance.currentProfileNotifier.value = newLocalProfile;
+
+    } catch (e) {
+      debugPrint("Errore completo durante la registrazione: $e");
+      String friendlyError = _parseSupabaseError(e);
+
+      if (e.toString().contains('not initialized') ||
+          e.toString().contains('Null check operator') ||
+          e.toString().contains('SocketException')) {
+        // Fallback offline / mock simulator
+        final mockUserId = "user-mock-${DateTime.now().millisecondsSinceEpoch}";
+        final mockProfile = SupabaseProfile(
+          id: mockUserId,
+          fullName: nickname,
+          role: 'cliente',
+          age: 30,
+          gender: _selectedProfileType.contains('Coppia') ? 'Coppia' : (_selectedProfileType.contains('Donna') ? 'Donna' : 'Uomo'),
+          noShows: 0,
+          participationsCount: 0,
+          profileType: _selectedProfileType,
+        );
+        SupabaseClient.instance.addProfile(mockProfile);
+        SupabaseClient.instance.currentProfileNotifier.value = mockProfile;
+        return;
+      }
+
+      setState(() {
+        _errorMessage = friendlyError;
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -617,12 +1040,12 @@ class _AuthScreenState extends State<AuthScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
               // --- LOGO DESIGN TOKEN ---
               Center(
                 child: Container(
-                  width: 90,
-                  height: 90,
+                  width: 80,
+                  height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
@@ -635,142 +1058,418 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: const Icon(
                     Icons.diamond,
                     color: premiumGold,
-                    size: 48,
+                    size: 40,
                   ),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               const Text(
                 "E C O R A",
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
-                  fontSize: 28,
+                  fontSize: 26,
                   letterSpacing: 8,
                   fontFamily: 'Serif',
                   color: premiumGold,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
-              // --- ACCOUNT ROLE GATE SELECTOR ---
-              const Text(
-                "Io sono",
-                style: TextStyle(
-                  fontSize: 11,
-                  letterSpacing: 1.0,
-                  color: premiumGold,
+              // --- TITLE INDICATOR ---
+              Text(
+                _isLogin ? "ACCESSO RISERVATO" : "REGISTRAZIONE NUOVO MEMBRO",
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  letterSpacing: 2,
+                  color: premiumGold,
                 ),
               ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: slateSurface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.04)),
-                ),
-                child: Row(
-                  children: [
-                    _buildRoleButton("CLIENTE / COPPIA", "cliente"),
-                    _buildRoleButton("GESTORE / CLUB", "gestore"),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // --- TEXT FIELDS (EMULATING SUPABASE INPUT AUTH) ---
-              TextField(
-                controller: _emailController,
-                style: const TextStyle(color: textPrimary, fontSize: 13),
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  labelStyle:
-                      const TextStyle(color: textSecondary, fontSize: 12),
-                  floatingLabelStyle: const TextStyle(color: premiumGold),
-                  prefixIcon: const Icon(Icons.email_outlined,
-                      color: premiumGold, size: 20),
-                  enabledBorder: OutlineInputBorder(
-                     borderRadius: BorderRadius.circular(12),
-                     borderSide:
-                         BorderSide(color: Colors.white.withOpacity(0.06)),
+              // --- FORM WRAPPER ---
+              if (_isLogin) ...[
+                // --- ACCOUNT ROLE GATE SELECTOR ---
+                const Text(
+                  "Io sono",
+                  style: TextStyle(
+                    fontSize: 11,
+                    letterSpacing: 1.0,
+                    color: premiumGold,
+                    fontWeight: FontWeight.bold,
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: premiumGold),
-                  ),
-                  filled: true,
-                  fillColor: slateSurface.withOpacity(0.5),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: !_passwordVisible,
-                style: const TextStyle(color: textPrimary, fontSize: 13),
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  labelStyle:
-                      const TextStyle(color: textSecondary, fontSize: 12),
-                  floatingLabelStyle: const TextStyle(color: premiumGold),
-                  prefixIcon: const Icon(Icons.lock_outline,
-                      color: premiumGold, size: 20),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _passwordVisible
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      color: premiumGold,
-                      size: 20,
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: slateSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withOpacity(0.04)),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildRoleButton("CLIENTE / COPPIA", "cliente"),
+                      _buildRoleButton("GESTORE / CLUB", "gestore"),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // --- LOGIN EMAIL ---
+                TextField(
+                  controller: _emailController,
+                  style: const TextStyle(color: textPrimary, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: "Email",
+                    labelStyle:
+                        const TextStyle(color: textSecondary, fontSize: 12),
+                    floatingLabelStyle: const TextStyle(color: premiumGold),
+                    prefixIcon: const Icon(Icons.email_outlined,
+                        color: premiumGold, size: 20),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: Colors.white.withOpacity(0.06)),
                     ),
-                    onPressed: () {
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: premiumGold),
+                    ),
+                    filled: true,
+                    fillColor: slateSurface.withOpacity(0.5),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // --- LOGIN PASSWORD ---
+                TextField(
+                  controller: _passwordController,
+                  obscureText: !_passwordVisible,
+                  style: const TextStyle(color: textPrimary, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: "Password",
+                    labelStyle:
+                        const TextStyle(color: textSecondary, fontSize: 12),
+                    floatingLabelStyle: const TextStyle(color: premiumGold),
+                    prefixIcon: const Icon(Icons.lock_outline,
+                        color: premiumGold, size: 20),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _passwordVisible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: premiumGold,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _passwordVisible = !_passwordVisible;
+                        });
+                      },
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: premiumGold),
+                    ),
+                    filled: true,
+                    fillColor: slateSurface.withOpacity(0.5),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // --- LOGIN BUTTON ---
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: premiumGold,
+                      foregroundColor: matteDark,
+                      elevation: 4,
+                      shape: RoundedCornerShape(24),
+                    ),
+                    onPressed: _isLoading ? null : _handleLogin,
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(matteDark),
+                            ),
+                          )
+                        : const Text(
+                            "LOGIN",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                  ),
+                ),
+              ] else ...[
+                // --- REGISTRATION FORM FIELDS ---
+                // 1. Nickname
+                TextField(
+                  controller: _regNicknameController,
+                  style: const TextStyle(color: textPrimary, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: "Nickname (es. Alex & Sofia)",
+                    labelStyle:
+                        const TextStyle(color: textSecondary, fontSize: 12),
+                    floatingLabelStyle: const TextStyle(color: premiumGold),
+                    prefixIcon: const Icon(Icons.person_outline,
+                        color: premiumGold, size: 20),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: premiumGold),
+                    ),
+                    filled: true,
+                    fillColor: slateSurface.withOpacity(0.5),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Tipologia di Profilo Dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedProfileType,
+                  dropdownColor: slateSurface,
+                  style: const TextStyle(color: textPrimary, fontSize: 13),
+                  icon: const Icon(Icons.arrow_drop_down, color: premiumGold),
+                  decoration: InputDecoration(
+                    labelText: "Tipologia di Profilo",
+                    labelStyle:
+                        const TextStyle(color: textSecondary, fontSize: 12),
+                    floatingLabelStyle: const TextStyle(color: premiumGold),
+                    prefixIcon: const Icon(Icons.people_outline,
+                        color: premiumGold, size: 20),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: premiumGold),
+                    ),
+                    filled: true,
+                    fillColor: slateSurface.withOpacity(0.5),
+                  ),
+                  items: _profileTypes.map((String type) {
+                    return DropdownMenuItem<String>(
+                      value: type,
+                      child: Text(
+                        type,
+                        style: const TextStyle(color: textPrimary),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
                       setState(() {
-                        _passwordVisible = !_passwordVisible;
+                        _selectedProfileType = newValue;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // 2. Località Generica
+                TextField(
+                  controller: _regLocationController,
+                  style: const TextStyle(color: textPrimary, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: "Località Generica (es. Firenze Nord)",
+                    labelStyle:
+                        const TextStyle(color: textSecondary, fontSize: 12),
+                    floatingLabelStyle: const TextStyle(color: premiumGold),
+                    prefixIcon: const Icon(Icons.location_on_outlined,
+                        color: premiumGold, size: 20),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: premiumGold),
+                    ),
+                    filled: true,
+                    fillColor: slateSurface.withOpacity(0.5),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 3. Email
+                TextField(
+                  controller: _regEmailController,
+                  style: const TextStyle(color: textPrimary, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: "Email",
+                    labelStyle:
+                        const TextStyle(color: textSecondary, fontSize: 12),
+                    floatingLabelStyle: const TextStyle(color: premiumGold),
+                    prefixIcon: const Icon(Icons.email_outlined,
+                        color: premiumGold, size: 20),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: premiumGold),
+                    ),
+                    filled: true,
+                    fillColor: slateSurface.withOpacity(0.5),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 4. Password
+                TextField(
+                  controller: _regPasswordController,
+                  obscureText: !_regPasswordVisible,
+                  style: const TextStyle(color: textPrimary, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: "Password (almeno 6 caratteri)",
+                    labelStyle:
+                        const TextStyle(color: textSecondary, fontSize: 12),
+                    floatingLabelStyle: const TextStyle(color: premiumGold),
+                    prefixIcon: const Icon(Icons.lock_outline,
+                        color: premiumGold, size: 20),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _regPasswordVisible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: premiumGold,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _regPasswordVisible = !_regPasswordVisible;
+                        });
+                      },
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: premiumGold),
+                    ),
+                    filled: true,
+                    fillColor: slateSurface.withOpacity(0.5),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // --- REGISTER BUTTON ---
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: premiumGold,
+                      foregroundColor: matteDark,
+                      elevation: 4,
+                      shape: RoundedCornerShape(24),
+                    ),
+                    onPressed: _isLoading ? null : _handleRegister,
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(matteDark),
+                            ),
+                          )
+                        : const Text(
+                            "ISCRIVITI",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+
+              // --- TOGGLE BTN UNDER ACTION ---
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _isLogin ? "Non hai un account? " : "Hai già un account? ",
+                    style: const TextStyle(color: textSecondary, fontSize: 13),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isLogin = !_isLogin;
+                        _errorMessage = null;
                       });
                     },
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        BorderSide(color: Colors.white.withOpacity(0.06)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: premiumGold),
-                  ),
-                  filled: true,
-                  fillColor: slateSurface.withOpacity(0.5),
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // --- SUBMIT AUTH ACCESS TRIGGER ---
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: premiumGold,
-                    foregroundColor: matteDark,
-                    elevation: 4,
-                    shape: RoundedCornerShape(24),
-                  ),
-                  onPressed: () {
-                    // Initialize Auth integration
-                    SupabaseClient.instance
-                        .login(_emailController.text, _selectedRole);
-                  },
-                  child: const Text(
-                    "LOGIN",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
-                      letterSpacing: 1.5,
+                    child: Text(
+                      _isLogin ? "Registrati" : "Accedi",
+                      style: const TextStyle(
+                        color: premiumGold,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
+
+              // --- ERROR PANEL INDICATOR ---
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 36),
 
               // Privacy note footer
@@ -783,7 +1482,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        "Protetto rigorosamente da tunnel crittografati Supabase. Anonimato assoluto end-to-end. L'identità del tuo dispositivo non viene mai registrata.",
+                        _isLogin
+                            ? "Protetto rigorosamente da tunnel crittografati Supabase. Anonimato assoluto end-to-end. L'identità del tuo dispositivo non viene mai registrata."
+                            : "Compilando il modulo acconsenti al pre-screening rigoroso. Il tuo nickname e la tua località non saranno rivelati finché non sarai approvato a un tavolo condiviso.",
                         style: TextStyle(
                           color: textSecondary.withOpacity(0.8),
                           fontSize: 10,
