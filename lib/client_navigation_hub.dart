@@ -41,7 +41,9 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
           },
         )
       else
-        const Center(child: Text("No Profile Loaded", style: TextStyle(color: textPrimary))),
+        const Center(
+            child: Text("No Profile Loaded",
+                style: TextStyle(color: textPrimary))),
     ];
 
     return Scaffold(
@@ -86,7 +88,8 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
                 children: [
                   const Icon(Icons.mail, size: 28),
                   ValueListenableBuilder<int>(
-                    valueListenable: SupabaseClient.instance.notificationBadgeNotifier,
+                    valueListenable:
+                        SupabaseClient.instance.notificationBadgeNotifier,
                     builder: (context, badgeCount, _) {
                       if (badgeCount == 0) return const SizedBox.shrink();
                       return Positioned(
@@ -163,7 +166,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
             // Apply radius distance calculations matching haversine model
             final filteredEvents = _isRadiusActive
                 ? allEvents.where((e) {
-                    double distance = SupabaseClient.instance.calculateHaversineDistance(
+                    double distance =
+                        SupabaseClient.instance.calculateHaversineDistance(
                       centerLat,
                       centerLng,
                       e.latitude,
@@ -178,7 +182,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
               children: [
                 // --- PREMIUM ELEGANT HEADER ---
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -202,7 +207,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         children: [
                           Stack(
                             children: [
-                              const Icon(Icons.notifications, color: textSecondary, size: 24),
+                              const Icon(Icons.notifications,
+                                  color: textSecondary, size: 24),
                               Positioned(
                                 right: 0,
                                 top: 0,
@@ -212,7 +218,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   decoration: BoxDecoration(
                                     color: premiumGold,
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: slateSurface, width: 1.5),
+                                    border: Border.all(
+                                        color: slateSurface, width: 1.5),
                                   ),
                                 ),
                               ),
@@ -225,9 +232,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: premiumGold.withOpacity(0.1),
-                              border: Border.all(color: premiumGold.withOpacity(0.5), width: 1),
+                              border: Border.all(
+                                  color: premiumGold.withOpacity(0.5),
+                                  width: 1),
                             ),
-                            child: const Icon(Icons.person, color: premiumGold, size: 20),
+                            child: const Icon(Icons.person,
+                                color: premiumGold, size: 20),
                           ),
                         ],
                       ),
@@ -256,16 +266,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         decoration: BoxDecoration(
                           color: slateSurface,
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: Colors.white.withOpacity(0.05)),
+                          border:
+                              Border.all(color: Colors.white.withOpacity(0.05)),
                         ),
                         child: Row(
                           children: [
                             GestureDetector(
                               onTap: () => setState(() => _isMapView = false),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: !_isMapView ? premiumGold : Colors.transparent,
+                                  color: !_isMapView
+                                      ? premiumGold
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -273,7 +287,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: !_isMapView ? matteDark : textSecondary,
+                                    color:
+                                        !_isMapView ? matteDark : textSecondary,
                                   ),
                                 ),
                               ),
@@ -281,9 +296,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             GestureDetector(
                               onTap: () => setState(() => _isMapView = true),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: _isMapView ? premiumGold : Colors.transparent,
+                                  color: _isMapView
+                                      ? premiumGold
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -291,7 +309,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: _isMapView ? matteDark : textSecondary,
+                                    color:
+                                        _isMapView ? matteDark : textSecondary,
                                   ),
                                 ),
                               ),
@@ -337,12 +356,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 const SizedBox(width: 8),
                                 const Text(
                                   "Filter by Location",
-                                  style: TextStyle(fontSize: 13, color: textPrimary, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      color: textPrimary,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
                             Text(
-                              _isRadiusActive ? "${_radiusKm.toInt()} km" : "Florence (All)",
+                              _isRadiusActive
+                                  ? "${_radiusKm.toInt()} km"
+                                  : "Florence (All)",
                               style: const TextStyle(
                                 color: premiumGold,
                                 fontWeight: FontWeight.bold,
@@ -379,38 +403,45 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.cloud_queue, color: textSecondary, size: 48),
+                              Icon(Icons.cloud_queue,
+                                  color: textSecondary, size: 48),
                               SizedBox(height: 12),
                               Text(
                                 "No discreet events within radius",
-                                style: TextStyle(color: textSecondary, fontSize: 14),
+                                style: TextStyle(
+                                    color: textSecondary, fontSize: 14),
                               ),
                             ],
                           ),
                         )
                       : !_isMapView
                           ? ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
                               itemCount: filteredEvents.length + 1,
                               itemBuilder: (context, index) {
                                 if (index == 0) {
                                   // --- PRIVACY BANNER NOTE ---
                                   return Container(
-                                    margin: const EdgeInsets.bottom(16),
+                                    margin: const EdgeInsets.only(bottom: 16),
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
                                       color: premiumGold.withOpacity(0.05),
                                       borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: premiumGold.withOpacity(0.15)),
+                                      border: Border.all(
+                                          color: premiumGold.withOpacity(0.15)),
                                     ),
                                     child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        const Icon(Icons.privacy_tip, color: premiumGold, size: 20),
+                                        const Icon(Icons.privacy_tip,
+                                            color: premiumGold, size: 20),
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: const [
                                               Text(
                                                 "PRECISE PRIVACY LOCK",
@@ -444,7 +475,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => EventDetailsPage(event: ev),
+                                        builder: (context) =>
+                                            EventDetailsPage(event: ev),
                                       ),
                                     );
                                   },
@@ -462,7 +494,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         return GestureDetector(
                                           onTapDown: (details) {
                                             // Project coordinates back for tap matching
-                                            final offset = details.localPosition;
+                                            final offset =
+                                                details.localPosition;
                                             SupabaseEvent? tappedEvent;
                                             double minDistance = 99999.0;
                                             for (var ev in filteredEvents) {
@@ -474,8 +507,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                 constraints.maxWidth,
                                                 constraints.maxHeight,
                                               );
-                                              double dist = sqrt(pow(offset.dx - screenPt.dx, 2) + pow(offset.dy - screenPt.dy, 2));
-                                              if (dist < 32.0 && dist < minDistance) {
+                                              double dist = sqrt(pow(
+                                                      offset.dx - screenPt.dx,
+                                                      2) +
+                                                  pow(offset.dy - screenPt.dy,
+                                                      2));
+                                              if (dist < 32.0 &&
+                                                  dist < minDistance) {
                                                 minDistance = dist;
                                                 tappedEvent = ev;
                                               }
@@ -504,15 +542,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   right: 0,
                                   child: Center(
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14, vertical: 6),
                                       decoration: BoxDecoration(
                                         color: matteDark.withOpacity(0.85),
                                         borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(color: Colors.white.withOpacity(0.04)),
+                                        border: Border.all(
+                                            color:
+                                                Colors.white.withOpacity(0.04)),
                                       ),
                                       child: const Text(
                                         "CartoDB Dark Mod Map — Tap glowing nodes for details",
-                                        style: TextStyle(color: textSecondary, fontSize: 11),
+                                        style: TextStyle(
+                                            color: textSecondary, fontSize: 11),
                                       ),
                                     ),
                                   ),
@@ -530,28 +572,37 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => EventDetailsPage(event: _selectedPointEvent!),
+                                              builder: (context) =>
+                                                  EventDetailsPage(
+                                                      event:
+                                                          _selectedPointEvent!),
                                             ),
                                           );
                                         },
                                         child: Card(
                                           color: slateSurface,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
-                                            side: const BorderSide(color: premiumGold, width: 1),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            side: const BorderSide(
+                                                color: premiumGold, width: 1),
                                           ),
                                           child: Padding(
                                             padding: const EdgeInsets.all(12),
                                             child: Row(
                                               children: [
                                                 ClipRRect(
-                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                   child: Image.network(
-                                                    _selectedPointEvent!.imageUrl,
+                                                    _selectedPointEvent!
+                                                        .imageUrl,
                                                     width: 64,
                                                     height: 64,
                                                     fit: BoxFit.cover,
-                                                    errorBuilder: (context, _, __) => Container(
+                                                    errorBuilder:
+                                                        (context, _, __) =>
+                                                            Container(
                                                       color: Colors.grey,
                                                       width: 64,
                                                       height: 64,
@@ -561,26 +612,42 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                 const SizedBox(width: 12),
                                                 Expanded(
                                                   child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       Text(
-                                                        _selectedPointEvent!.title,
-                                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textPrimary),
+                                                        _selectedPointEvent!
+                                                            .title,
+                                                        style: const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 15,
+                                                            color: textPrimary),
                                                       ),
                                                       Text(
                                                         "Table ${(_selectedPointEvent!.tableCompletionPercentage * 100).toInt()}% Reserved",
-                                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: premiumGold),
+                                                        style: const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 12,
+                                                            color: premiumGold),
                                                       ),
                                                       const Text(
                                                         "Florence South — Tap to request access",
-                                                        style: TextStyle(fontSize: 11, color: textSecondary),
+                                                        style: TextStyle(
+                                                            fontSize: 11,
+                                                            color:
+                                                                textSecondary),
                                                         maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                       ),
                                                     ],
                                                   ),
                                                 ),
-                                                const Icon(Icons.chevron_right, color: premiumGold),
+                                                const Icon(Icons.chevron_right,
+                                                    color: premiumGold),
                                               ],
                                             ),
                                           ),
@@ -600,7 +667,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   // Linear projection helper
-  Offset _projectCoords(double lat, double lng, double centerLat, double centerLng, double width, double height) {
+  Offset _projectCoords(double lat, double lng, double centerLat,
+      double centerLng, double width, double height) {
     const double scale = 14000.0;
     double x = width / 2.0 + (lng - centerLng) * scale * 0.70;
     double y = height / 2.0 - (lat - centerLat) * scale;
@@ -638,7 +706,8 @@ class FlorenceMapPainter extends CustomPainter {
 
     final riverPath = Path();
     riverPath.moveTo(0, height * 0.45);
-    riverPath.cubicTo(width * 0.3, height * 0.42, width * 0.7, height * 0.52, width, height * 0.48);
+    riverPath.cubicTo(width * 0.3, height * 0.42, width * 0.7, height * 0.52,
+        width, height * 0.48);
     canvas.drawPath(riverPath, riverPaint);
 
     // 2. Draw CartoDB radial rings representing Florence bounds
@@ -648,7 +717,8 @@ class FlorenceMapPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     for (int i = 1; i <= 4; i++) {
-      canvas.drawCircle(Offset(width / 2, height / 2), width * 0.15 * i, ringPaint);
+      canvas.drawCircle(
+          Offset(width / 2, height / 2), width * 0.15 * i, ringPaint);
     }
 
     // Florence main grid streets
@@ -657,24 +727,31 @@ class FlorenceMapPainter extends CustomPainter {
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 
-    canvas.drawLine(Offset(0, height * 0.2), Offset(width, height * 0.35), streetPaint);
-    canvas.drawLine(Offset(0, height * 0.75), Offset(width, height * 0.65), streetPaint);
-    canvas.drawLine(Offset(width * 0.25, 0), Offset(width * 0.35, height), streetPaint);
-    canvas.drawLine(Offset(width * 0.75, 0), Offset(width * 0.60, height), streetPaint);
+    canvas.drawLine(
+        Offset(0, height * 0.2), Offset(width, height * 0.35), streetPaint);
+    canvas.drawLine(
+        Offset(0, height * 0.75), Offset(width, height * 0.65), streetPaint);
+    canvas.drawLine(
+        Offset(width * 0.25, 0), Offset(width * 0.35, height), streetPaint);
+    canvas.drawLine(
+        Offset(width * 0.75, 0), Offset(width * 0.60, height), streetPaint);
 
     // 3. Draw Event Pin Targets
-    final guestId = SupabaseClient.instance.currentProfileNotifier.value?.id ?? "";
+    final guestId =
+        SupabaseClient.instance.currentProfileNotifier.value?.id ?? "";
     final requests = SupabaseClient.instance.requestsNotifier.value;
 
     for (var ev in events) {
       final screenPt = _project(ev.latitude, ev.longitude, width, height);
       final req = requests.firstWhere(
         (r) => r.userId == guestId && r.eventId == ev.id,
-        orElse: () => SupabaseParticipationRequest(id: "", userId: "", eventId: "", status: ""),
+        orElse: () => SupabaseParticipationRequest(
+            id: "", userId: "", eventId: "", status: ""),
       );
       final bool isApproved = req.status == "approved";
 
-      final pulseColor = isApproved ? const Color(0x334CAF50) : premiumGold.withOpacity(0.25);
+      final pulseColor =
+          isApproved ? const Color(0x334CAF50) : premiumGold.withOpacity(0.25);
       final coreColor = isApproved ? const Color(0xFF4CAF50) : premiumGold;
 
       // Glow halo
@@ -682,10 +759,13 @@ class FlorenceMapPainter extends CustomPainter {
       // Core dot
       canvas.drawCircle(screenPt, 8.0, Paint()..color = coreColor);
       // Outer ring
-      canvas.drawCircle(screenPt, 8.0, Paint()
-        ..color = Colors.white
-        ..strokeWidth = 1.5
-        ..style = PaintingStyle.stroke);
+      canvas.drawCircle(
+          screenPt,
+          8.0,
+          Paint()
+            ..color = Colors.white
+            ..strokeWidth = 1.5
+            ..style = PaintingStyle.stroke);
     }
   }
 
@@ -734,7 +814,9 @@ class EventFeedCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24)),
                   child: Image.network(
                     event.imageUrl,
                     width: double.infinity,
@@ -752,7 +834,10 @@ class EventFeedCard extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.8)
+                        ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -764,7 +849,8 @@ class EventFeedCard extends StatelessWidget {
                   top: 12,
                   right: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: const BoxDecoration(
                       color: premiumGold,
                       borderRadius: BorderRadius.only(
@@ -809,16 +895,19 @@ class EventFeedCard extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
                           color: premiumGold.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: premiumGold.withOpacity(0.3), width: 0.5),
+                          border: Border.all(
+                              color: premiumGold.withOpacity(0.3), width: 0.5),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: const [
-                            Icon(Icons.verified_user, color: premiumGold, size: 10),
+                            Icon(Icons.verified_user,
+                                color: premiumGold, size: 10),
                             SizedBox(width: 3),
                             Text(
                               "High Trust",
@@ -850,7 +939,8 @@ class EventFeedCard extends StatelessWidget {
 
                   Text(
                     event.description,
-                    style: const TextStyle(fontSize: 12, color: textSecondary, height: 1.4),
+                    style: const TextStyle(
+                        fontSize: 12, color: textSecondary, height: 1.4),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -862,11 +952,15 @@ class EventFeedCard extends StatelessWidget {
                     children: [
                       Text(
                         "${event.currentApprovedCount} of ${event.maxParticipants} couples confirmed",
-                        style: const TextStyle(fontSize: 11, color: premiumGold, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            fontSize: 11,
+                            color: premiumGold,
+                            fontWeight: FontWeight.w600),
                       ),
                       Text(
                         "${(event.tableCompletionPercentage * 100).toInt()}% spots taken",
-                        style: const TextStyle(fontSize: 10, color: textSecondary),
+                        style:
+                            const TextStyle(fontSize: 10, color: textSecondary),
                       )
                     ],
                   ),
@@ -876,7 +970,8 @@ class EventFeedCard extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: event.tableCompletionPercentage,
                       backgroundColor: const Color(0xFF323232),
-                      valueColor: const AlwaysStoppedAnimation<Color>(premiumGold),
+                      valueColor:
+                          const AlwaysStoppedAnimation<Color>(premiumGold),
                       minHeight: 4,
                     ),
                   ),
@@ -927,11 +1022,13 @@ class NotificationsScreen extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.mail_outline, color: textSecondary, size: 48),
+                            Icon(Icons.mail_outline,
+                                color: textSecondary, size: 48),
                             SizedBox(height: 12),
                             Text(
                               "Your private invitations feed is empty.",
-                              style: TextStyle(fontSize: 13, color: textSecondary),
+                              style:
+                                  TextStyle(fontSize: 13, color: textSecondary),
                             ),
                           ],
                         ),
@@ -954,11 +1051,13 @@ class NotificationsScreen extends StatelessWidget {
                                 color: const Color(0xFFC62828),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(Icons.delete, color: Colors.white),
+                              child:
+                                  const Icon(Icons.delete, color: Colors.white),
                             ),
                             child: Card(
                               color: slateSurface,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                               margin: const EdgeInsets.only(bottom: 10),
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
@@ -974,7 +1073,9 @@ class NotificationsScreen extends StatelessWidget {
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
-                                        item.status == "approved" ? Icons.check_circle : Icons.cancel,
+                                        item.status == "approved"
+                                            ? Icons.check_circle
+                                            : Icons.cancel,
                                         color: item.status == "approved"
                                             ? const Color(0xFF4CAF50)
                                             : const Color(0xFFEF5350),
@@ -983,22 +1084,33 @@ class NotificationsScreen extends StatelessWidget {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            item.status == "approved" ? "Invitation Cleared" : "Request Refused",
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: textPrimary),
+                                            item.status == "approved"
+                                                ? "Invitation Cleared"
+                                                : "Request Refused",
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                                color: textPrimary),
                                           ),
                                           Text(
                                             item.status == "approved"
                                                 ? "Status approved for ${item.eventTitle}. Live GPS Coordinates unlocked."
                                                 : "Your application for ${item.eventTitle} was discreetly returned.",
-                                            style: const TextStyle(fontSize: 12, color: textSecondary, height: 1.3),
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                color: textSecondary,
+                                                height: 1.3),
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
                                             item.timestamp,
-                                            style: const TextStyle(fontSize: 10, color: premiumGold),
+                                            style: const TextStyle(
+                                                fontSize: 10,
+                                                color: premiumGold),
                                           ),
                                         ],
                                       ),
@@ -1045,7 +1157,8 @@ class MessagesScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Card(
                 color: slateSurface,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -1054,12 +1167,16 @@ class MessagesScreen extends StatelessWidget {
                       SizedBox(height: 16),
                       Text(
                         "Discreet Conversations",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textPrimary),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: textPrimary),
                       ),
                       SizedBox(height: 8),
                       Text(
                         "Chat circles lock automatically in 'Tablo' custom privacy loops. You can communicate with other couples strictly after both invitations to a shared table are approved by the host.",
-                        style: TextStyle(fontSize: 12, color: textSecondary, height: 1.5),
+                        style: TextStyle(
+                            fontSize: 12, color: textSecondary, height: 1.5),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -1069,12 +1186,14 @@ class MessagesScreen extends StatelessWidget {
               const SizedBox(height: 20),
               const Text(
                 "ACTIVE CHAT LOOPS (0)",
-                style: TextStyle(fontSize: 12, color: textSecondary, letterSpacing: 1),
+                style: TextStyle(
+                    fontSize: 12, color: textSecondary, letterSpacing: 1),
               ),
               const SizedBox(height: 12),
               Card(
                 color: slateSurface.withOpacity(0.5),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
@@ -1086,7 +1205,8 @@ class MessagesScreen extends StatelessWidget {
                           color: Color(0xFF333333),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.lock, color: textSecondary, size: 16),
+                        child: const Icon(Icons.lock,
+                            color: textSecondary, size: 16),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -1095,11 +1215,15 @@ class MessagesScreen extends StatelessWidget {
                           children: const [
                             Text(
                               "Noble Villa Gathering Group",
-                              style: TextStyle(fontWeight: FontWeight.bold, color: textSecondary, fontSize: 14),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: textSecondary,
+                                  fontSize: 14),
                             ),
                             Text(
                               "Chat locked until table acceptance",
-                              style: TextStyle(color: Color(0x80FFA0A0), fontSize: 11),
+                              style: TextStyle(
+                                  color: Color(0x80FFA0A0), fontSize: 11),
                             ),
                           ],
                         ),

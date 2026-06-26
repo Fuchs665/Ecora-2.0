@@ -166,11 +166,15 @@ class SupabaseClient {
     _seedDatabase();
   }
 
-  final ValueNotifier<SupabaseProfile?> currentProfileNotifier = ValueNotifier(null);
-  final ValueNotifier<List<SupabaseProfile>> profilesNotifier = ValueNotifier([]);
+  final ValueNotifier<SupabaseProfile?> currentProfileNotifier =
+      ValueNotifier(null);
+  final ValueNotifier<List<SupabaseProfile>> profilesNotifier =
+      ValueNotifier([]);
   final ValueNotifier<List<SupabaseEvent>> eventsNotifier = ValueNotifier([]);
-  final ValueNotifier<List<SupabaseParticipationRequest>> requestsNotifier = ValueNotifier([]);
-  final ValueNotifier<List<NotificationItem>> notificationsNotifier = ValueNotifier([]);
+  final ValueNotifier<List<SupabaseParticipationRequest>> requestsNotifier =
+      ValueNotifier([]);
+  final ValueNotifier<List<NotificationItem>> notificationsNotifier =
+      ValueNotifier([]);
   final ValueNotifier<int> notificationBadgeNotifier = ValueNotifier(0);
 
   List<SupabaseProfile> _profiles = [];
@@ -203,9 +207,30 @@ class SupabaseClient {
     _profiles = [
       clienteUser,
       hostUser,
-      SupabaseProfile(id: "user-test-789", fullName: "Marcus & Ellen", role: "cliente", age: 29, gender: "Coppia", noShows: 0, participationsCount: 3),
-      SupabaseProfile(id: "user-test-101", fullName: "Isabella", role: "cliente", age: 27, gender: "Donna", noShows: 1, participationsCount: 12),
-      SupabaseProfile(id: "user-test-102", fullName: "Valerio", role: "cliente", age: 34, gender: "Uomo", noShows: 2, participationsCount: 4),
+      SupabaseProfile(
+          id: "user-test-789",
+          fullName: "Marcus & Ellen",
+          role: "cliente",
+          age: 29,
+          gender: "Coppia",
+          noShows: 0,
+          participationsCount: 3),
+      SupabaseProfile(
+          id: "user-test-101",
+          fullName: "Isabella",
+          role: "cliente",
+          age: 27,
+          gender: "Donna",
+          noShows: 1,
+          participationsCount: 12),
+      SupabaseProfile(
+          id: "user-test-102",
+          fullName: "Valerio",
+          role: "cliente",
+          age: 34,
+          gender: "Uomo",
+          noShows: 2,
+          participationsCount: 4),
     ];
 
     const double florenceLat = 43.7695;
@@ -215,11 +240,13 @@ class SupabaseClient {
       SupabaseEvent(
         id: "event-1",
         title: "Golden Velvet Soiree",
-        description: "An ultra-exclusive champagne reception inside Florence's most beautiful private terrace. Designed for open-minded couples looking for meaningful conversations in absolute secrecy. Smart formal attire required.",
+        description:
+            "An ultra-exclusive champagne reception inside Florence's most beautiful private terrace. Designed for open-minded couples looking for meaningful conversations in absolute secrecy. Smart formal attire required.",
         organizerId: hostUser.id,
         latitude: florenceLat + 0.008,
         longitude: florenceLng + 0.006,
-        imageUrl: "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=600",
+        imageUrl:
+            "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=600",
         eventDate: "2026-06-25T21:00:00",
         maxParticipants: 10,
         currentApprovedCount: 8,
@@ -228,11 +255,13 @@ class SupabaseClient {
       SupabaseEvent(
         id: "event-2",
         title: "Midsummer Amber Eyes",
-        description: "Discreet masquerade cocktail party. Strictly limited to 6 couples. Perfect visual atmosphere with glowing amber candles, private lounge, and soft ambient sounds.",
+        description:
+            "Discreet masquerade cocktail party. Strictly limited to 6 couples. Perfect visual atmosphere with glowing amber candles, private lounge, and soft ambient sounds.",
         organizerId: hostUser.id,
         latitude: florenceLat - 0.004,
         longitude: florenceLng - 0.003,
-        imageUrl: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&q=80&w=600",
+        imageUrl:
+            "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&q=80&w=600",
         eventDate: "2026-06-28T22:30:00",
         maxParticipants: 6,
         currentApprovedCount: 5,
@@ -241,11 +270,13 @@ class SupabaseClient {
       SupabaseEvent(
         id: "event-3",
         title: "Shadow Tapestry Meet",
-        description: "Discreet after-party gather for international luxury travelers. Pre-screening mandatory. Perfect security, dark elegant cocktail room, premium gold acoustics.",
+        description:
+            "Discreet after-party gather for international luxury travelers. Pre-screening mandatory. Perfect security, dark elegant cocktail room, premium gold acoustics.",
         organizerId: hostUser.id,
         latitude: florenceLat + 0.015,
         longitude: florenceLng - 0.012,
-        imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=600",
+        imageUrl:
+            "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=600",
         eventDate: "2026-07-02T23:00:00",
         maxParticipants: 12,
         currentApprovedCount: 4,
@@ -254,9 +285,21 @@ class SupabaseClient {
     ];
 
     _requests = [
-      SupabaseParticipationRequest(id: "req-1", userId: "user-test-789", eventId: "event-1", status: "pending"),
-      SupabaseParticipationRequest(id: "req-2", userId: "user-test-101", eventId: "event-1", status: "pending"),
-      SupabaseParticipationRequest(id: "req-3", userId: "user-test-102", eventId: "event-2", status: "pending"),
+      SupabaseParticipationRequest(
+          id: "req-1",
+          userId: "user-test-789",
+          eventId: "event-1",
+          status: "pending"),
+      SupabaseParticipationRequest(
+          id: "req-2",
+          userId: "user-test-101",
+          eventId: "event-1",
+          status: "pending"),
+      SupabaseParticipationRequest(
+          id: "req-3",
+          userId: "user-test-102",
+          eventId: "event-2",
+          status: "pending"),
     ];
 
     _notifications = [];
@@ -281,7 +324,8 @@ class SupabaseClient {
 
     p ??= SupabaseProfile(
       id: "user-random-${DateTime.now().millisecondsSinceEpoch}",
-      fullName: selectedRole == "cliente" ? "Claudio & Maya" : "Noble Club Firenze",
+      fullName:
+          selectedRole == "cliente" ? "Claudio & Maya" : "Noble Club Firenze",
       role: selectedRole,
       age: 35,
       gender: selectedRole == "cliente" ? "Coppia" : "Donna",
@@ -300,20 +344,25 @@ class SupabaseClient {
     currentProfileNotifier.value = null;
   }
 
-  List<SupabaseEvent> getEventsWithinRadius(double userLat, double userLon, double maxDistanceKm) {
+  List<SupabaseEvent> getEventsWithinRadius(
+      double userLat, double userLon, double maxDistanceKm) {
     return _events.where((event) {
-      double dist = calculateHaversineDistance(userLat, userLon, event.latitude, event.longitude);
+      double dist = calculateHaversineDistance(
+          userLat, userLon, event.latitude, event.longitude);
       return dist <= maxDistanceKm;
     }).toList();
   }
 
-  double calculateHaversineDistance(double lat1, double lon1, double lat2, double lon2) {
+  double calculateHaversineDistance(
+      double lat1, double lon1, double lat2, double lon2) {
     const double r = 6371.0;
     double dLat = _toRadians(lat2 - lat1);
     double dLon = _toRadians(lon2 - lon1);
     double a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_toRadians(lat1)) * cos(_toRadians(lat2)) *
-        sin(dLon / 2) * sin(dLon / 2);
+        cos(_toRadians(lat1)) *
+            cos(_toRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
     double c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return r * c;
   }
@@ -323,7 +372,8 @@ class SupabaseClient {
   }
 
   void submitParticipationRequest(String eventId, String userId) {
-    bool exists = _requests.any((req) => req.userId == userId && req.eventId == eventId);
+    bool exists =
+        _requests.any((req) => req.userId == userId && req.eventId == eventId);
     if (!exists) {
       final req = SupabaseParticipationRequest(
         id: "req-${DateTime.now().millisecondsSinceEpoch}",
@@ -341,7 +391,7 @@ class SupabaseClient {
     for (var req in _requests) {
       if (req.id == requestId) {
         updated.add(req.copyWith(status: status));
-        
+
         if (status == "approved") {
           _updateEventApprovedCount(req.eventId, 1);
         }
@@ -352,7 +402,8 @@ class SupabaseClient {
           eventId: req.eventId,
           eventTitle: ev.title,
           status: status,
-          timestamp: "${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}",
+          timestamp:
+              "${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}",
         );
         _notifications.insert(0, notif);
         _notificationBadgeCount++;
@@ -398,8 +449,8 @@ class SupabaseClient {
     required int maxParticipants,
     required String locationName,
   }) {
-    final String actualUrl = (mockImagePath != null && mockImagePath.isNotEmpty) 
-        ? mockImagePath 
+    final String actualUrl = (mockImagePath != null && mockImagePath.isNotEmpty)
+        ? mockImagePath
         : "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&q=80&w=600";
 
     final ev = SupabaseEvent(
@@ -435,7 +486,8 @@ void main() async {
       anonKey: 'sb_publishable_qv2R89l53F8gK_cJ6rS66Q_7TLWe_-B',
     );
   } catch (e) {
-    debugPrint("Supabase initialization caught exception (e.g. offline/mock environment): $e");
+    debugPrint(
+        "Supabase initialization caught exception (e.g. offline/mock environment): $e");
   }
   runApp(const EcoraApp());
 }
@@ -452,12 +504,14 @@ class _EcoraAppState extends State<EcoraApp> {
   void initState() {
     super.initState();
     // Listening to profile logout changes
-    SupabaseClient.instance.currentProfileNotifier.addListener(_profileListener);
+    SupabaseClient.instance.currentProfileNotifier
+        .addListener(_profileListener);
   }
 
   @override
   void dispose() {
-    SupabaseClient.instance.currentProfileNotifier.removeListener(_profileListener);
+    SupabaseClient.instance.currentProfileNotifier
+        .removeListener(_profileListener);
     super.dispose();
   }
 
@@ -510,8 +564,10 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final TextEditingController _emailController = TextEditingController(text: "alex.sofia@private.it");
-  final TextEditingController _passwordController = TextEditingController(text: "••••••••");
+  final TextEditingController _emailController =
+      TextEditingController(text: "alex.sofia@private.it");
+  final TextEditingController _passwordController =
+      TextEditingController(text: "••••••••");
   bool _passwordVisible = false;
   String _selectedRole = "cliente"; // "cliente" or "gestore"
 
@@ -537,7 +593,7 @@ class _AuthScreenState extends State<AuthScreen> {
             color: isSelected ? premiumGold : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
-          alignment: Alignment.Center,
+          alignment: Alignment.center,
           child: Text(
             roleLabel,
             style: TextStyle(
@@ -642,12 +698,15 @@ class _AuthScreenState extends State<AuthScreen> {
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: "Discreet Identifier / Email",
-                  labelStyle: const TextStyle(color: textSecondary, fontSize: 12),
+                  labelStyle:
+                      const TextStyle(color: textSecondary, fontSize: 12),
                   floatingLabelStyle: const TextStyle(color: premiumGold),
-                  prefixIcon: const Icon(Icons.email_outlined, color: premiumGold, size: 20),
+                  prefixIcon: const Icon(Icons.email_outlined,
+                      color: premiumGold, size: 20),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.06)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -664,12 +723,16 @@ class _AuthScreenState extends State<AuthScreen> {
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: "Security Access Key",
-                  labelStyle: const TextStyle(color: textSecondary, fontSize: 12),
+                  labelStyle:
+                      const TextStyle(color: textSecondary, fontSize: 12),
                   floatingLabelStyle: const TextStyle(color: premiumGold),
-                  prefixIcon: const Icon(Icons.lock_outline, color: premiumGold, size: 20),
+                  prefixIcon: const Icon(Icons.lock_outline,
+                      color: premiumGold, size: 20),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _passwordVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      _passwordVisible
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
                       color: premiumGold,
                       size: 20,
                     ),
@@ -681,7 +744,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.06)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -706,7 +770,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   onPressed: () {
                     // Initialize Auth integration
-                    SupabaseClient.instance.login(_emailController.text, _selectedRole);
+                    SupabaseClient.instance
+                        .login(_emailController.text, _selectedRole);
                   },
                   child: const Text(
                     "ACCESS ECO-SYSTEM",

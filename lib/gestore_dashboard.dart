@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'main.dart';
 import 'user_profile_page.dart';
+import 'event_details_page.dart';
 
 class GestoreDashboard extends StatefulWidget {
   const GestoreDashboard({Key? key}) : super(key: key);
@@ -11,7 +12,8 @@ class GestoreDashboard extends StatefulWidget {
 }
 
 class _GestoreDashboardState extends State<GestoreDashboard> {
-  int _selectedTab = 0; // 0 = Owner Feed, 1 = Guest Inspector, 3 = Chats/Messages, 4 = Club Profile
+  int _selectedTab =
+      0; // 0 = Owner Feed, 1 = Guest Inspector, 3 = Chats/Messages, 4 = Club Profile
   bool _showCreateForm = false;
 
   @override
@@ -27,7 +29,8 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
     return ValueListenableBuilder<List<SupabaseParticipationRequest>>(
       valueListenable: SupabaseClient.instance.requestsNotifier,
       builder: (context, requests, _) {
-        final pendingCount = requests.where((r) => r.status == 'pending').length;
+        final pendingCount =
+            requests.where((r) => r.status == 'pending').length;
 
         // Build list of widgets corresponding to the tabs
         final List<Widget> _subScreens = [
@@ -76,7 +79,8 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
                   },
                 )
               : IndexedStack(
-                  index: _selectedTab == 2 ? 0 : _selectedTab, // Safeguard index 2
+                  index:
+                      _selectedTab == 2 ? 0 : _selectedTab, // Safeguard index 2
                   children: _subScreens,
                 ),
           bottomNavigationBar: Container(
@@ -180,7 +184,8 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
             elevation: 4,
             child: const Icon(Icons.add, size: 28),
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerDocked,
         );
       },
     );
@@ -240,13 +245,15 @@ class ClubDashboardScreen extends StatelessWidget {
                   color: const Color(0x2AA83232),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Colors.red.withOpacity(0.5), width: 1),
+                    side: BorderSide(
+                        color: Colors.red.withOpacity(0.5), width: 1),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        const Icon(Icons.new_releases, color: Colors.red, size: 28),
+                        const Icon(Icons.new_releases,
+                            color: Colors.red, size: 28),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -254,11 +261,15 @@ class ClubDashboardScreen extends StatelessWidget {
                             children: [
                               const Text(
                                 "PENDING ACCESS CLEARANCE",
-                                style: TextStyle(fontWeight: FontWeight.bold, color: textPrimary, fontSize: 13),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: textPrimary,
+                                    fontSize: 13),
                               ),
                               Text(
                                 "$pendingCount guests are waiting for trust & safety screening.",
-                                style: const TextStyle(color: textSecondary, fontSize: 12),
+                                style: const TextStyle(
+                                    color: textSecondary, fontSize: 12),
                               ),
                             ],
                           ),
@@ -274,17 +285,24 @@ class ClubDashboardScreen extends StatelessWidget {
 
             const Text(
               "YOUR ACTIVE SELECTION TABLES",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: premiumGold, letterSpacing: 1.0),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: premiumGold,
+                  letterSpacing: 1.0),
             ),
             const SizedBox(height: 12),
 
             // Active list of table events for the club host
             ...events.map((event) {
-              final eventInquiries = requests.where((r) => r.eventId == event.id && r.status == 'pending').length;
+              final eventInquiries = requests
+                  .where((r) => r.eventId == event.id && r.status == 'pending')
+                  .length;
 
               return Card(
                 color: slateSurface,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 margin: const EdgeInsets.only(bottom: 12),
                 child: InkWell(
                   onTap: () {
@@ -321,18 +339,27 @@ class ClubDashboardScreen extends StatelessWidget {
                             children: [
                               Text(
                                 event.title,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textPrimary),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: textPrimary),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 "${event.currentApprovedCount} / ${event.maxParticipants} couples checked-in",
-                                style: const TextStyle(fontSize: 12, color: premiumGold, fontWeight: FontWeight.w600),
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    color: premiumGold,
+                                    fontWeight: FontWeight.w600),
                               ),
                               if (eventInquiries > 0) ...[
                                 const SizedBox(height: 4),
                                 Text(
                                   "$eventInquiries pending inquiries",
-                                  style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ]
                             ],
@@ -371,20 +398,30 @@ class RequestInspectorScreen extends StatefulWidget {
 class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
   SupabaseParticipationRequest? _selectedRequestToReview;
 
-  void _showSafetyProfileDialog(BuildContext context, SupabaseParticipationRequest req, SupabaseProfile applicant, SupabaseEvent eventObj) {
+  void _showSafetyProfileDialog(
+      BuildContext context,
+      SupabaseParticipationRequest req,
+      SupabaseProfile applicant,
+      SupabaseEvent eventObj) {
     showDialog(
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
           backgroundColor: slateSurface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: const [
               Icon(Icons.shield, color: premiumGold),
               SizedBox(width: 10),
               Text(
                 "TRUST & SAFETY PROFILE",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.0, color: textPrimary, fontFamily: 'Serif'),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    letterSpacing: 1.0,
+                    color: textPrimary,
+                    fontFamily: 'Serif'),
               ),
             ],
           ),
@@ -394,7 +431,10 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
             children: [
               Text(
                 applicant.fullName,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: textPrimary),
+                style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: textPrimary),
               ),
               Text(
                 "Applying for: ${eventObj.title}",
@@ -413,24 +453,40 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                   children: [
                     Column(
                       children: [
-                        const Text("GENDER", style: TextStyle(fontSize: 9, color: textSecondary)),
-                        Text(applicant.gender, style: const TextStyle(fontWeight: FontWeight.bold, color: textPrimary, fontSize: 13)),
+                        const Text("GENDER",
+                            style:
+                                TextStyle(fontSize: 9, color: textSecondary)),
+                        Text(applicant.gender,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: textPrimary,
+                                fontSize: 13)),
                       ],
                     ),
                     Column(
                       children: [
-                        const Text("AGE", style: TextStyle(fontSize: 9, color: textSecondary)),
-                        Text("${applicant.age} yrs", style: const TextStyle(fontWeight: FontWeight.bold, color: textPrimary, fontSize: 13)),
+                        const Text("AGE",
+                            style:
+                                TextStyle(fontSize: 9, color: textSecondary)),
+                        Text("${applicant.age} yrs",
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: textPrimary,
+                                fontSize: 13)),
                       ],
                     ),
                     Column(
                       children: [
-                        const Text("NO-SHOWS", style: TextStyle(fontSize: 9, color: textSecondary)),
+                        const Text("NO-SHOWS",
+                            style:
+                                TextStyle(fontSize: 9, color: textSecondary)),
                         Text(
                           "${applicant.noShows}",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: applicant.noShows > 0 ? Colors.red : Colors.green,
+                            color: applicant.noShows > 0
+                                ? Colors.red
+                                : Colors.green,
                             fontSize: 14,
                           ),
                         ),
@@ -448,7 +504,8 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.favorite_border, color: premiumGold, size: 16),
+                    const Icon(Icons.favorite_border,
+                        color: premiumGold, size: 16),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -457,7 +514,9 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                             : "Alert: Profile has historic no-shows.",
                         style: TextStyle(
                           fontSize: 11,
-                          color: applicant.noShows == 0 ? Colors.white70 : Colors.red,
+                          color: applicant.noShows == 0
+                              ? Colors.white70
+                              : Colors.red,
                         ),
                       ),
                     ),
@@ -468,26 +527,33 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
           ),
           actions: [
             TextButton(
-              style: TextButton.styleFrom(foregroundColor: const Color(0xFFFF8A80)),
+              style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFFFF8A80)),
               onPressed: () {
-                SupabaseClient.instance.reviewParticipationRequest(req.id, "rejected");
+                SupabaseClient.instance
+                    .reviewParticipationRequest(req.id, "rejected");
                 Navigator.of(ctx).pop();
                 setState(() {
                   _selectedRequestToReview = null;
                 });
               },
-              child: const Text("DISMISS/REJECT", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text("DISMISS/REJECT",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32), foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E7D32),
+                  foregroundColor: Colors.white),
               onPressed: () {
-                SupabaseClient.instance.reviewParticipationRequest(req.id, "approved");
+                SupabaseClient.instance
+                    .reviewParticipationRequest(req.id, "approved");
                 Navigator.of(ctx).pop();
                 setState(() {
                   _selectedRequestToReview = null;
                 });
               },
-              child: const Text("APPROVE GUEST", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text("APPROVE GUEST",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -497,7 +563,8 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pendingRequests = widget.requests.where((r) => r.status == 'pending').toList();
+    final pendingRequests =
+        widget.requests.where((r) => r.status == 'pending').toList();
 
     return Scaffold(
       body: SafeArea(
@@ -527,11 +594,13 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.check_circle_outline, color: premiumGold, size: 54),
+                            Icon(Icons.check_circle_outline,
+                                color: premiumGold, size: 54),
                             SizedBox(height: 16),
                             Text(
                               "All guest loops cleared. Perfect high trust table alignment.",
-                              style: TextStyle(fontSize: 13, color: textSecondary),
+                              style:
+                                  TextStyle(fontSize: 13, color: textSecondary),
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -541,8 +610,10 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                         itemCount: pendingRequests.length,
                         itemBuilder: (context, index) {
                           final req = pendingRequests[index];
-                          final applicant = SupabaseClient.instance.getProfileById(req.userId);
-                          final eventObj = widget.events.firstWhere((e) => e.id == req.eventId);
+                          final applicant = SupabaseClient.instance
+                              .getProfileById(req.userId);
+                          final eventObj = widget.events
+                              .firstWhere((e) => e.id == req.eventId);
 
                           if (applicant == null) return const SizedBox.shrink();
 
@@ -555,19 +626,26 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           applicant.fullName,
-                                          style: const TextStyle(fontWeight: FontWeight.bold, color: textPrimary, fontSize: 14),
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: textPrimary,
+                                              fontSize: 14),
                                         ),
                                         Text(
                                           "Applied to: ${eventObj.title}",
-                                          style: const TextStyle(fontSize: 12, color: premiumGold),
+                                          style: const TextStyle(
+                                              fontSize: 12, color: premiumGold),
                                         ),
                                         Text(
                                           "Gender: ${applicant.gender}  •  Age: ${applicant.age} anni",
-                                          style: const TextStyle(fontSize: 11, color: textSecondary),
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              color: textSecondary),
                                         )
                                       ],
                                     ),
@@ -576,15 +654,20 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: premiumGold,
                                       foregroundColor: matteDark,
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 0),
                                       minimumSize: const Size(0, 32),
                                     ),
                                     onPressed: () {
-                                      _showSafetyProfileDialog(context, req, applicant, eventObj);
+                                      _showSafetyProfileDialog(
+                                          context, req, applicant, eventObj);
                                     },
                                     child: const Text(
                                       "SCREEN",
-                                      style: TextStyle(color: matteDark, fontWeight: FontWeight.bold, fontSize: 11),
+                                      style: TextStyle(
+                                          color: matteDark,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11),
                                     ),
                                   ),
                                 ],
@@ -673,11 +756,13 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: "Gathering Title (e.g. Amber Masked Ball)",
-                  labelStyle: const TextStyle(color: textSecondary, fontSize: 12),
+                  labelStyle:
+                      const TextStyle(color: textSecondary, fontSize: 12),
                   floatingLabelStyle: const TextStyle(color: premiumGold),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.06)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -695,11 +780,13 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 maxLines: 4,
                 decoration: InputDecoration(
                   labelText: "Discreet Concept / Entry Protocol",
-                  labelStyle: const TextStyle(color: textSecondary, fontSize: 12),
+                  labelStyle:
+                      const TextStyle(color: textSecondary, fontSize: 12),
                   floatingLabelStyle: const TextStyle(color: premiumGold),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.06)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -715,12 +802,15 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 controller: _locationController,
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 decoration: InputDecoration(
-                  labelText: "Private Location Address (Disclosed strictly on approval)",
-                  labelStyle: const TextStyle(color: textSecondary, fontSize: 12),
+                  labelText:
+                      "Private Location Address (Disclosed strictly on approval)",
+                  labelStyle:
+                      const TextStyle(color: textSecondary, fontSize: 12),
                   floatingLabelStyle: const TextStyle(color: premiumGold),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.06)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -753,7 +843,11 @@ class _CreateEventFormState extends State<CreateEventForm> {
               // Mock Image List Selection
               const Text(
                 "EVENT COVER (Supabase Storage upload simulation)",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: premiumGold, letterSpacing: 1.0),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    color: premiumGold,
+                    letterSpacing: 1.0),
               ),
               const SizedBox(height: 10),
               Row(
@@ -781,7 +875,8 @@ class _CreateEventFormState extends State<CreateEventForm> {
                         child: Image.network(
                           url,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, _, __) => Container(color: Colors.grey),
+                          errorBuilder: (context, _, __) =>
+                              Container(color: Colors.grey),
                         ),
                       ),
                     ),
@@ -797,13 +892,17 @@ class _CreateEventFormState extends State<CreateEventForm> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: premiumGold,
                     foregroundColor: matteDark,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24)),
                   ),
                   onPressed: () {
-                    if (_titleController.text.isNotEmpty && _locationController.text.isNotEmpty) {
+                    if (_titleController.text.isNotEmpty &&
+                        _locationController.text.isNotEmpty) {
                       // Seed coordinates inside Florence
-                      final double rndLat = (Random().nextDouble() - 0.5) * 0.03;
-                      final double rndLng = (Random().nextDouble() - 0.5) * 0.03;
+                      final double rndLat =
+                          (Random().nextDouble() - 0.5) * 0.03;
+                      final double rndLng =
+                          (Random().nextDouble() - 0.5) * 0.03;
                       final double mockLat = 43.7695 + rndLat;
                       final double mockLng = 11.2558 + rndLng;
 
@@ -823,7 +922,10 @@ class _CreateEventFormState extends State<CreateEventForm> {
                   },
                   child: const Text(
                     "UPLOAD EVENT TO ECO-SYSTEM",
-                    style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5, fontSize: 12),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        fontSize: 12),
                   ),
                 ),
               )
@@ -854,12 +956,16 @@ class ClubMessagesScreen extends StatelessWidget {
                 SizedBox(height: 16),
                 Text(
                   "Club Lounges Secured",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textPrimary),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: textPrimary),
                 ),
                 SizedBox(height: 8),
                 Text(
                   "Private channels will open for confirmed matching attendees once requests are verified.",
-                  style: TextStyle(fontSize: 12, color: textSecondary, height: 1.5),
+                  style: TextStyle(
+                      fontSize: 12, color: textSecondary, height: 1.5),
                   textAlign: TextAlign.center,
                 ),
               ],
