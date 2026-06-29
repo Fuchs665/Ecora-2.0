@@ -1215,6 +1215,32 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: premiumGold, width: 1.5),
+                      shape: RoundedCornerShape(24),
+                      foregroundColor: premiumGold,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isLogin = false;
+                        _errorMessage = null;
+                      });
+                    },
+                    child: const Text(
+                      "REGISTRATI / CREA ACCOUNT",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
               ] else ...[
                 // --- REGISTRATION FORM FIELDS ---
                 // 1. Nickname
@@ -1402,13 +1428,39 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                           )
                         : const Text(
-                            "ISCRIVITI",
+                            "REGISTRATI ORA",
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 12,
                               letterSpacing: 1.5,
                             ),
                           ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: premiumGold, width: 1.5),
+                      shape: RoundedCornerShape(24),
+                      foregroundColor: premiumGold,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isLogin = true;
+                        _errorMessage = null;
+                      });
+                    },
+                    child: const Text(
+                      "TORNA AL LOGIN",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
                   ),
                 ),
               ],
