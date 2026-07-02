@@ -99,6 +99,47 @@ void main() {
     });
   });
 
+  group('SupabaseProfile.fromRow', () {
+    test('maps real profiles row and derives gender from profile_type', () {
+      final p = SupabaseProfile.fromRow({
+        'id': 'u-1',
+        'nickname': 'AlexSofia',
+        'role': 'gestore',
+        'profile_type': 'Coppia U/D',
+        'privacy_level': 'ghost',
+        'generic_location': 'Firenze',
+        'is_verified': false,
+      });
+      expect(p.id, 'u-1');
+      expect(p.fullName, 'AlexSofia');
+      expect(p.role, 'gestore');
+      expect(p.gender, 'Coppia');
+      expect(p.profileType, 'Coppia U/D');
+      expect(p.privacyLevel, 'ghost');
+    });
+
+    test('null nickname/role/profile_type fall back to safe defaults', () {
+      final p = SupabaseProfile.fromRow({'id': 'u-2'});
+      expect(p.fullName, 'Utente Anonimo');
+      expect(p.role, 'cliente');
+      expect(p.gender, 'Coppia');
+      expect(p.profileType, isNull);
+    });
+
+    test('single profile types derive Donna/Uomo', () {
+      expect(
+        SupabaseProfile.fromRow(
+            {'id': 'x', 'profile_type': 'Donna Singola'}).gender,
+        'Donna',
+      );
+      expect(
+        SupabaseProfile.fromRow(
+            {'id': 'x', 'profile_type': 'Uomo Singolo'}).gender,
+        'Uomo',
+      );
+    });
+  });
+
   group('SupabaseProfile', () {
     test('copyWith updates only requested fields', () {
       final p = SupabaseProfile(

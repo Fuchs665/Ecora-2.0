@@ -60,6 +60,32 @@ class SupabaseProfile {
       privacyLevel: privacyLevel ?? this.privacyLevel,
     );
   }
+
+  /// Maps a row from the real `profiles` table.
+  /// age/gender are not stored in the DB yet: gender is derived from
+  /// profile_type, age uses a neutral placeholder.
+  factory SupabaseProfile.fromRow(Map<String, dynamic> row) {
+    final String? profileType = row['profile_type']?.toString();
+    final String gender;
+    if (profileType == null) {
+      gender = 'Coppia';
+    } else if (profileType.contains('Coppia')) {
+      gender = 'Coppia';
+    } else if (profileType.contains('Donna')) {
+      gender = 'Donna';
+    } else {
+      gender = 'Uomo';
+    }
+    return SupabaseProfile(
+      id: row['id']?.toString() ?? '',
+      fullName: row['nickname']?.toString() ?? 'Utente Anonimo',
+      role: row['role']?.toString() ?? 'cliente',
+      age: 30,
+      gender: gender,
+      profileType: profileType,
+      privacyLevel: row['privacy_level']?.toString(),
+    );
+  }
 }
 
 class SupabaseEvent {
@@ -342,33 +368,6 @@ class SupabaseClient {
     notificationBadgeNotifier.value = _notificationBadgeCount;
   }
 
-  void login(String email, String selectedRole) {
-    SupabaseProfile? p;
-    for (var profile in _profiles) {
-      if (profile.role == selectedRole) {
-        p = profile;
-        break;
-      }
-    }
-
-    p ??= SupabaseProfile(
-      id: "user-random-${DateTime.now().millisecondsSinceEpoch}",
-      fullName:
-          selectedRole == "cliente" ? "Claudio & Maya" : "Noble Club Firenze",
-      role: selectedRole,
-      age: 35,
-      gender: selectedRole == "cliente" ? "Coppia" : "Donna",
-      noShows: 0,
-      participationsCount: selectedRole == "cliente" ? 2 : 12,
-    );
-
-    if (!_profiles.any((profile) => profile.id == p!.id)) {
-      _profiles.add(p);
-      profilesNotifier.value = List.from(_profiles);
-    }
-    currentProfileNotifier.value = p;
-  }
-
   void addProfile(SupabaseProfile p) {
     if (!_profiles.any((profile) => profile.id == p.id)) {
       _profiles.add(p);
@@ -396,8 +395,40 @@ class SupabaseClient {
     }
   }
 
-  void logout() {
+  Future<void> logout() async {
+    // Prima si sblocca la UI, poi si revoca la sessione in rete:
+    // la chiamata HTTP non deve mai tenere l'utente bloccato sulla schermata.
     currentProfileNotifier.value = null;
+    try {
+      await Supabase.instance.client.auth
+          .signOut(scope: SignOutScope.local);
+    } catch (e) {
+      debugPrint("Errore durante il logout da Supabase: $e");
+    }
+  }
+
+  /// Ripristina la sessione Supabase persistita (se presente) e carica
+  /// il profilo reale, così l'utente non deve rifare il login a ogni avvio.
+  Future<void> restoreSession() async {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session == null) return;
+
+      final row = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .eq('id', session.user.id)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 5));
+
+      if (row != null) {
+        final prof = SupabaseProfile.fromRow(Map<String, dynamic>.from(row));
+        addProfile(prof);
+        currentProfileNotifier.value = prof;
+      }
+    } catch (e) {
+      debugPrint("Errore ripristino sessione: $e");
+    }
   }
 
   List<SupabaseEvent> getEventsWithinRadius(
@@ -541,6 +572,7 @@ void main() async {
       url: 'https://fswzykzclfrpzlufjhfg.supabase.co',
       anonKey: 'sb_publishable_qv2R89l53F8gK_cJ6rS66Q_7TLWe_-B',
     );
+    await SupabaseClient.instance.restoreSession();
   } catch (e) {
     debugPrint(
         "Supabase initialization caught exception (e.g. offline/mock environment): $e");
@@ -787,14 +819,12 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isLogin = true;
   bool _isLoading = false;
   String? _errorMessage;
+  String? _infoMessage;
 
   // Login Controllers
-  final TextEditingController _emailController =
-      TextEditingController(text: "alex.sofia@private.it");
-  final TextEditingController _passwordController =
-      TextEditingController(text: "••••••••");
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _passwordVisible = false;
-  String _selectedRole = "cliente"; // "cliente" or "gestore"
 
   // Registration Controllers
   final TextEditingController _regNicknameController = TextEditingController();
@@ -818,45 +848,14 @@ class _AuthScreenState extends State<AuthScreen> {
   };
   String? _selectedPrivacyLevel;
 
-  Widget _buildRoleButton(String roleLabel, String roleValue) {
-    final isSelected = _selectedRole == roleValue;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedRole = roleValue;
-            if (_selectedRole == "cliente") {
-              _emailController.text = "alex.sofia@private.it";
-              _passwordController.text = "••••••••";
-            } else {
-              _emailController.text = "villa.secret@club.it";
-              _passwordController.text = "••••••••";
-            }
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? premiumGold : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            roleLabel,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
-              color: isSelected ? matteDark : textSecondary,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   String _parseSupabaseError(dynamic error) {
     final errStr = error.toString().toLowerCase();
-    if (errStr.contains('already registered') ||
+    if (errStr.contains('invalid login credentials') ||
+        errStr.contains('invalid_credentials')) {
+      return "Credenziali non valide.";
+    } else if (errStr.contains('email not confirmed')) {
+      return "Email non ancora confermata. Controlla la tua casella di posta.";
+    } else if (errStr.contains('already registered') ||
         errStr.contains('already in use') ||
         errStr.contains('user_already_exists')) {
       return "Email già in uso. Prova a fare il login.";
@@ -886,88 +885,65 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _infoMessage = null;
     });
 
     try {
-      // Se è uno dei profili di test rapido, usiamo la simulazione istantanea
-      if (email == "alex.sofia@private.it" ||
-          email == "villa.secret@club.it" ||
-          password == "••••••••") {
-        SupabaseClient.instance.login(email, _selectedRole);
+      final response = await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = response.user;
+      if (user == null) {
+        if (!mounted) return;
+        setState(() {
+          _errorMessage = "Credenziali non valide.";
+        });
         return;
       }
 
-      // Tentativo reale con Supabase Auth
-      try {
-        final response = await Supabase.instance.client.auth.signInWithPassword(
-          email: email,
-          password: password,
+      Map<String, dynamic>? profileData = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .eq('id', user.id)
+          .maybeSingle();
+
+      // Ripara gli account creati prima della policy di INSERT sui profili:
+      // se manca la riga profilo, la creiamo ora con valori minimi.
+      // Upsert con ignoreDuplicates evita il conflitto se la riga esiste
+      // ma non era leggibile per un problema transitorio.
+      if (profileData == null) {
+        final fallbackNickname = email.split('@').first;
+        await Supabase.instance.client.from('profiles').upsert(
+          {
+            'id': user.id,
+            'nickname': fallbackNickname,
+            'role': 'cliente',
+          },
+          onConflict: 'id',
+          ignoreDuplicates: true,
         );
-
-        if (response.user != null) {
-          final userId = response.user!.id;
-
-          try {
-            final profileData = await Supabase.instance.client
-                .from('profiles')
-                .select()
-                .eq('id', userId)
-                .maybeSingle();
-
-            if (profileData != null) {
-              final String role = profileData['role'] ?? 'cliente';
-              final String nickname = profileData['nickname'] ?? 'Utente Anonimo';
-
-              final prof = SupabaseProfile(
-                id: userId,
-                fullName: nickname,
-                role: role,
-                age: 30,
-                gender: 'Coppia',
-                noShows: 0,
-                participationsCount: 1,
-                profileType: profileData['profile_type'],
-                privacyLevel: profileData['privacy_level'],
-              );
-
-              SupabaseClient.instance.addProfile(prof);
-              SupabaseClient.instance.currentProfileNotifier.value = prof;
-              return;
-            }
-          } catch (dbErr) {
-            debugPrint("Errore recupero riga profilo reale: $dbErr");
-          }
-
-          final prof = SupabaseProfile(
-            id: userId,
-            fullName: email.split('@').first,
-            role: _selectedRole,
-            age: 30,
-            gender: 'Coppia',
-            noShows: 0,
-            participationsCount: 1,
-          );
-          SupabaseClient.instance.addProfile(prof);
-          SupabaseClient.instance.currentProfileNotifier.value = prof;
-        }
-      } catch (authErr) {
-        debugPrint("Errore Supabase Auth reale: $authErr");
-
-        if (authErr.toString().contains('not initialized') ||
-            authErr.toString().contains('Null check operator') ||
-            authErr.toString().contains('SocketException')) {
-          // Fallback offline su simulazione
-          SupabaseClient.instance.login(email, _selectedRole);
-          return;
-        }
-
-        setState(() {
-          _errorMessage = "Credenziali non valide o errore di rete.";
-        });
+        profileData = await Supabase.instance.client
+            .from('profiles')
+            .select()
+            .eq('id', user.id)
+            .maybeSingle();
+        profileData ??= {
+          'id': user.id,
+          'nickname': fallbackNickname,
+          'role': 'cliente',
+        };
       }
+
+      final prof =
+          SupabaseProfile.fromRow(Map<String, dynamic>.from(profileData));
+      SupabaseClient.instance.addProfile(prof);
+      SupabaseClient.instance.currentProfileNotifier.value = prof;
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _errorMessage = "Errore durante l'accesso: ${e.toString()}";
+        _errorMessage = _parseSupabaseError(e);
       });
     } finally {
       if (mounted) {
@@ -1039,6 +1015,7 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _infoMessage = null;
     });
 
     try {
@@ -1051,6 +1028,19 @@ class _AuthScreenState extends State<AuthScreen> {
       final user = response.user;
       if (user == null) {
         throw Exception("Impossibile creare l'utente.");
+      }
+
+      // Con la conferma email attiva non esiste ancora una sessione:
+      // la riga profilo verrà creata al primo login (percorso di riparazione).
+      if (response.session == null) {
+        if (!mounted) return;
+        setState(() {
+          _isLogin = true;
+          _errorMessage = null;
+          _infoMessage =
+              "Registrazione riuscita! Controlla la tua email per confermare l'account, poi accedi.";
+        });
+        return;
       }
 
       final String userId = user.id;
@@ -1088,31 +1078,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
     } catch (e) {
       debugPrint("Errore completo durante la registrazione: $e");
-      String friendlyError = _parseSupabaseError(e);
-
-      if (e.toString().contains('not initialized') ||
-          e.toString().contains('Null check operator') ||
-          e.toString().contains('SocketException')) {
-        // Fallback offline / mock simulator
-        final mockUserId = "user-mock-${DateTime.now().millisecondsSinceEpoch}";
-        final mockProfile = SupabaseProfile(
-          id: mockUserId,
-          fullName: nickname,
-          role: 'cliente',
-          age: 30,
-          gender: profileType.contains('Coppia') ? 'Coppia' : (profileType.contains('Donna') ? 'Donna' : 'Uomo'),
-          noShows: 0,
-          participationsCount: 0,
-          profileType: profileType,
-          privacyLevel: privacyLevel,
-        );
-        SupabaseClient.instance.addProfile(mockProfile);
-        SupabaseClient.instance.currentProfileNotifier.value = mockProfile;
-        return;
-      }
-
       setState(() {
-        _errorMessage = friendlyError;
+        _errorMessage = _parseSupabaseError(e);
       });
     } finally {
       if (mounted) {
@@ -1183,33 +1150,6 @@ class _AuthScreenState extends State<AuthScreen> {
 
               // --- FORM WRAPPER ---
               if (_isLogin) ...[
-                // --- ACCOUNT ROLE GATE SELECTOR ---
-                const Text(
-                  "Io sono",
-                  style: TextStyle(
-                    fontSize: 11,
-                    letterSpacing: 1.0,
-                    color: premiumGold,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: slateSurface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.04)),
-                  ),
-                  child: Row(
-                    children: [
-                      _buildRoleButton("CLIENTE / COPPIA", "cliente"),
-                      _buildRoleButton("GESTORE / CLUB", "gestore"),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
                 // --- LOGIN EMAIL ---
                 TextField(
                   controller: _emailController,
@@ -1322,6 +1262,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       setState(() {
                         _isLogin = false;
                         _errorMessage = null;
+                        _infoMessage = null;
                       });
                     },
                     child: const Text(
@@ -1596,6 +1537,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       setState(() {
                         _isLogin = true;
                         _errorMessage = null;
+                        _infoMessage = null;
                       });
                     },
                     child: const Text(
@@ -1624,6 +1566,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       setState(() {
                         _isLogin = !_isLogin;
                         _errorMessage = null;
+                        _infoMessage = null;
                       });
                     },
                     child: Text(
@@ -1658,6 +1601,35 @@ class _AuthScreenState extends State<AuthScreen> {
                           _errorMessage!,
                           style: const TextStyle(
                             color: Colors.redAccent,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // --- INFO PANEL INDICATOR (esiti positivi, es. email di conferma) ---
+              if (_infoMessage != null) ...[
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: premiumGold.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: premiumGold.withOpacity(0.35)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle_outline,
+                          color: premiumGold, size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _infoMessage!,
+                          style: const TextStyle(
+                            color: premiumGold,
                             fontSize: 12,
                           ),
                         ),
