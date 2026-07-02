@@ -193,6 +193,16 @@ class SupabaseParticipationRequest {
       status: status ?? this.status,
     );
   }
+
+  /// Maps a row from the real `event_requests` table.
+  factory SupabaseParticipationRequest.fromRow(Map<String, dynamic> row) {
+    return SupabaseParticipationRequest(
+      id: row['id']?.toString() ?? '',
+      userId: row['user_id']?.toString() ?? '',
+      eventId: row['event_id']?.toString() ?? '',
+      status: row['status']?.toString() ?? 'pending',
+    );
+  }
 }
 
 class NotificationItem {
@@ -458,62 +468,95 @@ class SupabaseClient {
     return degree * pi / 180.0;
   }
 
-  void submitParticipationRequest(String eventId, String userId) {
-    bool exists =
-        _requests.any((req) => req.userId == userId && req.eventId == eventId);
-    if (!exists) {
-      final req = SupabaseParticipationRequest(
-        id: "req-${DateTime.now().millisecondsSinceEpoch}",
-        userId: userId,
-        eventId: eventId,
-        status: "pending",
-      );
-      _requests.add(req);
+  /// Carica le richieste inviate dall'utente corrente (lato cliente),
+  /// per colorare la mappa e gli stati degli eventi. Popola requestsNotifier.
+  Future<void> fetchMyRequests() async {
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return;
+
+      final rows = await Supabase.instance.client
+          .from('event_requests')
+          .select()
+          .eq('user_id', uid);
+      _requests = (rows as List)
+          .map((r) => SupabaseParticipationRequest.fromRow(
+              Map<String, dynamic>.from(r as Map)))
+          .toList();
       requestsNotifier.value = List.from(_requests);
+    } catch (e) {
+      debugPrint("Errore nel recupero delle richieste dell'utente: $e");
     }
   }
 
-  void reviewParticipationRequest(String requestId, String status) {
-    List<SupabaseParticipationRequest> updated = [];
-    for (var req in _requests) {
-      if (req.id == requestId) {
-        updated.add(req.copyWith(status: status));
+  /// Carica le richieste pendenti per gli eventi ospitati dal gestore
+  /// corrente, insieme ai profili dei richiedenti (per la consolle di
+  /// valutazione). Popola requestsNotifier.
+  Future<void> fetchHostRequests() async {
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return;
 
-        if (status == "approved") {
-          _updateEventApprovedCount(req.eventId, 1);
+      final eventRows = await Supabase.instance.client
+          .from('events')
+          .select('id')
+          .eq('host_id', uid);
+      final eventIds =
+          (eventRows as List).map((r) => r['id'].toString()).toList();
+      if (eventIds.isEmpty) {
+        _requests = [];
+        requestsNotifier.value = [];
+        return;
+      }
+
+      final reqRows = await Supabase.instance.client
+          .from('event_requests')
+          .select()
+          .in_('event_id', eventIds);
+      final requests = (reqRows as List)
+          .map((r) => SupabaseParticipationRequest.fromRow(
+              Map<String, dynamic>.from(r as Map)))
+          .toList();
+
+      // Profili dei richiedenti: caricati PRIMA di notificare la UI,
+      // così getProfileById trova sempre il profilo in cache.
+      final userIds = requests.map((r) => r.userId).toSet().toList();
+      if (userIds.isNotEmpty) {
+        final profRows = await Supabase.instance.client
+            .from('profiles')
+            .select()
+            .in_('id', userIds);
+        for (final row in (profRows as List)) {
+          final prof =
+              SupabaseProfile.fromRow(Map<String, dynamic>.from(row as Map));
+          _profiles.removeWhere((p) => p.id == prof.id);
+          _profiles.add(prof);
         }
-
-        final ev = _events.firstWhere((e) => e.id == req.eventId);
-        final notif = NotificationItem(
-          id: "notif-${DateTime.now().millisecondsSinceEpoch}",
-          eventId: req.eventId,
-          eventTitle: ev.title,
-          status: status,
-          timestamp:
-              "${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}",
-        );
-        _notifications.insert(0, notif);
-        _notificationBadgeCount++;
-        notificationsNotifier.value = List.from(_notifications);
-        notificationBadgeNotifier.value = _notificationBadgeCount;
-      } else {
-        updated.add(req);
+        profilesNotifier.value = List.from(_profiles);
       }
+
+      _requests = requests;
+      requestsNotifier.value = List.from(_requests);
+    } catch (e) {
+      debugPrint("Errore nel recupero delle richieste reali: $e");
     }
-    _requests = updated;
-    requestsNotifier.value = List.from(_requests);
   }
 
-  void _updateEventApprovedCount(String eventId, int increment) {
-    _events = _events.map((ev) {
-      if (ev.id == eventId) {
-        int nextVal = ev.currentApprovedCount + increment;
-        if (nextVal > ev.maxParticipants) nextVal = ev.maxParticipants;
-        return ev.copyWith(currentApprovedCount: nextVal);
-      }
-      return ev;
-    }).toList();
-    eventsNotifier.value = List.from(_events);
+  /// Approva o rifiuta una richiesta sulla tabella reale, poi riallinea
+  /// richieste ed eventi (approved_count). Ritorna null se ok.
+  Future<String?> reviewParticipationRequest(
+      String requestId, String status) async {
+    try {
+      await Supabase.instance.client
+          .from('event_requests')
+          .update({'status': status}).eq('id', requestId);
+      await fetchHostRequests();
+      await fetchEvents();
+      return null;
+    } catch (e) {
+      debugPrint("Errore nella revisione della richiesta: $e");
+      return "Operazione non riuscita. Riprova.";
+    }
   }
 
   void deleteNotification(String notificationId) {
@@ -561,7 +604,10 @@ class SupabaseClient {
   }
 
   SupabaseProfile? getProfileById(String userId) {
-    return _profiles.firstWhere((p) => p.id == userId);
+    for (final p in _profiles) {
+      if (p.id == userId) return p;
+    }
+    return null;
   }
 }
 

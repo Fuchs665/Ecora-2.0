@@ -21,15 +21,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   @override
   void initState() {
     super.initState();
-    // Initialize with local state first for instant display
-    final currentUserId = SupabaseClient.instance.currentProfileNotifier.value?.id ?? "";
-    final localRequests = SupabaseClient.instance.requestsNotifier.value;
-    final localReq = localRequests.firstWhere(
-      (r) => r.userId == currentUserId && r.eventId == widget.event.id,
-      orElse: () => SupabaseParticipationRequest(id: "", userId: "", eventId: "", status: "none"),
-    );
-    _requestStatus = localReq.status;
-
     _checkRequestStatus();
   }
 
@@ -58,29 +49,35 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   }
 
   Future<void> _submitRequest(String currentUserId) async {
-    // 1. Submit locally for instant responsive UI
-    SupabaseClient.instance.submitParticipationRequest(widget.event.id, currentUserId);
-    if (mounted) {
-      setState(() {
-        _requestStatus = 'pending';
-      });
-    }
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    if (currentUser == null) return;
 
-    // 2. Submit to real database
+    // UI reattiva subito, ma se l'insert fallisce lo stato viene ripristinato.
+    setState(() {
+      _requestStatus = 'pending';
+    });
+
     try {
-      final currentUser = Supabase.instance.client.auth.currentUser;
-      if (currentUser != null) {
-        await Supabase.instance.client.from('event_requests').insert({
-          'event_id': widget.event.id,
-          'user_id': currentUser.id,
-          'status': 'pending',
-        });
-      }
+      await Supabase.instance.client.from('event_requests').insert({
+        'event_id': widget.event.id,
+        'user_id': currentUser.id,
+        'status': 'pending',
+      });
     } catch (e) {
       debugPrint("Errore nell'inserimento della richiesta reale: $e");
+      if (!mounted) return;
+      setState(() {
+        _requestStatus = 'none';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Invio della richiesta non riuscito. Riprova."),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
     }
 
-    // 3. Refresh status from DB
     await _checkRequestStatus();
   }
 
@@ -102,15 +99,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         elevation: 0,
       ),
       backgroundColor: matteDark,
-      body: ValueListenableBuilder<List<SupabaseParticipationRequest>>(
-        valueListenable: SupabaseClient.instance.requestsNotifier,
-        builder: (context, requests, _) {
-          // Find if user has a request for this event
-          final userReq = requests.firstWhere(
-            (r) => r.userId == currentUserId && r.eventId == widget.event.id,
-            orElse: () => SupabaseParticipationRequest(id: "", userId: "", eventId: "", status: "none"),
-          );
-          final requestStatus = _requestStatus == 'none' ? userReq.status : _requestStatus;
+      body: Builder(
+        builder: (context) {
+          // Lo stato della richiesta viene letto dal DB in _checkRequestStatus.
+          final requestStatus = _requestStatus;
           final isApproved = requestStatus == "approved";
 
           return Column(

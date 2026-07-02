@@ -140,6 +140,28 @@ void main() {
     });
   });
 
+  group('SupabaseParticipationRequest.fromRow', () {
+    test('maps real event_requests row', () {
+      final r = SupabaseParticipationRequest.fromRow({
+        'id': 'req-1',
+        'event_id': 'ev-9',
+        'user_id': 'u-7',
+        'status': 'approved',
+        'created_at': '2026-07-01T10:00:00+00:00',
+      });
+      expect(r.id, 'req-1');
+      expect(r.eventId, 'ev-9');
+      expect(r.userId, 'u-7');
+      expect(r.status, 'approved');
+    });
+
+    test('null status defaults to pending', () {
+      final r = SupabaseParticipationRequest.fromRow(
+          {'id': 'x', 'event_id': 'e', 'user_id': 'u'});
+      expect(r.status, 'pending');
+    });
+  });
+
   group('SupabaseProfile', () {
     test('copyWith updates only requested fields', () {
       final p = SupabaseProfile(

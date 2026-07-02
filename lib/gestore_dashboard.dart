@@ -17,6 +17,13 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
   bool _showCreateForm = false;
 
   @override
+  void initState() {
+    super.initState();
+    SupabaseClient.instance.fetchEvents();
+    SupabaseClient.instance.fetchHostRequests();
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Read current host profile
     final hostProfile = SupabaseClient.instance.currentProfileNotifier.value;
@@ -396,7 +403,17 @@ class RequestInspectorScreen extends StatefulWidget {
 }
 
 class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
-  SupabaseParticipationRequest? _selectedRequestToReview;
+  Future<void> _reviewRequest(
+      BuildContext dialogCtx, String requestId, String status) async {
+    Navigator.of(dialogCtx).pop();
+    final error = await SupabaseClient.instance
+        .reviewParticipationRequest(requestId, status);
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
 
   void _showSafetyProfileDialog(
       BuildContext context,
@@ -529,14 +546,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
             TextButton(
               style: TextButton.styleFrom(
                   foregroundColor: const Color(0xFFFF8A80)),
-              onPressed: () {
-                SupabaseClient.instance
-                    .reviewParticipationRequest(req.id, "rejected");
-                Navigator.of(ctx).pop();
-                setState(() {
-                  _selectedRequestToReview = null;
-                });
-              },
+              onPressed: () => _reviewRequest(ctx, req.id, "rejected"),
               child: const Text("RIFIUTA",
                   style: TextStyle(fontWeight: FontWeight.bold)),
             ),
@@ -544,14 +554,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
               style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2E7D32),
                   foregroundColor: Colors.white),
-              onPressed: () {
-                SupabaseClient.instance
-                    .reviewParticipationRequest(req.id, "approved");
-                Navigator.of(ctx).pop();
-                setState(() {
-                  _selectedRequestToReview = null;
-                });
-              },
+              onPressed: () => _reviewRequest(ctx, req.id, "approved"),
               child: const Text("APPROVA OSPITE",
                   style: TextStyle(fontWeight: FontWeight.bold)),
             ),
@@ -612,10 +615,13 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                           final req = pendingRequests[index];
                           final applicant = SupabaseClient.instance
                               .getProfileById(req.userId);
-                          final eventObj = widget.events
-                              .firstWhere((e) => e.id == req.eventId);
+                          final eventIdx = widget.events
+                              .indexWhere((e) => e.id == req.eventId);
 
-                          if (applicant == null) return const SizedBox.shrink();
+                          if (applicant == null || eventIdx < 0) {
+                            return const SizedBox.shrink();
+                          }
+                          final eventObj = widget.events[eventIdx];
 
                           return Card(
                             color: slateSurface,

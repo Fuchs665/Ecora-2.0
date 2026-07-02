@@ -160,6 +160,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   void initState() {
     super.initState();
     SupabaseClient.instance.fetchEvents();
+    SupabaseClient.instance.fetchMyRequests();
   }
 
   @override
