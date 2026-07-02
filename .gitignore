@@ -16,3 +16,8 @@
 local.properties
 .env
 debug.keystore
+
+# Flutter/Dart tooling output (never commit — has contained browser profile data)
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
