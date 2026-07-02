@@ -65,9 +65,11 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
             setState(() {
               _currentIndex = index;
             });
-            // Reset notifications count on notifications screen active
+            // Aggiorna dal DB e azzera il badge quando si apre la campanella
             if (index == 1) {
-              SupabaseClient.instance.resetNotificationBadge();
+              SupabaseClient.instance
+                  .fetchMyNotifications()
+                  .then((_) => SupabaseClient.instance.resetNotificationBadge());
             }
           },
           backgroundColor: slateSurface,
@@ -161,6 +163,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     super.initState();
     SupabaseClient.instance.fetchEvents();
     SupabaseClient.instance.fetchMyRequests();
+    SupabaseClient.instance.fetchMyNotifications();
   }
 
   @override

@@ -559,12 +559,88 @@ class SupabaseClient {
     }
   }
 
+  // Stato "visto/eliminato" delle notifiche: solo per sessione.
+  // Una tabella notifications dedicata arriverà con le push (Fase 4).
+  final Set<String> _seenNotificationIds = {};
+  final Set<String> _dismissedNotificationIds = {};
+
+  /// Deriva le notifiche reali del cliente dalle proprie richieste già
+  /// valutate (approved/rejected), con il titolo dell'evento collegato.
+  Future<void> fetchMyNotifications() async {
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return;
+
+      final reqRows = await Supabase.instance.client
+          .from('event_requests')
+          .select()
+          .eq('user_id', uid)
+          .neq('status', 'pending')
+          .order('created_at', ascending: true);
+
+      final requests = (reqRows as List)
+          .map((r) => Map<String, dynamic>.from(r as Map))
+          .toList();
+
+      final eventIds =
+          requests.map((r) => r['event_id'].toString()).toSet().toList();
+      final Map<String, String> titles = {};
+      if (eventIds.isNotEmpty) {
+        final evRows = await Supabase.instance.client
+            .from('events')
+            .select('id, title')
+            .in_('id', eventIds);
+        for (final row in (evRows as List)) {
+          titles[row['id'].toString()] = row['title']?.toString() ?? 'Evento';
+        }
+      }
+
+      _notifications = [];
+      for (final r in requests) {
+        final id = r['id'].toString();
+        if (_dismissedNotificationIds.contains(id)) continue;
+        final created =
+            DateTime.tryParse(r['created_at']?.toString() ?? '')?.toLocal();
+        final timestamp = created == null
+            ? ''
+            : "${created.day.toString().padLeft(2, '0')}/"
+                "${created.month.toString().padLeft(2, '0')} "
+                "${created.hour.toString().padLeft(2, '0')}:"
+                "${created.minute.toString().padLeft(2, '0')}";
+        // Le più recenti in cima
+        _notifications.insert(
+          0,
+          NotificationItem(
+            id: id,
+            eventId: r['event_id'].toString(),
+            eventTitle: titles[r['event_id'].toString()] ?? 'Evento',
+            status: r['status'].toString(),
+            timestamp: timestamp,
+            read: _seenNotificationIds.contains(id),
+          ),
+        );
+      }
+      notificationsNotifier.value = List.from(_notifications);
+
+      _notificationBadgeCount = _notifications
+          .where((n) => !_seenNotificationIds.contains(n.id))
+          .length;
+      notificationBadgeNotifier.value = _notificationBadgeCount;
+    } catch (e) {
+      debugPrint("Errore nel recupero delle notifiche: $e");
+    }
+  }
+
   void deleteNotification(String notificationId) {
+    _dismissedNotificationIds.add(notificationId);
     _notifications.removeWhere((n) => n.id == notificationId);
     notificationsNotifier.value = List.from(_notifications);
   }
 
   void resetNotificationBadge() {
+    for (final n in _notifications) {
+      _seenNotificationIds.add(n.id);
+    }
     _notificationBadgeCount = 0;
     notificationBadgeNotifier.value = 0;
   }
