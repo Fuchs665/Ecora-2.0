@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide SupabaseClient;
 
 class EventDetailsPage extends StatefulWidget {
   final SupabaseEvent event;
