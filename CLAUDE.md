@@ -22,8 +22,7 @@ Flutter (Android-first) + Supabase (Postgres, Auth, Storage). Roles: `cliente` (
 
 ## Known landmines
 - Real Supabase `events` schema (host_id, max_guests, no image_url) MISMATCHES the app model (organizer_id, max_participants, image_url) — align before trusting fetches.
-- Test-backdoor login (`password == "••••••••"` in lib/main.dart) must be gone before release.
-- Non-standard layout: Android Gradle files live in `app/` + repo root, not `android/`.
+- No Android platform folder yet: `.metadata` registers only `root` + `windows`. The dead pre-Flutter Kotlin prototype (`app/` + root Gradle files, incl. its test-login backdoor) was deleted; create a fresh `android/` via `flutter create --platforms=android .` when needed.
 
 ## Definition of done for a block
 Compiles, `analyze` clean, tests pass, diff reviewed by user, committed.
