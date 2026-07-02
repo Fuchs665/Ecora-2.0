@@ -706,6 +706,38 @@ class _CreateEventFormState extends State<CreateEventForm> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   double _maxParticipants = 8.0;
+  DateTime? _eventDate;
+  bool _isSubmitting = false;
+
+  String get _formattedEventDate {
+    final d = _eventDate;
+    if (d == null) return "Seleziona data e ora dell'evento";
+    return "${d.day.toString().padLeft(2, '0')}/"
+        "${d.month.toString().padLeft(2, '0')}/${d.year} — "
+        "${d.hour.toString().padLeft(2, '0')}:"
+        "${d.minute.toString().padLeft(2, '0')}";
+  }
+
+  Future<void> _pickEventDate() async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _eventDate ?? now.add(const Duration(days: 7)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(
+          _eventDate ?? DateTime(now.year, now.month, now.day, 22, 0)),
+    );
+    if (time == null || !mounted) return;
+    setState(() {
+      _eventDate =
+          DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    });
+  }
 
   final List<String> mockImageOptions = const [
     "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=600",
@@ -820,6 +852,40 @@ class _CreateEventFormState extends State<CreateEventForm> {
                   fillColor: slateSurface.withOpacity(0.5),
                 ),
               ),
+              const SizedBox(height: 16),
+
+              // --- DATA E ORA EVENTO ---
+              GestureDetector(
+                onTap: _pickEventDate,
+                child: Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: slateSurface.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _eventDate == null
+                          ? Colors.white.withOpacity(0.06)
+                          : premiumGold.withOpacity(0.5),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.event, color: premiumGold, size: 20),
+                      const SizedBox(width: 12),
+                      Text(
+                        _formattedEventDate,
+                        style: TextStyle(
+                          color:
+                              _eventDate == null ? textSecondary : textPrimary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 20),
 
               Text(
@@ -840,9 +906,10 @@ class _CreateEventFormState extends State<CreateEventForm> {
               ),
               const SizedBox(height: 16),
 
-              // Mock Image List Selection
+              // Selezione copertina da galleria preset
+              // (upload foto reale da dispositivo: blocco Fase 4)
               const Text(
-                "COPERTINA EVENTO (Simulazione caricamento storage)",
+                "COPERTINA EVENTO",
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 11,
@@ -895,38 +962,75 @@ class _CreateEventFormState extends State<CreateEventForm> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24)),
                   ),
-                  onPressed: () {
-                    if (_titleController.text.isNotEmpty &&
-                        _locationController.text.isNotEmpty) {
-                      // Seed coordinates inside Florence
-                      final double rndLat =
-                          (Random().nextDouble() - 0.5) * 0.03;
-                      final double rndLng =
-                          (Random().nextDouble() - 0.5) * 0.03;
-                      final double mockLat = 43.7695 + rndLat;
-                      final double mockLng = 11.2558 + rndLng;
+                  onPressed: _isSubmitting
+                      ? null
+                      : () async {
+                          if (_titleController.text.isEmpty ||
+                              _locationController.text.isEmpty ||
+                              _eventDate == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    "Compila titolo, indirizzo e data dell'evento."),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                            return;
+                          }
 
-                      SupabaseClient.instance.insertEventAndUploadImage(
-                        title: _titleController.text,
-                        description: _descriptionController.text,
-                        organizerId: widget.organizerId,
-                        latitude: mockLat,
-                        longitude: mockLng,
-                        mockImagePath: _selectedMockImageUrl,
-                        maxParticipants: _maxParticipants.toInt(),
-                        locationName: _locationController.text,
-                      );
+                          // TODO(blocco geocoding): coordinate reali
+                          // dall'indirizzo; per ora punto casuale su Firenze.
+                          final double lat =
+                              43.7695 + (Random().nextDouble() - 0.5) * 0.03;
+                          final double lng =
+                              11.2558 + (Random().nextDouble() - 0.5) * 0.03;
 
-                      widget.onDismiss();
-                    }
-                  },
-                  child: const Text(
-                    "CARICA EVENTO NEL CLUB",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                        fontSize: 12),
-                  ),
+                          setState(() => _isSubmitting = true);
+
+                          final error =
+                              await SupabaseClient.instance.createEvent(
+                            title: _titleController.text,
+                            description: _descriptionController.text,
+                            hostId: widget.organizerId,
+                            latitude: lat,
+                            longitude: lng,
+                            imageUrl: _selectedMockImageUrl,
+                            eventDate: _eventDate!,
+                            maxGuests: _maxParticipants.toInt(),
+                            locationName: _locationController.text,
+                          );
+
+                          if (!mounted) return;
+                          setState(() => _isSubmitting = false);
+
+                          if (error != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(error),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                            return;
+                          }
+                          widget.onDismiss();
+                        },
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(matteDark),
+                          ),
+                        )
+                      : const Text(
+                          "CARICA EVENTO NEL CLUB",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                              fontSize: 12),
+                        ),
                 ),
               )
             ],

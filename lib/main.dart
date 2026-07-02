@@ -526,36 +526,38 @@ class SupabaseClient {
     notificationBadgeNotifier.value = 0;
   }
 
-  void insertEventAndUploadImage({
+  /// Crea un evento reale sulla tabella `events` (status: published).
+  /// Ritorna null in caso di successo, altrimenti un messaggio di errore.
+  Future<String?> createEvent({
     required String title,
     required String description,
-    required String organizerId,
+    required String hostId,
     required double latitude,
     required double longitude,
-    required String? mockImagePath,
-    required int maxParticipants,
+    required String? imageUrl,
+    required DateTime eventDate,
+    required int maxGuests,
     required String locationName,
-  }) {
-    final String actualUrl = (mockImagePath != null && mockImagePath.isNotEmpty)
-        ? mockImagePath
-        : "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&q=80&w=600";
-
-    final ev = SupabaseEvent(
-      id: "event-${DateTime.now().millisecondsSinceEpoch}",
-      title: title,
-      description: description,
-      organizerId: organizerId,
-      latitude: latitude,
-      longitude: longitude,
-      imageUrl: actualUrl,
-      eventDate: "2026-06-30T22:00:00",
-      maxParticipants: maxParticipants,
-      currentApprovedCount: 1,
-      locationName: locationName,
-    );
-
-    _events.insert(0, ev);
-    eventsNotifier.value = List.from(_events);
+  }) async {
+    try {
+      await Supabase.instance.client.from('events').insert({
+        'host_id': hostId,
+        'title': title,
+        'description': description,
+        'event_date': eventDate.toUtc().toIso8601String(),
+        'max_guests': maxGuests,
+        'status': 'published',
+        'latitude': latitude,
+        'longitude': longitude,
+        'image_url': imageUrl,
+        'location_name': locationName,
+      });
+      await fetchEvents();
+      return null;
+    } catch (e) {
+      debugPrint("Errore creazione evento: $e");
+      return "Creazione evento non riuscita. Verifica di avere un profilo gestore e di essere connesso.";
+    }
   }
 
   SupabaseProfile? getProfileById(String userId) {
