@@ -21,6 +21,21 @@ class UserProfilePage extends StatelessWidget {
     }
   }
 
+  void _showEditSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: slateSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: EditProfileSheet(profile: profile),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool highTrustEarned = profile.noShows == 0;
@@ -35,15 +50,29 @@ class UserProfilePage extends StatelessWidget {
             children: [
               const SizedBox(height: 10),
 
-              // --- DISCREET BRAND HEADER ---
-              const Text(
-                "E C O R A",
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 13,
-                  letterSpacing: 6.0,
-                  color: premiumGold,
-                ),
+              // --- DISCREET BRAND HEADER + EDIT ACTION ---
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Text(
+                    "E C O R A",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      letterSpacing: 6.0,
+                      color: premiumGold,
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      icon: const Icon(Icons.edit_outlined,
+                          color: premiumGold, size: 20),
+                      tooltip: "Modifica profilo",
+                      onPressed: () => _showEditSheet(context),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
 
@@ -233,6 +262,199 @@ class UserProfilePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// --- EDIT PROFILE BOTTOM SHEET (real Supabase UPDATE) ---
+
+class EditProfileSheet extends StatefulWidget {
+  final SupabaseProfile profile;
+
+  const EditProfileSheet({Key? key, required this.profile}) : super(key: key);
+
+  @override
+  State<EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<EditProfileSheet> {
+  late final TextEditingController _nicknameController;
+  late final TextEditingController _locationController;
+  String? _profileType;
+  String? _privacyLevel;
+  bool _isSaving = false;
+
+  static const List<String> _profileTypes = [
+    "Coppia U/D",
+    "Coppia D/D",
+    "Coppia U/U",
+    "Donna Singola",
+    "Uomo Singolo",
+  ];
+
+  static const Map<String, String> _privacyOptions = {
+    "Visibile": "visible",
+    "In incognito": "ghost",
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _nicknameController = TextEditingController(text: widget.profile.fullName);
+    _locationController =
+        TextEditingController(text: widget.profile.genericLocation ?? "");
+    _profileType = _profileTypes.contains(widget.profile.profileType)
+        ? widget.profile.profileType
+        : null;
+    _privacyLevel =
+        _privacyOptions.containsValue(widget.profile.privacyLevel)
+            ? widget.profile.privacyLevel
+            : null;
+  }
+
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _fieldDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: textSecondary, fontSize: 12),
+      floatingLabelStyle: const TextStyle(color: premiumGold),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: premiumGold),
+      ),
+      filled: true,
+      fillColor: matteDark.withOpacity(0.5),
+    );
+  }
+
+  Future<void> _save() async {
+    final nickname = _nicknameController.text.trim();
+    final location = _locationController.text.trim();
+
+    if (nickname.length < 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Il nickname deve contenere almeno 3 caratteri."),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    final error = await SupabaseClient.instance.updateMyProfile(
+      nickname: nickname,
+      genericLocation: location,
+      profileType: _profileType,
+      privacyLevel: _privacyLevel,
+    );
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+      );
+      return;
+    }
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "MODIFICA PROFILO",
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 14,
+              letterSpacing: 2,
+              color: premiumGold,
+              fontFamily: 'Serif',
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _nicknameController,
+            style: const TextStyle(color: textPrimary, fontSize: 13),
+            decoration: _fieldDecoration("Nickname"),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _locationController,
+            style: const TextStyle(color: textPrimary, fontSize: 13),
+            decoration: _fieldDecoration("Località (generica)"),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            initialValue: _profileType,
+            dropdownColor: slateSurface,
+            style: const TextStyle(color: textPrimary, fontSize: 13),
+            decoration: _fieldDecoration("Tipologia di profilo"),
+            items: _profileTypes
+                .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                .toList(),
+            onChanged: (v) => setState(() => _profileType = v),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            initialValue: _privacyLevel,
+            dropdownColor: slateSurface,
+            style: const TextStyle(color: textPrimary, fontSize: 13),
+            decoration: _fieldDecoration("Livello di privacy"),
+            items: _privacyOptions.entries
+                .map((e) =>
+                    DropdownMenuItem(value: e.value, child: Text(e.key)))
+                .toList(),
+            onChanged: (v) => setState(() => _privacyLevel = v),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: premiumGold,
+                foregroundColor: matteDark,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24)),
+              ),
+              onPressed: _isSaving ? null : _save,
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(matteDark),
+                      ),
+                    )
+                  : const Text(
+                      "SALVA MODIFICHE",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                          fontSize: 12),
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }

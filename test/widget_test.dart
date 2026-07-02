@@ -116,6 +116,7 @@ void main() {
       expect(p.gender, 'Coppia');
       expect(p.profileType, 'Coppia U/D');
       expect(p.privacyLevel, 'ghost');
+      expect(p.genericLocation, 'Firenze');
     });
 
     test('null nickname/role/profile_type fall back to safe defaults', () {

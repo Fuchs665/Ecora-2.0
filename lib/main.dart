@@ -24,6 +24,7 @@ class SupabaseProfile {
   final int participationsCount;
   final String? profileType;
   final String? privacyLevel;
+  final String? genericLocation;
 
   SupabaseProfile({
     required this.id,
@@ -35,6 +36,7 @@ class SupabaseProfile {
     this.participationsCount = 0,
     this.profileType,
     this.privacyLevel,
+    this.genericLocation,
   });
 
   SupabaseProfile copyWith({
@@ -47,6 +49,7 @@ class SupabaseProfile {
     int? participationsCount,
     String? profileType,
     String? privacyLevel,
+    String? genericLocation,
   }) {
     return SupabaseProfile(
       id: id ?? this.id,
@@ -58,6 +61,7 @@ class SupabaseProfile {
       participationsCount: participationsCount ?? this.participationsCount,
       profileType: profileType ?? this.profileType,
       privacyLevel: privacyLevel ?? this.privacyLevel,
+      genericLocation: genericLocation ?? this.genericLocation,
     );
   }
 
@@ -84,6 +88,7 @@ class SupabaseProfile {
       gender: gender,
       profileType: profileType,
       privacyLevel: row['privacy_level']?.toString(),
+      genericLocation: row['generic_location']?.toString(),
     );
   }
 }
@@ -676,6 +681,56 @@ class SupabaseClient {
     } catch (e) {
       debugPrint("Errore creazione evento: $e");
       return "Creazione evento non riuscita. Verifica di avere un profilo gestore e di essere connesso.";
+    }
+  }
+
+  /// Aggiorna i campi modificabili del proprio profilo sulla tabella
+  /// reale e riallinea lo stato locale. Ritorna null se ok.
+  Future<String?> updateMyProfile({
+    required String nickname,
+    required String genericLocation,
+    required String? profileType,
+    required String? privacyLevel,
+  }) async {
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return "Sessione scaduta. Accedi di nuovo.";
+
+      await Supabase.instance.client.from('profiles').update({
+        'nickname': nickname,
+        'generic_location': genericLocation,
+        'profile_type': profileType,
+        'privacy_level': privacyLevel,
+      }).eq('id', uid);
+
+      final current = currentProfileNotifier.value;
+      if (current != null && current.id == uid) {
+        final String gender;
+        if (profileType == null) {
+          gender = current.gender;
+        } else if (profileType.contains('Coppia')) {
+          gender = 'Coppia';
+        } else if (profileType.contains('Donna')) {
+          gender = 'Donna';
+        } else {
+          gender = 'Uomo';
+        }
+        final updated = current.copyWith(
+          fullName: nickname,
+          gender: gender,
+          profileType: profileType,
+          privacyLevel: privacyLevel,
+          genericLocation: genericLocation,
+        );
+        _profiles.removeWhere((p) => p.id == uid);
+        _profiles.add(updated);
+        profilesNotifier.value = List.from(_profiles);
+        currentProfileNotifier.value = updated;
+      }
+      return null;
+    } catch (e) {
+      debugPrint("Errore aggiornamento profilo: $e");
+      return "Aggiornamento non riuscito. Riprova.";
     }
   }
 
