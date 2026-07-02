@@ -232,9 +232,7 @@ class NotificationItem {
 
 class SupabaseClient {
   static final SupabaseClient instance = SupabaseClient._internal();
-  SupabaseClient._internal() {
-    _seedDatabase();
-  }
+  SupabaseClient._internal();
 
   final ValueNotifier<SupabaseProfile?> currentProfileNotifier =
       ValueNotifier(null);
@@ -252,136 +250,6 @@ class SupabaseClient {
   List<SupabaseParticipationRequest> _requests = [];
   List<NotificationItem> _notifications = [];
   int _notificationBadgeCount = 0;
-
-  void _seedDatabase() {
-    final clienteUser = SupabaseProfile(
-      id: "user-cliente-123",
-      fullName: "Alex & Sofia",
-      role: "cliente",
-      age: 32,
-      gender: "Coppia",
-      noShows: 0,
-      participationsCount: 8,
-    );
-
-    final hostUser = SupabaseProfile(
-      id: "user-gestore-456",
-      fullName: "Club Segreto della Villa",
-      role: "gestore",
-      age: 40,
-      gender: "Donna",
-      noShows: 0,
-      participationsCount: 45,
-    );
-
-    _profiles = [
-      clienteUser,
-      hostUser,
-      SupabaseProfile(
-          id: "user-test-789",
-          fullName: "Marcus & Ellen",
-          role: "cliente",
-          age: 29,
-          gender: "Coppia",
-          noShows: 0,
-          participationsCount: 3),
-      SupabaseProfile(
-          id: "user-test-101",
-          fullName: "Isabella",
-          role: "cliente",
-          age: 27,
-          gender: "Donna",
-          noShows: 1,
-          participationsCount: 12),
-      SupabaseProfile(
-          id: "user-test-102",
-          fullName: "Valerio",
-          role: "cliente",
-          age: 34,
-          gender: "Uomo",
-          noShows: 2,
-          participationsCount: 4),
-    ];
-
-    const double florenceLat = 43.7695;
-    const double florenceLng = 11.2558;
-
-    _events = [
-      SupabaseEvent(
-        id: "event-1",
-        title: "Serata Velluto Dorato",
-        description:
-            "Un ricevimento champagne ultra-esclusivo sulla terrazza privata più bella di Firenze. Progettato per coppie con mentalità aperta alla ricerca di conversazioni significative in assoluta riservatezza. Richiesto abbigliamento formale elegante.",
-        organizerId: hostUser.id,
-        latitude: florenceLat + 0.008,
-        longitude: florenceLng + 0.006,
-        imageUrl:
-            "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=600",
-        eventDate: "2026-06-25T21:00:00",
-        maxParticipants: 10,
-        currentApprovedCount: 8,
-        locationName: "Villa di Lusso Privata, Colline di Firenze",
-      ),
-      SupabaseEvent(
-        id: "event-2",
-        title: "Occhi d'Ambra di Mezza Estate",
-        description:
-            "Festa in maschera discreta con cocktail. Rigorosamente limitata a 6 coppie. Atmosfera visiva perfetta con candele d'ambra accese, salotto privato e suoni ambientali soffusi.",
-        organizerId: hostUser.id,
-        latitude: florenceLat - 0.004,
-        longitude: florenceLng - 0.003,
-        imageUrl:
-            "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&q=80&w=600",
-        eventDate: "2026-06-28T22:30:00",
-        maxParticipants: 6,
-        currentApprovedCount: 5,
-        locationName: "Stanza di Velluto Riservata, Firenze Sud",
-      ),
-      SupabaseEvent(
-        id: "event-3",
-        title: "Incontro Trama d'Ombra",
-        description:
-            "Incontro discreto post-serata per viaggiatori internazionali di lusso. Pre-screening obbligatorio. Massima sicurezza, elegante cocktail room scura, acustica premium d'oro.",
-        organizerId: hostUser.id,
-        latitude: florenceLat + 0.015,
-        longitude: florenceLng - 0.012,
-        imageUrl:
-            "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=600",
-        eventDate: "2026-07-02T23:00:00",
-        maxParticipants: 12,
-        currentApprovedCount: 4,
-        locationName: "Palazzo Segreto, Area Aeroporto di Firenze",
-      ),
-    ];
-
-    _requests = [
-      SupabaseParticipationRequest(
-          id: "req-1",
-          userId: "user-test-789",
-          eventId: "event-1",
-          status: "pending"),
-      SupabaseParticipationRequest(
-          id: "req-2",
-          userId: "user-test-101",
-          eventId: "event-1",
-          status: "pending"),
-      SupabaseParticipationRequest(
-          id: "req-3",
-          userId: "user-test-102",
-          eventId: "event-2",
-          status: "pending"),
-    ];
-
-    _notifications = [];
-    _notificationBadgeCount = 0;
-
-    currentProfileNotifier.value = clienteUser;
-    profilesNotifier.value = List.from(_profiles);
-    eventsNotifier.value = List.from(_events);
-    requestsNotifier.value = List.from(_requests);
-    notificationsNotifier.value = List.from(_notifications);
-    notificationBadgeNotifier.value = _notificationBadgeCount;
-  }
 
   void addProfile(SupabaseProfile p) {
     if (!_profiles.any((profile) => profile.id == p.id)) {
