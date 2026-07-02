@@ -38,6 +38,52 @@ void main() {
     });
   });
 
+  group('SupabaseEvent.fromStats', () {
+    test('maps real DB keys (host_id, max_guests, approved_count)', () {
+      final e = SupabaseEvent.fromStats({
+        'id': 'abc',
+        'host_id': 'host-1',
+        'title': 'Serata',
+        'description': 'desc',
+        'event_date': '2026-07-10T21:00:00+00:00',
+        'max_guests': 12,
+        'status': 'published',
+        'latitude': 43.7,
+        'longitude': 11.2,
+        'image_url': 'https://example.com/x.jpg',
+        'location_name': 'Villa X',
+        'approved_count': 4,
+      });
+      expect(e.organizerId, 'host-1');
+      expect(e.maxParticipants, 12);
+      expect(e.currentApprovedCount, 4);
+      expect(e.imageUrl, 'https://example.com/x.jpg');
+      expect(e.locationName, 'Villa X');
+      expect(e.tableCompletionPercentage, closeTo(4 / 12, 0.0001));
+    });
+
+    test('null image/location/counters fall back to safe defaults', () {
+      final e = SupabaseEvent.fromStats({
+        'id': 'abc',
+        'host_id': 'h',
+        'title': 't',
+        'description': null,
+        'event_date': '2026-07-10T21:00:00+00:00',
+        'max_guests': null,
+        'latitude': null,
+        'longitude': null,
+        'image_url': null,
+        'location_name': null,
+        'approved_count': null,
+      });
+      expect(e.imageUrl, contains('unsplash'));
+      expect(e.locationName, 'Località riservata');
+      expect(e.maxParticipants, 0);
+      expect(e.currentApprovedCount, 0);
+      expect(e.tableCompletionPercentage, 0.0);
+    });
+  });
+
   group('Haversine distance', () {
     test('distance to self is zero', () {
       final d = SupabaseClient.instance

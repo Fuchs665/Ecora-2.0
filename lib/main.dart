@@ -92,6 +92,26 @@ class SupabaseEvent {
   double get tableCompletionPercentage =>
       maxParticipants > 0 ? (currentApprovedCount / maxParticipants) : 0.0;
 
+  /// Maps a row returned by the `get_events_with_stats()` RPC
+  /// (real DB keys: host_id, max_guests, approved_count).
+  factory SupabaseEvent.fromStats(Map<String, dynamic> json) {
+    return SupabaseEvent(
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      organizerId: json['host_id']?.toString() ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 43.7695,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 11.2558,
+      imageUrl: json['image_url']?.toString() ??
+          "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=600",
+      eventDate:
+          json['event_date']?.toString() ?? DateTime.now().toIso8601String(),
+      maxParticipants: (json['max_guests'] as num?)?.toInt() ?? 0,
+      currentApprovedCount: (json['approved_count'] as num?)?.toInt() ?? 0,
+      locationName: json['location_name']?.toString() ?? 'Località riservata',
+    );
+  }
+
   SupabaseEvent copyWith({
     String? id,
     String? title,
@@ -358,37 +378,18 @@ class SupabaseClient {
 
   Future<void> fetchEvents() async {
     try {
-      final data = await Supabase.instance.client
-          .from('events')
-          .select();
+      final data =
+          await Supabase.instance.client.rpc('get_events_with_stats');
 
-      final List<SupabaseEvent> realEvents = (data as List).map((item) {
-        return SupabaseEvent(
-          id: item['id']?.toString() ?? '',
-          title: item['title']?.toString() ?? '',
-          description: item['description']?.toString() ?? '',
-          organizerId: item['organizer_id']?.toString() ?? 'user-gestore-456',
-          latitude: (item['latitude'] as num?)?.toDouble() ?? 43.7695,
-          longitude: (item['longitude'] as num?)?.toDouble() ?? 11.2558,
-          imageUrl: item['image_url']?.toString() ??
-              "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=600",
-          eventDate: item['event_date']?.toString() ?? DateTime.now().toIso8601String(),
-          maxParticipants: (item['max_participants'] as num?)?.toInt() ?? 10,
-          currentApprovedCount: (item['current_approved_count'] as num?)?.toInt() ?? 0,
-          locationName: item['location_name']?.toString() ?? 'Secret Florence Villa',
-        );
-      }).toList();
+      final List<SupabaseEvent> realEvents = (data as List)
+          .map((item) =>
+              SupabaseEvent.fromStats(Map<String, dynamic>.from(item as Map)))
+          .toList();
 
-      if (realEvents.isNotEmpty) {
-        final uniqueRealIds = realEvents.map((e) => e.id).toSet();
-        final List<SupabaseEvent> combined = List.from(realEvents);
-        for (var mock in _events) {
-          if (!uniqueRealIds.contains(mock.id)) {
-            combined.add(mock);
-          }
-        }
-        _events = combined;
-      }
+      // La lista reale sostituisce completamente lo stato locale:
+      // nessun merge con i dati demo. In caso di errore di rete si
+      // mantiene l'ultimo elenco caricato.
+      _events = realEvents;
       eventsNotifier.value = List.from(_events);
     } catch (e) {
       debugPrint("Errore nel recupero degli eventi reali da Supabase: $e");
