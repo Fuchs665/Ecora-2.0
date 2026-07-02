@@ -157,6 +157,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
   final double centerLng = 11.2558;
 
   @override
+  void initState() {
+    super.initState();
+    SupabaseClient.instance.fetchEvents();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(

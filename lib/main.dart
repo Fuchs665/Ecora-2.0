@@ -23,6 +23,7 @@ class SupabaseProfile {
   final int noShows;
   final int participationsCount;
   final String? profileType;
+  final String? privacyLevel;
 
   SupabaseProfile({
     required this.id,
@@ -33,6 +34,7 @@ class SupabaseProfile {
     this.noShows = 0,
     this.participationsCount = 0,
     this.profileType,
+    this.privacyLevel,
   });
 
   SupabaseProfile copyWith({
@@ -44,6 +46,7 @@ class SupabaseProfile {
     int? noShows,
     int? participationsCount,
     String? profileType,
+    String? privacyLevel,
   }) {
     return SupabaseProfile(
       id: id ?? this.id,
@@ -54,6 +57,7 @@ class SupabaseProfile {
       noShows: noShows ?? this.noShows,
       participationsCount: participationsCount ?? this.participationsCount,
       profileType: profileType ?? this.profileType,
+      privacyLevel: privacyLevel ?? this.privacyLevel,
     );
   }
 }
@@ -352,6 +356,45 @@ class SupabaseClient {
     }
   }
 
+  Future<void> fetchEvents() async {
+    try {
+      final data = await Supabase.instance.client
+          .from('events')
+          .select();
+
+      final List<SupabaseEvent> realEvents = (data as List).map((item) {
+        return SupabaseEvent(
+          id: item['id']?.toString() ?? '',
+          title: item['title']?.toString() ?? '',
+          description: item['description']?.toString() ?? '',
+          organizerId: item['organizer_id']?.toString() ?? 'user-gestore-456',
+          latitude: (item['latitude'] as num?)?.toDouble() ?? 43.7695,
+          longitude: (item['longitude'] as num?)?.toDouble() ?? 11.2558,
+          imageUrl: item['image_url']?.toString() ??
+              "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=600",
+          eventDate: item['event_date']?.toString() ?? DateTime.now().toIso8601String(),
+          maxParticipants: (item['max_participants'] as num?)?.toInt() ?? 10,
+          currentApprovedCount: (item['current_approved_count'] as num?)?.toInt() ?? 0,
+          locationName: item['location_name']?.toString() ?? 'Secret Florence Villa',
+        );
+      }).toList();
+
+      if (realEvents.isNotEmpty) {
+        final uniqueRealIds = realEvents.map((e) => e.id).toSet();
+        final List<SupabaseEvent> combined = List.from(realEvents);
+        for (var mock in _events) {
+          if (!uniqueRealIds.contains(mock.id)) {
+            combined.add(mock);
+          }
+        }
+        _events = combined;
+      }
+      eventsNotifier.value = List.from(_events);
+    } catch (e) {
+      debugPrint("Errore nel recupero degli eventi reali da Supabase: $e");
+    }
+  }
+
   void logout() {
     currentProfileNotifier.value = null;
   }
@@ -494,7 +537,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await Supabase.initialize(
-      url: 'https://fswzykzclfrpzlujhfg.supabase.co',
+      url: 'https://fswzykzclfrpzlufjhfg.supabase.co',
       anonKey: 'sb_publishable_qv2R89l53F8gK_cJ6rS66Q_7TLWe_-B',
     );
   } catch (e) {
@@ -766,7 +809,13 @@ class _AuthScreenState extends State<AuthScreen> {
     "Donna Singola",
     "Uomo Singolo",
   ];
-  String _selectedProfileType = "Coppia U/D";
+  String? _selectedProfileType;
+
+  final Map<String, String> _privacyOptions = {
+    "Visibile": "visible",
+    "In incognito": "ghost",
+  };
+  String? _selectedPrivacyLevel;
 
   Widget _buildRoleButton(String roleLabel, String roleValue) {
     final isSelected = _selectedRole == roleValue;
@@ -876,6 +925,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 gender: 'Coppia',
                 noShows: 0,
                 participationsCount: 1,
+                profileType: profileData['profile_type'],
+                privacyLevel: profileData['privacy_level'],
               );
 
               SupabaseClient.instance.addProfile(prof);
@@ -931,6 +982,8 @@ class _AuthScreenState extends State<AuthScreen> {
     final password = _regPasswordController.text.trim();
     final nickname = _regNicknameController.text.trim();
     final location = _regLocationController.text.trim();
+    final profileType = _selectedProfileType;
+    final privacyLevel = _selectedPrivacyLevel;
 
     if (email.isEmpty || password.isEmpty || nickname.isEmpty || location.isEmpty) {
       setState(() {
@@ -939,9 +992,45 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
+    if (nickname.length < 3) {
+      setState(() {
+        _errorMessage = "Il nickname deve contenere almeno 3 caratteri.";
+      });
+      return;
+    }
+
+    if (location.length < 2) {
+      setState(() {
+        _errorMessage = "La località deve contenere almeno 2 caratteri.";
+      });
+      return;
+    }
+
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      setState(() {
+        _errorMessage = "Inserisci un indirizzo email valido.";
+      });
+      return;
+    }
+
     if (password.length < 6) {
       setState(() {
         _errorMessage = "La password deve contenere almeno 6 caratteri.";
+      });
+      return;
+    }
+
+    if (profileType == null || profileType.isEmpty) {
+      setState(() {
+        _errorMessage = "Per favore, seleziona la tipologia di profilo dal menu.";
+      });
+      return;
+    }
+
+    if (privacyLevel == null || privacyLevel.isEmpty) {
+      setState(() {
+        _errorMessage = "Per favore, seleziona il livello di privacy dal menu.";
       });
       return;
     }
@@ -973,7 +1062,8 @@ class _AuthScreenState extends State<AuthScreen> {
           'role': 'cliente',
           'generic_location': location,
           'is_verified': false,
-          'profile_type': _selectedProfileType,
+          'profile_type': profileType,
+          'privacy_level': privacyLevel,
         });
       } catch (dbErr) {
         debugPrint("Errore nell'inserimento del profilo reale: $dbErr");
@@ -985,10 +1075,11 @@ class _AuthScreenState extends State<AuthScreen> {
         fullName: nickname,
         role: 'cliente',
         age: 30,
-        gender: _selectedProfileType.contains('Coppia') ? 'Coppia' : (_selectedProfileType.contains('Donna') ? 'Donna' : 'Uomo'),
+        gender: profileType.contains('Coppia') ? 'Coppia' : (profileType.contains('Donna') ? 'Donna' : 'Uomo'),
         noShows: 0,
         participationsCount: 0,
-        profileType: _selectedProfileType,
+        profileType: profileType,
+        privacyLevel: privacyLevel,
       );
 
       SupabaseClient.instance.addProfile(newLocalProfile);
@@ -1008,10 +1099,11 @@ class _AuthScreenState extends State<AuthScreen> {
           fullName: nickname,
           role: 'cliente',
           age: 30,
-          gender: _selectedProfileType.contains('Coppia') ? 'Coppia' : (_selectedProfileType.contains('Donna') ? 'Donna' : 'Uomo'),
+          gender: profileType.contains('Coppia') ? 'Coppia' : (profileType.contains('Donna') ? 'Donna' : 'Uomo'),
           noShows: 0,
           participationsCount: 0,
-          profileType: _selectedProfileType,
+          profileType: profileType,
+          privacyLevel: privacyLevel,
         );
         SupabaseClient.instance.addProfile(mockProfile);
         SupabaseClient.instance.currentProfileNotifier.value = mockProfile;
@@ -1272,6 +1364,10 @@ class _AuthScreenState extends State<AuthScreen> {
                 // Tipologia di Profilo Dropdown
                 DropdownButtonFormField<String>(
                   value: _selectedProfileType,
+                  hint: const Text(
+                    "Seleziona la tipologia...",
+                    style: TextStyle(color: textSecondary, fontSize: 13),
+                  ),
                   dropdownColor: slateSurface,
                   style: const TextStyle(color: textPrimary, fontSize: 13),
                   icon: const Icon(Icons.arrow_drop_down, color: premiumGold),
@@ -1307,6 +1403,54 @@ class _AuthScreenState extends State<AuthScreen> {
                     if (newValue != null) {
                       setState(() {
                         _selectedProfileType = newValue;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Livello di Privacy Dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedPrivacyLevel,
+                  hint: const Text(
+                    "Seleziona livello di privacy...",
+                    style: TextStyle(color: textSecondary, fontSize: 13),
+                  ),
+                  dropdownColor: slateSurface,
+                  style: const TextStyle(color: textPrimary, fontSize: 13),
+                  icon: const Icon(Icons.arrow_drop_down, color: premiumGold),
+                  decoration: InputDecoration(
+                    labelText: "Livello di Privacy",
+                    labelStyle:
+                        const TextStyle(color: textSecondary, fontSize: 12),
+                    floatingLabelStyle: const TextStyle(color: premiumGold),
+                    prefixIcon: const Icon(Icons.security_outlined,
+                        color: premiumGold, size: 20),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: premiumGold),
+                    ),
+                    filled: true,
+                    fillColor: slateSurface.withOpacity(0.5),
+                  ),
+                  items: _privacyOptions.keys.map((String label) {
+                    return DropdownMenuItem<String>(
+                      value: _privacyOptions[label],
+                      child: Text(
+                        label,
+                        style: const TextStyle(color: textPrimary),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        _selectedPrivacyLevel = newValue;
                       });
                     }
                   },

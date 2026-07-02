@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'main.dart';
 
@@ -14,6 +15,74 @@ class EventDetailsPage extends StatefulWidget {
 }
 
 class _EventDetailsPageState extends State<EventDetailsPage> {
+  String _requestStatus = 'none';
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with local state first for instant display
+    final currentUserId = SupabaseClient.instance.currentProfileNotifier.value?.id ?? "";
+    final localRequests = SupabaseClient.instance.requestsNotifier.value;
+    final localReq = localRequests.firstWhere(
+      (r) => r.userId == currentUserId && r.eventId == widget.event.id,
+      orElse: () => SupabaseParticipationRequest(id: "", userId: "", eventId: "", status: "none"),
+    );
+    _requestStatus = localReq.status;
+
+    _checkRequestStatus();
+  }
+
+  Future<void> _checkRequestStatus() async {
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    if (currentUser == null) return;
+
+    try {
+      final response = await Supabase.instance.client
+          .from('event_requests')
+          .select('status')
+          .eq('event_id', widget.event.id)
+          .eq('user_id', currentUser.id)
+          .maybeSingle();
+
+      if (response != null && response['status'] != null) {
+        if (mounted) {
+          setState(() {
+            _requestStatus = response['status'].toString();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Errore durante il recupero dello stato della richiesta: $e");
+    }
+  }
+
+  Future<void> _submitRequest(String currentUserId) async {
+    // 1. Submit locally for instant responsive UI
+    SupabaseClient.instance.submitParticipationRequest(widget.event.id, currentUserId);
+    if (mounted) {
+      setState(() {
+        _requestStatus = 'pending';
+      });
+    }
+
+    // 2. Submit to real database
+    try {
+      final currentUser = Supabase.instance.client.auth.currentUser;
+      if (currentUser != null) {
+        await Supabase.instance.client.from('event_requests').insert({
+          'event_id': widget.event.id,
+          'user_id': currentUser.id,
+          'status': 'pending',
+        });
+      }
+    } catch (e) {
+      debugPrint("Errore nell'inserimento della richiesta reale: $e");
+    }
+
+    // 3. Refresh status from DB
+    await _checkRequestStatus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUserId = SupabaseClient.instance.currentProfileNotifier.value?.id ?? "";
@@ -40,7 +109,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             (r) => r.userId == currentUserId && r.eventId == widget.event.id,
             orElse: () => SupabaseParticipationRequest(id: "", userId: "", eventId: "", status: "none"),
           );
-          final requestStatus = userReq.status; // "pending", "approved", "rejected", "none" (default fallback)
+          final requestStatus = _requestStatus == 'none' ? userReq.status : _requestStatus;
           final isApproved = requestStatus == "approved";
 
           return Column(
@@ -171,156 +240,128 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             ),
                             const SizedBox(height: 8),
 
-                            if (isApproved) ...[
-                              // UNLOCKED STATE CARD
-                              Card(
-                                color: slateSurface,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(color: premiumGold.withOpacity(0.5), width: 1),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                            Stack(
+                              children: [
+                                // The actual address and map widgets (always present in tree, but blurred if not approved)
+                                Card(
+                                  color: slateSurface,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(
+                                      color: isApproved ? premiumGold.withOpacity(0.5) : const Color(0xFF333333),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                color: isApproved ? Colors.green : Colors.orange,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              isApproved ? "INVITO APPROVATO" : "INVITO DA APPROVARE",
+                                              style: TextStyle(
+                                                color: isApproved ? Colors.green : Colors.orange,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                                letterSpacing: 1.0,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                        const Text(
+                                          "Indirizzo:",
+                                          style: TextStyle(fontSize: 12, color: textSecondary),
+                                        ),
+                                        Text(
+                                          widget.event.locationName,
+                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        // Precise coords card (mocking the map block/box)
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: matteDark,
+                                            borderRadius: BorderRadius.circular(8),
                                           ),
-                                          const SizedBox(width: 10),
-                                          const Text(
-                                            "INVITO APPROVATO",
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12,
-                                              letterSpacing: 1.0,
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text("Coordinate Precise", style: TextStyle(fontSize: 10, color: textSecondary)),
+                                                  Text(
+                                                    "Lat: ${widget.event.latitude.toStringAsFixed(5)} / Lng: ${widget.event.longitude.toStringAsFixed(5)}",
+                                                    style: const TextStyle(fontSize: 12, color: premiumGold, fontWeight: FontWeight.bold),
+                                                  ),
+                                                ],
+                                              ),
+                                              const Icon(Icons.directions, color: premiumGold),
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                // BLUR OVERLAY SHIELD (when not approved)
+                                if (!isApproved)
+                                  Positioned.fill(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Stack(
+                                        children: [
+                                          // BackdropFilter to blur the underlying address and map card
+                                          Positioned.fill(
+                                            child: BackdropFilter(
+                                              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                                              child: Container(
+                                                color: Colors.black.withOpacity(0.55),
+                                              ),
+                                            ),
+                                          ),
+                                          // Golden lock and text overlay
+                                          Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: const [
+                                                  Icon(Icons.lock, color: premiumGold, size: 36),
+                                                  SizedBox(height: 12),
+                                                  Text(
+                                                    "Indirizzo sbloccato dopo l'approvazione del Club",
+                                                    style: TextStyle(
+                                                      color: premiumGold,
+                                                      fontWeight: FontWeight.w900,
+                                                      fontSize: 13,
+                                                      letterSpacing: 0.5,
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
-                                      const Text(
-                                        "Indirizzo Sbloccato:",
-                                        style: TextStyle(fontSize: 12, color: textSecondary),
-                                      ),
-                                      Text(
-                                        widget.event.locationName,
-                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      // Precise coords card
-                                      Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: matteDark,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                const Text("Coordinate Precise", style: TextStyle(fontSize: 10, color: textSecondary)),
-                                                Text(
-                                                  "Lat: ${widget.event.latitude.toStringAsFixed(5)} / Lng: ${widget.event.longitude.toStringAsFixed(5)}",
-                                                  style: const TextStyle(fontSize: 12, color: premiumGold, fontWeight: FontWeight.bold),
-                                                ),
-                                              ],
-                                            ),
-                                            const Icon(Icons.directions, color: premiumGold),
-                                          ],
-                                        ),
-                                      )
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              )
-                            ] else ...[
-                              // LOCKED / BLURRED FLOATING MAPPING STATE (FLUTTER REWRITE MATCHING ORIGINAL SPECIFICATIONS)
-                              Container(
-                                width: double.infinity,
-                                height: 180,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFF333333)),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Stack(
-                                    children: [
-                                      // Simulated blurred map streets
-                                      Positioned.fill(
-                                        child: Container(
-                                          color: const Color(0xFF0F0F0F),
-                                          child: Opacity(
-                                            opacity: 0.1,
-                                            child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                              children: List.generate(
-                                                5,
-                                                (index) => Container(
-                                                  height: 12,
-                                                  color: Colors.white,
-                                                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      // Blurred fog covering Arno mapping
-                                      Positioned.fill(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [matteDark.withOpacity(0.85), matteDark.withOpacity(0.98)],
-                                              begin: Alignment.topCenter,
-                                              end: Alignment.bottomCenter,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      // Lock instruction details
-                                      Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(16),
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              const Icon(Icons.lock, color: premiumGold, size: 32),
-                                              const SizedBox(height: 10),
-                                              const Text(
-                                                "Area Firenze Sud",
-                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textPrimary),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              const Text(
-                                                "La posizione esatta e le coordinate GPS verranno sbloccate solo dopo che l'organizzatore avrà approvato la tua richiesta.",
-                                                style: TextStyle(fontSize: 11, color: textSecondary, height: 1.4),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                              if (requestStatus == 'pending') ...[
-                                                const SizedBox(height: 10),
-                                                const Text(
-                                                  "RICHIESTA IN ATTESA DI APPROVAZIONE",
-                                                  style: TextStyle(color: premiumGold, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1.0),
-                                                ),
-                                              ]
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              )
-                            ],
+                              ],
+                            ),
                             const SizedBox(height: 30),
                           ],
                         ),
@@ -346,7 +387,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           ),
                           onPressed: () {
-                            SupabaseClient.instance.submitParticipationRequest(widget.event.id, currentUserId);
+                            _submitRequest(currentUserId);
                           },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
