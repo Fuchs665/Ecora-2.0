@@ -4,13 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:local_auth/local_auth.dart';
 import 'client_navigation_hub.dart';
 import 'gestore_dashboard.dart';
-
-// --- PREMIUM DESIGN SYSTEM TOKENS ---
-const Color matteDark = Color(0xFF1A1A1A);
-const Color slateSurface = Color(0xFF2A2A2A);
-const Color premiumGold = Color(0xFFD4AF37);
-const Color textPrimary = Color(0xFFFFFFFF);
-const Color textSecondary = Color(0xFFA0A0A0);
+import 'theme.dart';
+export 'theme.dart';
 
 // --- SUPABASE DATABASE MODELS ---
 
