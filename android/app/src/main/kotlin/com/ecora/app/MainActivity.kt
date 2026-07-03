@@ -1,4 +1,4 @@
-package com.example.ecora
+package com.ecora.app
 
 import io.flutter.embedding.android.FlutterActivity
 
