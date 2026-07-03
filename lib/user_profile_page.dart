@@ -321,21 +321,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
   }
 
   InputDecoration _fieldDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: const TextStyle(color: textSecondary, fontSize: 12),
-      floatingLabelStyle: const TextStyle(color: premiumGold),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: premiumGold),
-      ),
-      filled: true,
-      fillColor: matteDark.withValues(alpha: 0.5),
-    );
+    return ecoraInputDecoration(label, fillColor: matteDark);
   }
 
   Future<void> _save() async {
@@ -429,12 +415,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: premiumGold,
-                foregroundColor: matteDark,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24)),
-              ),
+              style: ecoraPrimaryButtonStyle(),
               onPressed: _isSaving ? null : _save,
               child: _isSaving
                   ? const SizedBox(
