@@ -673,10 +673,11 @@ class _EcoraAppState extends State<EcoraApp> {
           builder: (context, profile, _) {
             if (profile == null) {
               return const AuthScreen();
-            } else if (profile.role == 'cliente') {
-              return const ClientNavigationHub();
-            } else {
+            } else if (profile.role == 'gestore') {
               return const GestoreDashboard();
+            } else {
+              // Default sicuro: qualunque ruolo non-gestore -> area cliente.
+              return const ClientNavigationHub();
             }
           },
         ),
