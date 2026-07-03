@@ -374,11 +374,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: premiumGold,
-                            foregroundColor: matteDark,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                          ),
+                          style: ecoraPrimaryButtonStyle(),
                           onPressed: () {
                             _submitRequest(currentUserId);
                           },

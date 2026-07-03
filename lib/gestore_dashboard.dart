@@ -792,22 +792,8 @@ class _CreateEventFormState extends State<CreateEventForm> {
               TextField(
                 controller: _titleController,
                 style: const TextStyle(color: textPrimary, fontSize: 13),
-                decoration: InputDecoration(
-                  labelText: "Titolo Incontro (es. Ballo in Maschera Ambra)",
-                  labelStyle:
-                      const TextStyle(color: textSecondary, fontSize: 12),
-                  floatingLabelStyle: const TextStyle(color: premiumGold),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: premiumGold),
-                  ),
-                  filled: true,
-                  fillColor: slateSurface.withValues(alpha: 0.5),
+                decoration: ecoraInputDecoration(
+                  "Titolo Incontro (es. Ballo in Maschera Ambra)",
                 ),
               ),
               const SizedBox(height: 16),
@@ -816,22 +802,8 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 controller: _descriptionController,
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 maxLines: 4,
-                decoration: InputDecoration(
-                  labelText: "Concept Riservato / Protocollo d'Ingresso",
-                  labelStyle:
-                      const TextStyle(color: textSecondary, fontSize: 12),
-                  floatingLabelStyle: const TextStyle(color: premiumGold),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: premiumGold),
-                  ),
-                  filled: true,
-                  fillColor: slateSurface.withValues(alpha: 0.5),
+                decoration: ecoraInputDecoration(
+                  "Concept Riservato / Protocollo d'Ingresso",
                 ),
               ),
               const SizedBox(height: 16),
@@ -839,23 +811,8 @@ class _CreateEventFormState extends State<CreateEventForm> {
               TextField(
                 controller: _locationController,
                 style: const TextStyle(color: textPrimary, fontSize: 13),
-                decoration: InputDecoration(
-                  labelText:
-                      "Indirizzo della Location Privata (Svelato solo dopo l'approvazione)",
-                  labelStyle:
-                      const TextStyle(color: textSecondary, fontSize: 12),
-                  floatingLabelStyle: const TextStyle(color: premiumGold),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide:
-                        BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: premiumGold),
-                  ),
-                  filled: true,
-                  fillColor: slateSurface.withValues(alpha: 0.5),
+                decoration: ecoraInputDecoration(
+                  "Indirizzo della Location Privata (Svelato solo dopo l'approvazione)",
                 ),
               ),
               const SizedBox(height: 16),
@@ -962,12 +919,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: premiumGold,
-                    foregroundColor: matteDark,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24)),
-                  ),
+                  style: ecoraPrimaryButtonStyle(),
                   onPressed: _isSubmitting
                       ? null
                       : () async {
