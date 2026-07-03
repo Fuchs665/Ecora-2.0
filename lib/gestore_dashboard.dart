@@ -19,14 +19,14 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
   @override
   void initState() {
     super.initState();
-    SupabaseClient.instance.fetchEvents();
-    SupabaseClient.instance.fetchHostRequests();
+    EcoraDataService.instance.fetchEvents();
+    EcoraDataService.instance.fetchHostRequests();
   }
 
   @override
   Widget build(BuildContext context) {
     // Read current host profile
-    final hostProfile = SupabaseClient.instance.currentProfileNotifier.value;
+    final hostProfile = EcoraDataService.instance.currentProfileNotifier.value;
     if (hostProfile == null) {
       return const Scaffold(body: Center(child: Text("Accesso limitato.")));
     }
@@ -34,7 +34,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
     final double bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return ValueListenableBuilder<List<SupabaseParticipationRequest>>(
-      valueListenable: SupabaseClient.instance.requestsNotifier,
+      valueListenable: EcoraDataService.instance.requestsNotifier,
       builder: (context, requests, _) {
         final pendingCount =
             requests.where((r) => r.status == 'pending').length;
@@ -42,7 +42,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
         // Build list of widgets corresponding to the tabs
         final List<Widget> subScreens = [
           ValueListenableBuilder<List<SupabaseEvent>>(
-            valueListenable: SupabaseClient.instance.eventsNotifier,
+            valueListenable: EcoraDataService.instance.eventsNotifier,
             builder: (context, events, _) {
               return ClubDashboardScreen(
                 events: events,
@@ -57,7 +57,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
             },
           ),
           ValueListenableBuilder<List<SupabaseEvent>>(
-            valueListenable: SupabaseClient.instance.eventsNotifier,
+            valueListenable: EcoraDataService.instance.eventsNotifier,
             builder: (context, events, _) {
               return RequestInspectorScreen(
                 events: events,
@@ -70,7 +70,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
           UserProfilePage(
             profile: hostProfile,
             onLogout: () {
-              SupabaseClient.instance.logout();
+              EcoraDataService.instance.logout();
             },
           ),
         ];
@@ -406,7 +406,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
   Future<void> _reviewRequest(
       BuildContext dialogCtx, String requestId, String status) async {
     Navigator.of(dialogCtx).pop();
-    final error = await SupabaseClient.instance
+    final error = await EcoraDataService.instance
         .reviewParticipationRequest(requestId, status);
     if (error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -613,7 +613,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                         itemCount: pendingRequests.length,
                         itemBuilder: (context, index) {
                           final req = pendingRequests[index];
-                          final applicant = SupabaseClient.instance
+                          final applicant = EcoraDataService.instance
                               .getProfileById(req.userId);
                           final eventIdx = widget.events
                               .indexWhere((e) => e.id == req.eventId);
@@ -946,7 +946,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                           setState(() => _isSubmitting = true);
 
                           final error =
-                              await SupabaseClient.instance.createEvent(
+                              await EcoraDataService.instance.createEvent(
                             title: _titleController.text,
                             description: _descriptionController.text,
                             hostId: widget.organizerId,

@@ -339,7 +339,7 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     }
 
     setState(() => _isSaving = true);
-    final error = await SupabaseClient.instance.updateMyProfile(
+    final error = await EcoraDataService.instance.updateMyProfile(
       nickname: nickname,
       genericLocation: location,
       profileType: _profileType,

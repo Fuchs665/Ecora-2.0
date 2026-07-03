@@ -17,17 +17,17 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
   @override
   Widget build(BuildContext context) {
     // Read current logged-in profile
-    final currentProfile = SupabaseClient.instance.currentProfileNotifier.value;
+    final currentProfile = EcoraDataService.instance.currentProfileNotifier.value;
 
     final List<Widget> pages = [
       const ExploreScreen(),
       ValueListenableBuilder<List<NotificationItem>>(
-        valueListenable: SupabaseClient.instance.notificationsNotifier,
+        valueListenable: EcoraDataService.instance.notificationsNotifier,
         builder: (context, notifications, _) {
           return NotificationsScreen(
             notifications: notifications,
             onDeleteNotification: (id) {
-              SupabaseClient.instance.deleteNotification(id);
+              EcoraDataService.instance.deleteNotification(id);
             },
           );
         },
@@ -37,7 +37,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
         UserProfilePage(
           profile: currentProfile,
           onLogout: () {
-            SupabaseClient.instance.logout();
+            EcoraDataService.instance.logout();
           },
         )
       else
@@ -67,9 +67,9 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
             });
             // Aggiorna dal DB e azzera il badge quando si apre la campanella
             if (index == 1) {
-              SupabaseClient.instance
+              EcoraDataService.instance
                   .fetchMyNotifications()
-                  .then((_) => SupabaseClient.instance.resetNotificationBadge());
+                  .then((_) => EcoraDataService.instance.resetNotificationBadge());
             }
           },
           backgroundColor: slateSurface,
@@ -91,7 +91,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
                   const Icon(Icons.mail, size: 28),
                   ValueListenableBuilder<int>(
                     valueListenable:
-                        SupabaseClient.instance.notificationBadgeNotifier,
+                        EcoraDataService.instance.notificationBadgeNotifier,
                     builder: (context, badgeCount, _) {
                       if (badgeCount == 0) return const SizedBox.shrink();
                       return Positioned(
@@ -161,9 +161,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
   @override
   void initState() {
     super.initState();
-    SupabaseClient.instance.fetchEvents();
-    SupabaseClient.instance.fetchMyRequests();
-    SupabaseClient.instance.fetchMyNotifications();
+    EcoraDataService.instance.fetchEvents();
+    EcoraDataService.instance.fetchMyRequests();
+    EcoraDataService.instance.fetchMyNotifications();
   }
 
   @override
@@ -171,13 +171,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return Scaffold(
       body: SafeArea(
         child: ValueListenableBuilder<List<SupabaseEvent>>(
-          valueListenable: SupabaseClient.instance.eventsNotifier,
+          valueListenable: EcoraDataService.instance.eventsNotifier,
           builder: (context, allEvents, _) {
             // Apply radius distance calculations matching haversine model
             final filteredEvents = _isRadiusActive
                 ? allEvents.where((e) {
                     double distance =
-                        SupabaseClient.instance.calculateHaversineDistance(
+                        EcoraDataService.instance.calculateHaversineDistance(
                       centerLat,
                       centerLng,
                       e.latitude,
@@ -748,8 +748,8 @@ class FlorenceMapPainter extends CustomPainter {
 
     // 3. Draw Event Pin Targets
     final guestId =
-        SupabaseClient.instance.currentProfileNotifier.value?.id ?? "";
-    final requests = SupabaseClient.instance.requestsNotifier.value;
+        EcoraDataService.instance.currentProfileNotifier.value?.id ?? "";
+    final requests = EcoraDataService.instance.requestsNotifier.value;
 
     for (var ev in events) {
       final screenPt = _project(ev.latitude, ev.longitude, width, height);

@@ -86,13 +86,13 @@ void main() {
 
   group('Haversine distance', () {
     test('distance to self is zero', () {
-      final d = SupabaseClient.instance
+      final d = EcoraDataService.instance
           .calculateHaversineDistance(43.7695, 11.2558, 43.7695, 11.2558);
       expect(d, 0.0);
     });
 
     test('Florence to Rome is roughly 230 km', () {
-      final d = SupabaseClient.instance
+      final d = EcoraDataService.instance
           .calculateHaversineDistance(43.7695, 11.2558, 41.9028, 12.4964);
       expect(d, greaterThan(200));
       expect(d, lessThan(260));

@@ -1,8 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'main.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide SupabaseClient;
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 class EventDetailsPage extends StatefulWidget {
   final SupabaseEvent event;
 
@@ -83,7 +82,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserId = SupabaseClient.instance.currentProfileNotifier.value?.id ?? "";
+    final currentUserId = EcoraDataService.instance.currentProfileNotifier.value?.id ?? "";
 
     return Scaffold(
       appBar: AppBar(
