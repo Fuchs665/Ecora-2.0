@@ -131,7 +131,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [Colors.transparent, matteDark.withOpacity(0.9), matteDark],
+                                  colors: [Colors.transparent, matteDark.withValues(alpha: 0.9), matteDark],
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                 ),
@@ -241,7 +241,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     side: BorderSide(
-                                      color: isApproved ? premiumGold.withOpacity(0.5) : const Color(0xFF333333),
+                                      color: isApproved ? premiumGold.withValues(alpha: 0.5) : const Color(0xFF333333),
                                       width: 1,
                                     ),
                                   ),
@@ -322,7 +322,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                             child: BackdropFilter(
                                               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                                               child: Container(
-                                                color: Colors.black.withOpacity(0.55),
+                                                color: Colors.black.withValues(alpha: 0.55),
                                               ),
                                             ),
                                           ),

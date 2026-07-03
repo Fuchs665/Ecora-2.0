@@ -91,13 +91,13 @@ class UserProfilePage extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: premiumGold.withOpacity(0.15),
+                            color: premiumGold.withValues(alpha: 0.15),
                             blurRadius: 16,
                             spreadRadius: 4,
                           )
                         ],
                         gradient: RadialGradient(
-                          colors: [premiumGold.withOpacity(0.25), Colors.transparent],
+                          colors: [premiumGold.withValues(alpha: 0.25), Colors.transparent],
                         ),
                       ),
                     ),
@@ -154,10 +154,10 @@ class UserProfilePage extends StatelessWidget {
               // --- HIGH TRUST BADGE ---
               if (highTrustEarned) ...[
                 Card(
-                  color: premiumGold.withOpacity(0.1),
+                  color: premiumGold.withValues(alpha: 0.1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(color: premiumGold.withOpacity(0.5), width: 1),
+                    side: BorderSide(color: premiumGold.withValues(alpha: 0.5), width: 1),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -253,7 +253,7 @@ class UserProfilePage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                       letterSpacing: 1.0,
-                      color: Colors.red.withOpacity(0.8),
+                      color: Colors.red.withValues(alpha: 0.8),
                     ),
                   ),
                 ),
@@ -327,14 +327,14 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
       floatingLabelStyle: const TextStyle(color: premiumGold),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.06)),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: premiumGold),
       ),
       filled: true,
-      fillColor: matteDark.withOpacity(0.5),
+      fillColor: matteDark.withValues(alpha: 0.5),
     );
   }
 

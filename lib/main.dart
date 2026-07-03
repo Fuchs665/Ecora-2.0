@@ -1152,7 +1152,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        premiumGold.withOpacity(0.18),
+                        premiumGold.withValues(alpha: 0.18),
                         Colors.transparent,
                       ],
                     ),
@@ -1206,14 +1206,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide:
-                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: premiumGold),
                     ),
                     filled: true,
-                    fillColor: slateSurface.withOpacity(0.5),
+                    fillColor: slateSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1247,14 +1247,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide:
-                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: premiumGold),
                     ),
                     filled: true,
-                    fillColor: slateSurface.withOpacity(0.5),
+                    fillColor: slateSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -1333,14 +1333,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide:
-                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: premiumGold),
                     ),
                     filled: true,
-                    fillColor: slateSurface.withOpacity(0.5),
+                    fillColor: slateSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1365,14 +1365,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide:
-                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: premiumGold),
                     ),
                     filled: true,
-                    fillColor: slateSurface.withOpacity(0.5),
+                    fillColor: slateSurface.withValues(alpha: 0.5),
                   ),
                   items: _profileTypes.map((String type) {
                     return DropdownMenuItem<String>(
@@ -1413,14 +1413,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide:
-                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: premiumGold),
                     ),
                     filled: true,
-                    fillColor: slateSurface.withOpacity(0.5),
+                    fillColor: slateSurface.withValues(alpha: 0.5),
                   ),
                   items: _privacyOptions.keys.map((String label) {
                     return DropdownMenuItem<String>(
@@ -1455,14 +1455,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide:
-                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: premiumGold),
                     ),
                     filled: true,
-                    fillColor: slateSurface.withOpacity(0.5),
+                    fillColor: slateSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1481,14 +1481,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide:
-                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: premiumGold),
                     ),
                     filled: true,
-                    fillColor: slateSurface.withOpacity(0.5),
+                    fillColor: slateSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1522,14 +1522,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide:
-                          BorderSide(color: Colors.white.withOpacity(0.06)),
+                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: premiumGold),
                     ),
                     filled: true,
-                    fillColor: slateSurface.withOpacity(0.5),
+                    fillColor: slateSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -1630,9 +1630,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.15),
+                    color: Colors.red.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
@@ -1658,9 +1658,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: premiumGold.withOpacity(0.12),
+                    color: premiumGold.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: premiumGold.withOpacity(0.35)),
+                    border: Border.all(color: premiumGold.withValues(alpha: 0.35)),
                   ),
                   child: Row(
                     children: [
@@ -1697,7 +1697,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             ? "Protetto rigorosamente da tunnel crittografati Supabase. Anonimato assoluto end-to-end. L'identità del tuo dispositivo non viene mai registrata."
                             : "Compilando il modulo acconsenti al pre-screening rigoroso. Il tuo nickname e la tua località non saranno rivelati finché non sarai approvato a un tavolo condiviso.",
                         style: TextStyle(
-                          color: textSecondary.withOpacity(0.8),
+                          color: textSecondary.withValues(alpha: 0.8),
                           fontSize: 10,
                           height: 1.4,
                         ),

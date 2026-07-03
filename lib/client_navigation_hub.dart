@@ -54,7 +54,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
           color: slateSurface,
           border: Border(
             top: BorderSide(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               width: 1,
             ),
           ),
@@ -241,9 +241,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             height: 32,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: premiumGold.withOpacity(0.1),
+                              color: premiumGold.withValues(alpha: 0.1),
                               border: Border.all(
-                                  color: premiumGold.withOpacity(0.5),
+                                  color: premiumGold.withValues(alpha: 0.5),
                                   width: 1),
                             ),
                             child: const Icon(Icons.person,
@@ -277,7 +277,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           color: slateSurface,
                           borderRadius: BorderRadius.circular(24),
                           border:
-                              Border.all(color: Colors.white.withOpacity(0.05)),
+                              Border.all(color: Colors.white.withValues(alpha: 0.05)),
                         ),
                         child: Row(
                           children: [
@@ -436,10 +436,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                     margin: const EdgeInsets.only(bottom: 16),
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color: premiumGold.withOpacity(0.05),
+                                      color: premiumGold.withValues(alpha: 0.05),
                                       borderRadius: BorderRadius.circular(16),
                                       border: Border.all(
-                                          color: premiumGold.withOpacity(0.15)),
+                                          color: premiumGold.withValues(alpha: 0.15)),
                                     ),
                                     child: Row(
                                       crossAxisAlignment:
@@ -555,11 +555,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 14, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: matteDark.withOpacity(0.85),
+                                        color: matteDark.withValues(alpha: 0.85),
                                         borderRadius: BorderRadius.circular(20),
                                         border: Border.all(
                                             color:
-                                                Colors.white.withOpacity(0.04)),
+                                                Colors.white.withValues(alpha: 0.04)),
                                       ),
                                       child: const Text(
                                         "Mappa Dark CartoDB — Tocca i nodi luminosi per i dettagli",
@@ -761,7 +761,7 @@ class FlorenceMapPainter extends CustomPainter {
       final bool isApproved = req.status == "approved";
 
       final pulseColor =
-          isApproved ? const Color(0x334CAF50) : premiumGold.withOpacity(0.25);
+          isApproved ? const Color(0x334CAF50) : premiumGold.withValues(alpha: 0.25);
       final coreColor = isApproved ? const Color(0xFF4CAF50) : premiumGold;
 
       // Glow halo
@@ -811,7 +811,7 @@ class EventFeedCard extends StatelessWidget {
       color: slateSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: Colors.white.withOpacity(0.05)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
       ),
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
@@ -846,7 +846,7 @@ class EventFeedCard extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: [
                           Colors.transparent,
-                          Colors.black.withOpacity(0.8)
+                          Colors.black.withValues(alpha: 0.8)
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -908,10 +908,10 @@ class EventFeedCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
-                          color: premiumGold.withOpacity(0.12),
+                          color: premiumGold.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                              color: premiumGold.withOpacity(0.3), width: 0.5),
+                              color: premiumGold.withValues(alpha: 0.3), width: 0.5),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1201,7 +1201,7 @@ class MessagesScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Card(
-                color: slateSurface.withOpacity(0.5),
+                color: slateSurface.withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
                 child: Padding(

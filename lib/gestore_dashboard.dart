@@ -96,7 +96,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
               color: slateSurface,
               border: Border(
                 top: BorderSide(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   width: 1,
                 ),
               ),
@@ -253,7 +253,7 @@ class ClubDashboardScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                     side: BorderSide(
-                        color: Colors.red.withOpacity(0.5), width: 1),
+                        color: Colors.red.withValues(alpha: 0.5), width: 1),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -517,7 +517,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: premiumGold.withOpacity(0.3)),
+                  border: Border.all(color: premiumGold.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -800,14 +800,14 @@ class _CreateEventFormState extends State<CreateEventForm> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide:
-                        BorderSide(color: Colors.white.withOpacity(0.06)),
+                        BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: premiumGold),
                   ),
                   filled: true,
-                  fillColor: slateSurface.withOpacity(0.5),
+                  fillColor: slateSurface.withValues(alpha: 0.5),
                 ),
               ),
               const SizedBox(height: 16),
@@ -824,14 +824,14 @@ class _CreateEventFormState extends State<CreateEventForm> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide:
-                        BorderSide(color: Colors.white.withOpacity(0.06)),
+                        BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: premiumGold),
                   ),
                   filled: true,
-                  fillColor: slateSurface.withOpacity(0.5),
+                  fillColor: slateSurface.withValues(alpha: 0.5),
                 ),
               ),
               const SizedBox(height: 16),
@@ -848,14 +848,14 @@ class _CreateEventFormState extends State<CreateEventForm> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide:
-                        BorderSide(color: Colors.white.withOpacity(0.06)),
+                        BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: premiumGold),
                   ),
                   filled: true,
-                  fillColor: slateSurface.withOpacity(0.5),
+                  fillColor: slateSurface.withValues(alpha: 0.5),
                 ),
               ),
               const SizedBox(height: 16),
@@ -868,12 +868,12 @@ class _CreateEventFormState extends State<CreateEventForm> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
                   decoration: BoxDecoration(
-                    color: slateSurface.withOpacity(0.5),
+                    color: slateSurface.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: _eventDate == null
-                          ? Colors.white.withOpacity(0.06)
-                          : premiumGold.withOpacity(0.5),
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : premiumGold.withValues(alpha: 0.5),
                     ),
                   ),
                   child: Row(
