@@ -12,6 +12,10 @@ import 'data_service.dart';
 export 'models.dart';
 export 'data_service.dart';
 
+// TODO(Fase 6): sostituire con l'URL reale della privacy policy e attivare
+// il link cliccabile (richiede url_launcher). Vedi landmine in CLAUDE.md.
+const String kPrivacyPolicyUrl = 'https://example.com/ecora-privacy';
+
 // --- FLUTTER APPLICATION BARRIER ---
 
 void main() async {
@@ -290,6 +294,42 @@ class _AuthScreenState extends State<AuthScreen> {
   };
   String? _selectedPrivacyLevel;
 
+  // Consenso obbligatorio alla registrazione (Fase 3 — Trust & Safety).
+  bool _ageConfirmed = false;
+  bool _termsAccepted = false;
+
+  Widget _buildConsentCheckbox({
+    required bool value,
+    required ValueChanged<bool?> onChanged,
+    required Widget child,
+  }) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: value,
+                onChanged: onChanged,
+                activeColor: premiumGold,
+                checkColor: matteDark,
+                side: const BorderSide(color: textSecondary),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: child),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _parseSupabaseError(dynamic error) {
     final errStr = error.toString().toLowerCase();
     if (errStr.contains('invalid login credentials') ||
@@ -357,11 +397,17 @@ class _AuthScreenState extends State<AuthScreen> {
       // ma non era leggibile per un problema transitorio.
       if (profileData == null) {
         final fallbackNickname = email.split('@').first;
+        // Consenso raccolto alla registrazione e conservato nei metadati auth:
+        // lo rispecchiamo qui quando la riga profilo nasce al primo login
+        // (flusso con conferma email attiva).
+        final meta = user.userMetadata ?? {};
         await Supabase.instance.client.from('profiles').upsert(
           {
             'id': user.id,
             'nickname': fallbackNickname,
             'role': 'cliente',
+            'age_confirmed_at': meta['age_confirmed_at'],
+            'terms_accepted_at': meta['terms_accepted_at'],
           },
           onConflict: 'id',
           ignoreDuplicates: true,
@@ -454,17 +500,40 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
+    if (!_ageConfirmed) {
+      setState(() {
+        _errorMessage = "Devi confermare di avere almeno 18 anni per registrarti.";
+      });
+      return;
+    }
+
+    if (!_termsAccepted) {
+      setState(() {
+        _errorMessage =
+            "Devi accettare la Privacy Policy e i Termini di Servizio.";
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
       _infoMessage = null;
     });
 
+    // Timestamp del consenso: salvato nei metadati auth (sopravvive al gap
+    // della conferma email) e rispecchiato nella riga profiles.
+    final String consentIso = DateTime.now().toUtc().toIso8601String();
+
     try {
       // 1. Registrazione reale su Supabase Auth
       final response = await Supabase.instance.client.auth.signUp(
         email: email,
         password: password,
+        data: {
+          'age_confirmed_at': consentIso,
+          'terms_accepted_at': consentIso,
+        },
       );
 
       final user = response.user;
@@ -497,6 +566,8 @@ class _AuthScreenState extends State<AuthScreen> {
           'is_verified': false,
           'profile_type': profileType,
           'privacy_level': privacyLevel,
+          'age_confirmed_at': consentIso,
+          'terms_accepted_at': consentIso,
         });
       } catch (dbErr) {
         debugPrint("Errore nell'inserimento del profilo reale: $dbErr");
@@ -803,7 +874,39 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+
+                // --- CONSENSO OBBLIGATORIO (Fase 3 — Trust & Safety) ---
+                _buildConsentCheckbox(
+                  value: _ageConfirmed,
+                  onChanged: (v) => setState(() => _ageConfirmed = v ?? false),
+                  child: const Text(
+                    "Dichiaro di avere almeno 18 anni.",
+                    style: TextStyle(color: textSecondary, fontSize: 12),
+                  ),
+                ),
+                _buildConsentCheckbox(
+                  value: _termsAccepted,
+                  onChanged: (v) =>
+                      setState(() => _termsAccepted = v ?? false),
+                  child: RichText(
+                    text: const TextSpan(
+                      style: TextStyle(color: textSecondary, fontSize: 12),
+                      children: [
+                        TextSpan(text: "Ho letto e accetto la "),
+                        TextSpan(
+                          text: "Privacy Policy e i Termini di Servizio",
+                          style: TextStyle(
+                            color: premiumGold,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextSpan(text: "."),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
 
                 // --- REGISTER BUTTON ---
                 SizedBox(

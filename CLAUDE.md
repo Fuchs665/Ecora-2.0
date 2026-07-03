@@ -21,8 +21,7 @@ Flutter (Android-first) + Supabase (Postgres, Auth, Storage). Roles: `cliente` (
 - Run (emulator): `flutter.bat run`
 
 ## Known landmines
-- `android/` was generated with the default applicationId `com.example.ecora` — must be changed before release (Play Console requires a unique id you own).
-- Event coordinates are still randomized near Florence on creation (no geocoding yet); cover images are a preset list, not real uploads.
+- Privacy policy URL is a placeholder (`kPrivacyPolicyUrl` in lib/main.dart, `https://example.com/...`) and the consent link is not yet clickable. Before release: host a real privacy policy, update the constant, wire the link (needs `url_launcher`).
 
 ## Definition of done for a block
 Compiles, `analyze` clean, tests pass, diff reviewed by user, committed.
