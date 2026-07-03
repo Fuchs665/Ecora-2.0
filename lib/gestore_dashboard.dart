@@ -40,7 +40,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
             requests.where((r) => r.status == 'pending').length;
 
         // Build list of widgets corresponding to the tabs
-        final List<Widget> _subScreens = [
+        final List<Widget> subScreens = [
           ValueListenableBuilder<List<SupabaseEvent>>(
             valueListenable: SupabaseClient.instance.eventsNotifier,
             builder: (context, events, _) {
@@ -88,7 +88,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
               : IndexedStack(
                   index:
                       _selectedTab == 2 ? 0 : _selectedTab, // Safeguard index 2
-                  children: _subScreens,
+                  children: subScreens,
                 ),
           bottomNavigationBar: Container(
             height: 76 + bottomPadding,
@@ -223,9 +223,9 @@ class ClubDashboardScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             // Club Info Console banner Header
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   "CONSOLLE CLUB",
                   style: TextStyle(
@@ -427,8 +427,8 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
           backgroundColor: slateSurface,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: const [
+          title: const Row(
+            children: [
               Icon(Icons.shield, color: premiumGold),
               SizedBox(width: 10),
               Text(
@@ -1010,6 +1010,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                           setState(() => _isSubmitting = false);
 
                           if (error != null) {
+                            if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(error),
@@ -1054,14 +1055,14 @@ class ClubMessagesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 Icon(Icons.forum, color: textSecondary, size: 54),
                 SizedBox(height: 16),
                 Text(

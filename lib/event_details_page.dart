@@ -327,12 +327,12 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                             ),
                                           ),
                                           // Golden lock and text overlay
-                                          Center(
+                                          const Center(
                                             child: Padding(
-                                              padding: const EdgeInsets.all(16),
+                                              padding: EdgeInsets.all(16),
                                               child: Column(
                                                 mainAxisAlignment: MainAxisAlignment.center,
-                                                children: const [
+                                                children: [
                                                   Icon(Icons.lock, color: premiumGold, size: 36),
                                                   SizedBox(height: 12),
                                                   Text(
@@ -382,9 +382,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                           onPressed: () {
                             _submitRequest(currentUserId);
                           },
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Icon(Icons.key, color: matteDark, size: 18),
                               SizedBox(width: 8),
                               Text(
@@ -424,9 +424,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           ),
                           onPressed: () {},
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Icon(Icons.check, color: Colors.white, size: 20),
                               SizedBox(width: 8),
                               Text(

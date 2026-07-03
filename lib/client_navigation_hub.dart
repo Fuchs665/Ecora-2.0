@@ -19,7 +19,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
     // Read current logged-in profile
     final currentProfile = SupabaseClient.instance.currentProfileNotifier.value;
 
-    final List<Widget> _pages = [
+    final List<Widget> pages = [
       const ExploreScreen(),
       ValueListenableBuilder<List<NotificationItem>>(
         valueListenable: SupabaseClient.instance.notificationsNotifier,
@@ -47,7 +47,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
     ];
 
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: pages[_currentIndex],
       bottomNavigationBar: Container(
         height: 76,
         decoration: BoxDecoration(
@@ -197,8 +197,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: const [
+                      const Row(
+                        children: [
                           Icon(Icons.shield, color: premiumGold, size: 24),
                           SizedBox(width: 8),
                           Text(
@@ -392,7 +392,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             min: 1.0,
                             max: 50.0,
                             activeColor: premiumGold,
-                            inactiveColor: Color(0xFF424242),
+                            inactiveColor: const Color(0xFF424242),
                             onChanged: (val) {
                               setState(() {
                                 _radiusKm = val;
@@ -441,18 +441,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       border: Border.all(
                                           color: premiumGold.withValues(alpha: 0.15)),
                                     ),
-                                    child: Row(
+                                    child: const Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        const Icon(Icons.privacy_tip,
+                                        Icon(Icons.privacy_tip,
                                             color: premiumGold, size: 20),
-                                        const SizedBox(width: 12),
+                                        SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
-                                            children: const [
+                                            children: [
                                               Text(
                                                 "BLOCCO PRIVACY DI PRECISIONE",
                                                 style: TextStyle(
@@ -913,9 +913,9 @@ class EventFeedCard extends StatelessWidget {
                           border: Border.all(
                               color: premiumGold.withValues(alpha: 0.3), width: 0.5),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: const [
+                          children: [
                             Icon(Icons.verified_user,
                                 color: premiumGold, size: 10),
                             SizedBox(width: 3),
@@ -935,8 +935,8 @@ class EventFeedCard extends StatelessWidget {
                   const SizedBox(height: 4),
 
                   // Map Marker Discreet representation
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Icon(Icons.location_on, color: premiumGold, size: 14),
                       SizedBox(width: 4),
                       Text(
@@ -1169,10 +1169,10 @@ class MessagesScreen extends StatelessWidget {
                 color: slateSurface,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
+                child: const Padding(
+                  padding: EdgeInsets.all(16),
                   child: Column(
-                    children: const [
+                    children: [
                       Icon(Icons.forum, color: premiumGold, size: 48),
                       SizedBox(height: 16),
                       Text(
@@ -1219,10 +1219,10 @@ class MessagesScreen extends StatelessWidget {
                             color: textSecondary, size: 16),
                       ),
                       const SizedBox(width: 16),
-                      Expanded(
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               "Gruppo di Incontro Villa Nobile",
                               style: TextStyle(

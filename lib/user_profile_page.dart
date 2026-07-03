@@ -159,11 +159,11 @@ class UserProfilePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     side: BorderSide(color: premiumGold.withValues(alpha: 0.5), width: 1),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Icon(Icons.diamond, color: premiumGold, size: 16),
                         SizedBox(width: 8),
                         Text(
@@ -210,16 +210,16 @@ class UserProfilePage extends StatelessWidget {
               Card(
                 color: slateSurface,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
+                child: const Padding(
+                  padding: EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      const Icon(Icons.lock, color: premiumGold, size: 24),
-                      const SizedBox(width: 16),
+                      Icon(Icons.lock, color: premiumGold, size: 24),
+                      SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               "Scudo Privacy Attivo",
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: textPrimary),

@@ -240,7 +240,7 @@ class SupabaseClient {
       ValueNotifier([]);
   final ValueNotifier<int> notificationBadgeNotifier = ValueNotifier(0);
 
-  List<SupabaseProfile> _profiles = [];
+  final List<SupabaseProfile> _profiles = [];
   List<SupabaseEvent> _events = [];
   List<SupabaseParticipationRequest> _requests = [];
   List<NotificationItem> _notifications = [];
@@ -665,7 +665,6 @@ class _EcoraAppState extends State<EcoraApp> {
           onPrimary: matteDark,
           secondary: premiumGold,
           surface: slateSurface,
-          background: matteDark,
         ),
       ),
       home: BiometricGate(
@@ -1268,7 +1267,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       backgroundColor: premiumGold,
                       foregroundColor: matteDark,
                       elevation: 4,
-                      shape: RoundedCornerShape(24),
+                      shape: roundedCornerShape(24),
                     ),
                     onPressed: _isLoading ? null : _handleLogin,
                     child: _isLoading
@@ -1297,7 +1296,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: premiumGold, width: 1.5),
-                      shape: RoundedCornerShape(24),
+                      shape: roundedCornerShape(24),
                       foregroundColor: premiumGold,
                     ),
                     onPressed: () {
@@ -1347,7 +1346,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 // Tipologia di Profilo Dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedProfileType,
+                  initialValue: _selectedProfileType,
                   hint: const Text(
                     "Seleziona la tipologia...",
                     style: TextStyle(color: textSecondary, fontSize: 13),
@@ -1395,7 +1394,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 // Livello di Privacy Dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedPrivacyLevel,
+                  initialValue: _selectedPrivacyLevel,
                   hint: const Text(
                     "Seleziona livello di privacy...",
                     style: TextStyle(color: textSecondary, fontSize: 13),
@@ -1543,7 +1542,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       backgroundColor: premiumGold,
                       foregroundColor: matteDark,
                       elevation: 4,
-                      shape: RoundedCornerShape(24),
+                      shape: roundedCornerShape(24),
                     ),
                     onPressed: _isLoading ? null : _handleRegister,
                     child: _isLoading
@@ -1572,7 +1571,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: premiumGold, width: 1.5),
-                      shape: RoundedCornerShape(24),
+                      shape: roundedCornerShape(24),
                       foregroundColor: premiumGold,
                     ),
                     onPressed: () {
@@ -1715,8 +1714,8 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 }
 
-// Custom helper: RoundedCornerShape wrapper widget mimicking Material3's corner radii
-RoundedRectangleBorder RoundedCornerShape(double radius) {
+// Custom helper: shorthand for a rounded-rectangle button shape
+RoundedRectangleBorder roundedCornerShape(double radius) {
   return RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(radius),
   );
