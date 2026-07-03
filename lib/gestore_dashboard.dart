@@ -22,6 +22,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
     super.initState();
     EcoraDataService.instance.fetchEvents();
     EcoraDataService.instance.fetchHostRequests();
+    EcoraDataService.instance.fetchBlockedUsers();
   }
 
   @override
@@ -416,6 +417,45 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
     }
   }
 
+  Future<void> _confirmAndBlockUser(
+      BuildContext dialogCtx, String targetUserId, String targetName) async {
+    final confirmed = await showDialog<bool>(
+      context: dialogCtx,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: slateSurface,
+        title: const Text("Bloccare questo utente?",
+            style: TextStyle(color: textPrimary, fontSize: 15)),
+        content: Text(
+          "$targetName non potrà più vedere i tuoi eventi né candidarsi. "
+          "Potrai sempre sbloccarlo dal tuo profilo.",
+          style: const TextStyle(color: textSecondary, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text("Annulla"),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text("Blocca"),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !dialogCtx.mounted) return;
+
+    Navigator.of(dialogCtx).pop();
+    final error = await EcoraDataService.instance.blockUser(targetUserId);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? "$targetName è stato bloccato."),
+        backgroundColor: error != null ? Colors.redAccent : Colors.green,
+      ),
+    );
+  }
+
   void _showSafetyProfileDialog(
       BuildContext context,
       SupabaseParticipationRequest req,
@@ -544,6 +584,13 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
             ],
           ),
           actions: [
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: textSecondary),
+              onPressed: () =>
+                  _confirmAndBlockUser(ctx, applicant.id, applicant.fullName),
+              child: const Text("BLOCCA UTENTE",
+                  style: TextStyle(fontSize: 11)),
+            ),
             TextButton(
               style: TextButton.styleFrom(
                   foregroundColor: Colors.redAccent),

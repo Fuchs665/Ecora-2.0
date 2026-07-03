@@ -212,6 +212,89 @@ class EcoraDataService {
     }
   }
 
+  final ValueNotifier<List<SupabaseProfile>> blockedNotifier = ValueNotifier([]);
+
+  /// Carica i profili degli utenti bloccati dall'utente corrente.
+  Future<void> fetchBlockedUsers() async {
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return;
+
+      final blockRows = await Supabase.instance.client
+          .from('blocks')
+          .select('blocked_id')
+          .eq('blocker_id', uid);
+      final blockedIds =
+          (blockRows as List).map((r) => r['blocked_id'].toString()).toList();
+      if (blockedIds.isEmpty) {
+        blockedNotifier.value = [];
+        return;
+      }
+
+      final profRows = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .in_('id', blockedIds);
+      final blocked = (profRows as List)
+          .map((r) =>
+              SupabaseProfile.fromRow(Map<String, dynamic>.from(r as Map)))
+          .toList();
+      blockedNotifier.value = blocked;
+    } catch (e) {
+      debugPrint("Errore nel recupero degli utenti bloccati: $e");
+    }
+  }
+
+  /// Blocca un utente (bidirezionale lato RLS) e riallinea lo stato locale
+  /// così i suoi contenuti spariscono immediatamente. Ritorna null se ok.
+  Future<String?> blockUser(String targetUserId) async {
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return "Sessione scaduta. Accedi di nuovo.";
+
+      await Supabase.instance.client.from('blocks').insert({
+        'blocker_id': uid,
+        'blocked_id': targetUserId,
+      });
+
+      await Future.wait([
+        fetchBlockedUsers(),
+        fetchEvents(),
+        fetchMyRequests(),
+        fetchHostRequests(),
+      ]);
+      return null;
+    } catch (e) {
+      debugPrint("Errore durante il blocco utente: $e");
+      return "Blocco non riuscito. Riprova.";
+    }
+  }
+
+  /// Rimuove un blocco esistente. Ritorna null se ok.
+  Future<String?> unblockUser(String targetUserId) async {
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return "Sessione scaduta. Accedi di nuovo.";
+
+      await Supabase.instance.client
+          .from('blocks')
+          .delete()
+          .eq('blocker_id', uid)
+          .eq('blocked_id', targetUserId);
+
+      await Future.wait([
+        fetchBlockedUsers(),
+        fetchEvents(),
+        fetchMyRequests(),
+        fetchHostRequests(),
+      ]);
+      return null;
+    } catch (e) {
+      debugPrint("Errore durante lo sblocco utente: $e");
+      return "Sblocco non riuscito. Riprova.";
+    }
+  }
+
   // Stato "visto/eliminato" delle notifiche: solo per sessione.
   // Una tabella notifications dedicata arriverà con le push (Fase 4).
   final Set<String> _seenNotificationIds = {};

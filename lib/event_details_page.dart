@@ -80,6 +80,45 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     await _checkRequestStatus();
   }
 
+  Future<void> _confirmAndBlockOrganizer() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: slateSurface,
+        title: const Text("Bloccare l'organizzatore?",
+            style: TextStyle(color: textPrimary, fontSize: 15)),
+        content: const Text(
+          "Non vedrai più i suoi eventi e lui non vedrà più le tue richieste. "
+          "Potrai sempre sbloccarlo dal tuo profilo.",
+          style: TextStyle(color: textSecondary, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text("Annulla"),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text("Blocca"),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final error =
+        await EcoraDataService.instance.blockUser(widget.event.organizerId);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? "Organizzatore bloccato."),
+        backgroundColor: error != null ? Colors.redAccent : Colors.green,
+      ),
+    );
+    if (error == null) Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUserId = EcoraDataService.instance.currentProfileNotifier.value?.id ?? "";
@@ -94,6 +133,22 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           icon: const Icon(Icons.arrow_back, color: premiumGold),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: premiumGold),
+            color: slateSurface,
+            onSelected: (value) {
+              if (value == 'block') _confirmAndBlockOrganizer();
+            },
+            itemBuilder: (ctx) => const [
+              PopupMenuItem(
+                value: 'block',
+                child: Text("Blocca organizzatore",
+                    style: TextStyle(color: textPrimary)),
+              ),
+            ],
+          ),
+        ],
         backgroundColor: matteDark,
         elevation: 0,
       ),

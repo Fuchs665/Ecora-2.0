@@ -36,6 +36,19 @@ class UserProfilePage extends StatelessWidget {
     );
   }
 
+  void _showBlockedUsersSheet(BuildContext context) {
+    EcoraDataService.instance.fetchBlockedUsers();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: slateSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => const BlockedUsersSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool highTrustEarned = profile.noShows == 0;
@@ -234,6 +247,31 @@ class UserProfilePage extends StatelessWidget {
                     ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 12),
+
+              // --- UTENTI BLOCCATI ---
+              ValueListenableBuilder<List<SupabaseProfile>>(
+                valueListenable: EcoraDataService.instance.blockedNotifier,
+                builder: (context, blocked, _) {
+                  return Card(
+                    color: slateSurface,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    child: ListTile(
+                      leading:
+                          const Icon(Icons.block, color: textSecondary),
+                      title: Text(
+                        "Utenti bloccati (${blocked.length})",
+                        style: const TextStyle(
+                            color: textPrimary, fontSize: 13),
+                      ),
+                      trailing: const Icon(Icons.chevron_right,
+                          color: textSecondary),
+                      onTap: () => _showBlockedUsersSheet(context),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 12),
 
@@ -436,6 +474,83 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// --- BLOCKED USERS SHEET (lista + sblocco) ---
+
+class BlockedUsersSheet extends StatelessWidget {
+  const BlockedUsersSheet({Key? key}) : super(key: key);
+
+  Future<void> _unblock(
+      BuildContext context, String userId, String name) async {
+    final error = await EcoraDataService.instance.unblockUser(userId);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? "$name è stato sbloccato."),
+        backgroundColor: error != null ? Colors.redAccent : Colors.green,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "UTENTI BLOCCATI",
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 14,
+                letterSpacing: 2,
+                color: premiumGold,
+                fontFamily: 'Serif',
+              ),
+            ),
+            const SizedBox(height: 20),
+            ValueListenableBuilder<List<SupabaseProfile>>(
+              valueListenable: EcoraDataService.instance.blockedNotifier,
+              builder: (context, blocked, _) {
+                if (blocked.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Text(
+                      "Non hai bloccato nessun utente.",
+                      style: TextStyle(color: textSecondary, fontSize: 13),
+                    ),
+                  );
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: blocked.map((p) {
+                    return Card(
+                      color: matteDark,
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        title: Text(p.fullName,
+                            style: const TextStyle(color: textPrimary)),
+                        trailing: TextButton(
+                          onPressed: () => _unblock(context, p.id, p.fullName),
+                          child: const Text("SBLOCCA",
+                              style: TextStyle(color: premiumGold)),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }

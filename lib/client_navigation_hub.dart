@@ -163,6 +163,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     super.initState();
     EcoraDataService.instance.fetchEvents();
     EcoraDataService.instance.fetchMyRequests();
+    EcoraDataService.instance.fetchBlockedUsers();
     EcoraDataService.instance.fetchMyNotifications();
   }
 
