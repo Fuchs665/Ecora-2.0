@@ -131,7 +131,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [Colors.transparent, matteDark.withValues(alpha: 0.9), matteDark],
+                                  colors: [Colors.transparent, matteDark.withValues(alpha: 0.8), matteDark],
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                 ),
@@ -241,7 +241,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     side: BorderSide(
-                                      color: isApproved ? premiumGold.withValues(alpha: 0.5) : const Color(0xFF333333),
+                                      color: isApproved ? premiumGold.withValues(alpha: 0.5) : textSecondary.withValues(alpha: 0.2),
                                       width: 1,
                                     ),
                                   ),
@@ -440,15 +440,15 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         height: 50,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0x33C62828),
-                            foregroundColor: const Color(0xFFEF5350),
+                            backgroundColor: Colors.redAccent.withValues(alpha: 0.15),
+                            foregroundColor: Colors.redAccent,
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           ),
                           onPressed: null,
                           child: const Text(
                             "RICHIESTA RESPINTA",
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFEF5350)),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.redAccent),
                           ),
                         ),
                       );

@@ -54,7 +54,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
           color: slateSurface,
           border: Border(
             top: BorderSide(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: textSecondary.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -193,7 +193,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 // --- PREMIUM ELEGANT HEADER ---
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -254,7 +254,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
 
                 // --- SUB-HEADER: TRENDING TABLES & SWITCHER ---
                 Padding(
@@ -277,7 +277,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           color: slateSurface,
                           borderRadius: BorderRadius.circular(24),
                           border:
-                              Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                              Border.all(color: textSecondary.withValues(alpha: 0.1)),
                         ),
                         child: Row(
                           children: [
@@ -331,7 +331,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
 
                 // --- DISTANCE SPACER SLIDER ---
                 Padding(
@@ -404,7 +404,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
 
                 // --- CONTENT CONTAINER ---
                 Expanded(
@@ -559,7 +559,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                         borderRadius: BorderRadius.circular(20),
                                         border: Border.all(
                                             color:
-                                                Colors.white.withValues(alpha: 0.04)),
+                                                textSecondary.withValues(alpha: 0.1)),
                                       ),
                                       child: const Text(
                                         "Mappa Dark CartoDB — Tocca i nodi luminosi per i dettagli",

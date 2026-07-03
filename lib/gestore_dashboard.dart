@@ -96,7 +96,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
               color: slateSurface,
               border: Border(
                 top: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: textSecondary.withValues(alpha: 0.1),
                   width: 1,
                 ),
               ),
@@ -242,25 +242,25 @@ class ClubDashboardScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // Red Alert banner if guests are pending review
             if (pendingCount > 0) ...[
               GestureDetector(
                 onTap: onSelectRequestInspector,
                 child: Card(
-                  color: const Color(0x2AA83232),
+                  color: Colors.redAccent.withValues(alpha: 0.1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                        color: Colors.red.withValues(alpha: 0.5), width: 1),
+                        side: BorderSide(
+                        color: Colors.redAccent.withValues(alpha: 0.5), width: 1),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
                         const Icon(Icons.new_releases,
-                            color: Colors.red, size: 28),
+                            color: Colors.redAccent, size: 28),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -281,13 +281,13 @@ class ClubDashboardScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const Icon(Icons.chevron_right, color: Colors.red),
+                        const Icon(Icons.chevron_right, color: Colors.redAccent),
                       ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
             ],
 
             const Text(
@@ -545,7 +545,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
           actions: [
             TextButton(
               style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFFFF8A80)),
+                  foregroundColor: Colors.redAccent),
               onPressed: () => _reviewRequest(ctx, req.id, "rejected"),
               child: const Text("RIFIUTA",
                   style: TextStyle(fontWeight: FontWeight.bold)),
