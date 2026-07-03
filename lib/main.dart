@@ -816,14 +816,7 @@ class _BiometricGateState extends State<BiometricGate> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: premiumGold,
-                      foregroundColor: matteDark,
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
+                    style: ecoraPrimaryButtonStyle(),
                     onPressed: _authenticate,
                     child: const Text(
                       "RIPROVA LO SBLOCCO",
@@ -1195,24 +1188,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 TextField(
                   controller: _emailController,
                   style: const TextStyle(color: textPrimary, fontSize: 13),
-                  decoration: InputDecoration(
-                    labelText: "Email",
-                    labelStyle:
-                        const TextStyle(color: textSecondary, fontSize: 12),
-                    floatingLabelStyle: const TextStyle(color: premiumGold),
-                    prefixIcon: const Icon(Icons.email_outlined,
-                        color: premiumGold, size: 20),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: premiumGold),
-                    ),
-                    filled: true,
-                    fillColor: slateSurface.withValues(alpha: 0.5),
+                  decoration: ecoraInputDecoration(
+                    "Email",
+                    prefixIcon: Icons.email_outlined,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1222,13 +1200,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   controller: _passwordController,
                   obscureText: !_passwordVisible,
                   style: const TextStyle(color: textPrimary, fontSize: 13),
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    labelStyle:
-                        const TextStyle(color: textSecondary, fontSize: 12),
-                    floatingLabelStyle: const TextStyle(color: premiumGold),
-                    prefixIcon: const Icon(Icons.lock_outline,
-                        color: premiumGold, size: 20),
+                  decoration: ecoraInputDecoration(
+                    "Password",
+                    prefixIcon: Icons.lock_outline,
                     suffixIcon: IconButton(
                       icon: Icon(
                         _passwordVisible
@@ -1243,17 +1217,6 @@ class _AuthScreenState extends State<AuthScreen> {
                         });
                       },
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: premiumGold),
-                    ),
-                    filled: true,
-                    fillColor: slateSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -1263,12 +1226,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: premiumGold,
-                      foregroundColor: matteDark,
-                      elevation: 4,
-                      shape: roundedCornerShape(24),
-                    ),
+                    style: ecoraPrimaryButtonStyle(),
                     onPressed: _isLoading ? null : _handleLogin,
                     child: _isLoading
                         ? const SizedBox(
@@ -1294,11 +1252,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   width: double.infinity,
                   height: 48,
                   child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: premiumGold, width: 1.5),
-                      shape: roundedCornerShape(24),
-                      foregroundColor: premiumGold,
-                    ),
+                    style: ecoraSecondaryButtonStyle(),
                     onPressed: () {
                       setState(() {
                         _isLogin = false;
@@ -1322,24 +1276,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 TextField(
                   controller: _regNicknameController,
                   style: const TextStyle(color: textPrimary, fontSize: 13),
-                  decoration: InputDecoration(
-                    labelText: "Nickname (es. Alex & Sofia)",
-                    labelStyle:
-                        const TextStyle(color: textSecondary, fontSize: 12),
-                    floatingLabelStyle: const TextStyle(color: premiumGold),
-                    prefixIcon: const Icon(Icons.person_outline,
-                        color: premiumGold, size: 20),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: premiumGold),
-                    ),
-                    filled: true,
-                    fillColor: slateSurface.withValues(alpha: 0.5),
+                  decoration: ecoraInputDecoration(
+                    "Nickname (es. Alex & Sofia)",
+                    prefixIcon: Icons.person_outline,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1354,24 +1293,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   dropdownColor: slateSurface,
                   style: const TextStyle(color: textPrimary, fontSize: 13),
                   icon: const Icon(Icons.arrow_drop_down, color: premiumGold),
-                  decoration: InputDecoration(
-                    labelText: "Tipologia di Profilo",
-                    labelStyle:
-                        const TextStyle(color: textSecondary, fontSize: 12),
-                    floatingLabelStyle: const TextStyle(color: premiumGold),
-                    prefixIcon: const Icon(Icons.people_outline,
-                        color: premiumGold, size: 20),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: premiumGold),
-                    ),
-                    filled: true,
-                    fillColor: slateSurface.withValues(alpha: 0.5),
+                  decoration: ecoraInputDecoration(
+                    "Tipologia di Profilo",
+                    prefixIcon: Icons.people_outline,
                   ),
                   items: _profileTypes.map((String type) {
                     return DropdownMenuItem<String>(
@@ -1402,24 +1326,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   dropdownColor: slateSurface,
                   style: const TextStyle(color: textPrimary, fontSize: 13),
                   icon: const Icon(Icons.arrow_drop_down, color: premiumGold),
-                  decoration: InputDecoration(
-                    labelText: "Livello di Privacy",
-                    labelStyle:
-                        const TextStyle(color: textSecondary, fontSize: 12),
-                    floatingLabelStyle: const TextStyle(color: premiumGold),
-                    prefixIcon: const Icon(Icons.security_outlined,
-                        color: premiumGold, size: 20),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: premiumGold),
-                    ),
-                    filled: true,
-                    fillColor: slateSurface.withValues(alpha: 0.5),
+                  decoration: ecoraInputDecoration(
+                    "Livello di Privacy",
+                    prefixIcon: Icons.security_outlined,
                   ),
                   items: _privacyOptions.keys.map((String label) {
                     return DropdownMenuItem<String>(
@@ -1444,24 +1353,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 TextField(
                   controller: _regLocationController,
                   style: const TextStyle(color: textPrimary, fontSize: 13),
-                  decoration: InputDecoration(
-                    labelText: "Località Generica (es. Firenze Nord)",
-                    labelStyle:
-                        const TextStyle(color: textSecondary, fontSize: 12),
-                    floatingLabelStyle: const TextStyle(color: premiumGold),
-                    prefixIcon: const Icon(Icons.location_on_outlined,
-                        color: premiumGold, size: 20),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: premiumGold),
-                    ),
-                    filled: true,
-                    fillColor: slateSurface.withValues(alpha: 0.5),
+                  decoration: ecoraInputDecoration(
+                    "Località Generica (es. Firenze Nord)",
+                    prefixIcon: Icons.location_on_outlined,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1470,24 +1364,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 TextField(
                   controller: _regEmailController,
                   style: const TextStyle(color: textPrimary, fontSize: 13),
-                  decoration: InputDecoration(
-                    labelText: "Email",
-                    labelStyle:
-                        const TextStyle(color: textSecondary, fontSize: 12),
-                    floatingLabelStyle: const TextStyle(color: premiumGold),
-                    prefixIcon: const Icon(Icons.email_outlined,
-                        color: premiumGold, size: 20),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: premiumGold),
-                    ),
-                    filled: true,
-                    fillColor: slateSurface.withValues(alpha: 0.5),
+                  decoration: ecoraInputDecoration(
+                    "Email",
+                    prefixIcon: Icons.email_outlined,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1497,13 +1376,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   controller: _regPasswordController,
                   obscureText: !_regPasswordVisible,
                   style: const TextStyle(color: textPrimary, fontSize: 13),
-                  decoration: InputDecoration(
-                    labelText: "Password (almeno 6 caratteri)",
-                    labelStyle:
-                        const TextStyle(color: textSecondary, fontSize: 12),
-                    floatingLabelStyle: const TextStyle(color: premiumGold),
-                    prefixIcon: const Icon(Icons.lock_outline,
-                        color: premiumGold, size: 20),
+                  decoration: ecoraInputDecoration(
+                    "Password (almeno 6 caratteri)",
+                    prefixIcon: Icons.lock_outline,
                     suffixIcon: IconButton(
                       icon: Icon(
                         _regPasswordVisible
@@ -1518,17 +1393,6 @@ class _AuthScreenState extends State<AuthScreen> {
                         });
                       },
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: premiumGold),
-                    ),
-                    filled: true,
-                    fillColor: slateSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -1538,12 +1402,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: premiumGold,
-                      foregroundColor: matteDark,
-                      elevation: 4,
-                      shape: roundedCornerShape(24),
-                    ),
+                    style: ecoraPrimaryButtonStyle(),
                     onPressed: _isLoading ? null : _handleRegister,
                     child: _isLoading
                         ? const SizedBox(
@@ -1569,11 +1428,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   width: double.infinity,
                   height: 48,
                   child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: premiumGold, width: 1.5),
-                      shape: roundedCornerShape(24),
-                      foregroundColor: premiumGold,
-                    ),
+                    style: ecoraSecondaryButtonStyle(),
                     onPressed: () {
                       setState(() {
                         _isLogin = true;
@@ -1712,11 +1567,4 @@ class _AuthScreenState extends State<AuthScreen> {
       ),
     );
   }
-}
-
-// Custom helper: shorthand for a rounded-rectangle button shape
-RoundedRectangleBorder roundedCornerShape(double radius) {
-  return RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(radius),
-  );
 }

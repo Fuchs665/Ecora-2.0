@@ -60,3 +60,14 @@ ButtonStyle ecoraPrimaryButtonStyle({double borderRadius = 24}) {
     ),
   );
 }
+
+/// Stile standard per i bottoni secondari (contorno dorato).
+ButtonStyle ecoraSecondaryButtonStyle({double borderRadius = 24}) {
+  return OutlinedButton.styleFrom(
+    side: const BorderSide(color: premiumGold, width: 1.5),
+    foregroundColor: premiumGold,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(borderRadius),
+    ),
+  );
+}
