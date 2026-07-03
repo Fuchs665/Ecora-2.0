@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -944,12 +943,26 @@ class _CreateEventFormState extends State<CreateEventForm> {
                             return;
                           }
 
-                          final double lat =
-                              43.7695 + (Random().nextDouble() - 0.5) * 0.03;
-                          final double lng =
-                              11.2558 + (Random().nextDouble() - 0.5) * 0.03;
-
                           setState(() => _isSubmitting = true);
+
+                          final coords = await EcoraDataService.instance
+                              .geocodeAddress(_locationController.text);
+
+                          if (coords == null) {
+                            setState(() => _isSubmitting = false);
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    "Indirizzo non trovato. Inserisci un indirizzo valido (es. Via Roma 1, Milano)."),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final double lat = coords['lat']!;
+                          final double lng = coords['lng']!;
 
                           String? finalImageUrl;
                           if (_selectedImageBytes != null &&

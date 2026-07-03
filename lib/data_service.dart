@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models.dart';
 
@@ -307,6 +309,30 @@ class EcoraDataService {
       debugPrint("Errore upload immagine: $e");
       return null;
     }
+  }
+
+  /// Effettua il geocoding di un indirizzo tramite l'API pubblica di Nominatim.
+  /// Ritorna Map<String, double> con chiavi 'lat' e 'lng' se trovato, null altrimenti.
+  Future<Map<String, double>?> geocodeAddress(String address) async {
+    try {
+      final query = Uri.encodeComponent(address);
+      final url = Uri.parse('https://nominatim.openstreetmap.org/search?q=$query&format=json&limit=1');
+      final response = await http.get(url, headers: {
+        'User-Agent': 'EcoraApp/1.0',
+      });
+
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
+        if (data.isNotEmpty) {
+          final lat = double.parse(data[0]['lat'].toString());
+          final lon = double.parse(data[0]['lon'].toString());
+          return {'lat': lat, 'lng': lon};
+        }
+      }
+    } catch (e) {
+      debugPrint("Errore durante il geocoding: $e");
+    }
+    return null;
   }
 
   /// Crea un evento reale sulla tabella `events` (status: published).
