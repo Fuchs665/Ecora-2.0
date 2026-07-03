@@ -1478,62 +1478,21 @@ class _AuthScreenState extends State<AuthScreen> {
                 ],
               ),
 
-              // --- ERROR PANEL INDICATOR ---
-              if (_errorMessage != null) ...[
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _errorMessage!,
-                          style: const TextStyle(
-                            color: Colors.redAccent,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              // --- PANNELLO ERRORE / SUCCESSO ---
+              if (_errorMessage != null)
+                _AuthMessagePanel(
+                  message: _errorMessage!,
+                  icon: Icons.error_outline,
+                  color: Colors.redAccent,
+                  backgroundColor: Colors.red,
+                )
+              else if (_infoMessage != null)
+                _AuthMessagePanel(
+                  message: _infoMessage!,
+                  icon: Icons.check_circle_outline,
+                  color: premiumGold,
+                  backgroundColor: premiumGold,
                 ),
-              ],
-
-              // --- INFO PANEL INDICATOR (esiti positivi, es. email di conferma) ---
-              if (_infoMessage != null) ...[
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: premiumGold.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: premiumGold.withValues(alpha: 0.35)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.check_circle_outline,
-                          color: premiumGold, size: 20),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _infoMessage!,
-                          style: const TextStyle(
-                            color: premiumGold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
 
               const SizedBox(height: 36),
 
@@ -1563,6 +1522,49 @@ class _AuthScreenState extends State<AuthScreen> {
               const SizedBox(height: 30),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Pannello di feedback per AuthScreen: stessa struttura per errore
+/// (rosso) e successo (oro), solo colore/icona cambiano.
+class _AuthMessagePanel extends StatelessWidget {
+  final String message;
+  final IconData icon;
+  final Color color;
+  final Color backgroundColor;
+
+  const _AuthMessagePanel({
+    required this.message,
+    required this.icon,
+    required this.color,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: backgroundColor.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: backgroundColor.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(color: color, fontSize: 12),
+              ),
+            ),
+          ],
         ),
       ),
     );
