@@ -1,5 +1,7 @@
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'main.dart';
 import 'user_profile_page.dart';
 import 'event_details_page.dart';
@@ -745,18 +747,24 @@ class _CreateEventFormState extends State<CreateEventForm> {
     });
   }
 
-  final List<String> mockImageOptions = const [
-    "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=600",
-    "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&q=80&w=600",
-    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=600",
-    "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&q=80&w=600"
-  ];
-  late String _selectedMockImageUrl;
+  Uint8List? _selectedImageBytes;
+  String? _selectedImageName;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _selectedImageBytes = bytes;
+        _selectedImageName = pickedFile.name;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _selectedMockImageUrl = mockImageOptions[0];
   }
 
   @override
@@ -869,8 +877,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
               ),
               const SizedBox(height: 16),
 
-              // Selezione copertina da galleria preset
-              // (upload foto reale da dispositivo: blocco Fase 4)
+              // Selezione copertina
               const Text(
                 "COPERTINA EVENTO",
                 style: TextStyle(
@@ -880,38 +887,39 @@ class _CreateEventFormState extends State<CreateEventForm> {
                     letterSpacing: 1.0),
               ),
               const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: mockImageOptions.map((url) {
-                  final bool isSelected = _selectedMockImageUrl == url;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedMockImageUrl = url;
-                      });
-                    },
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isSelected ? premiumGold : Colors.transparent,
-                          width: isSelected ? 3.0 : 0,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(isSelected ? 5 : 8),
-                        child: Image.network(
-                          url,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, _, __) =>
-                              Container(color: Colors.grey),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  width: double.infinity,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: slateSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: _selectedImageBytes != null
+                            ? premiumGold
+                            : Colors.white.withValues(alpha: 0.06)),
+                    image: _selectedImageBytes != null
+                        ? DecorationImage(
+                            image: MemoryImage(_selectedImageBytes!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: _selectedImageBytes == null
+                      ? const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_photo_alternate,
+                                color: premiumGold, size: 36),
+                            SizedBox(height: 8),
+                            Text("Tocca per caricare una foto",
+                                style: TextStyle(
+                                    color: textSecondary, fontSize: 13)),
+                          ],
+                        )
+                      : null,
+                ),
               ),
               const SizedBox(height: 28),
 
@@ -936,14 +944,22 @@ class _CreateEventFormState extends State<CreateEventForm> {
                             return;
                           }
 
-                          // TODO(blocco geocoding): coordinate reali
-                          // dall'indirizzo; per ora punto casuale su Firenze.
                           final double lat =
                               43.7695 + (Random().nextDouble() - 0.5) * 0.03;
                           final double lng =
                               11.2558 + (Random().nextDouble() - 0.5) * 0.03;
 
                           setState(() => _isSubmitting = true);
+
+                          String? finalImageUrl;
+                          if (_selectedImageBytes != null &&
+                              _selectedImageName != null) {
+                            finalImageUrl = await EcoraDataService.instance
+                                .uploadEventImage(
+                              _selectedImageName!,
+                              _selectedImageBytes!,
+                            );
+                          }
 
                           final error =
                               await EcoraDataService.instance.createEvent(
@@ -952,7 +968,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                             hostId: widget.organizerId,
                             latitude: lat,
                             longitude: lng,
-                            imageUrl: _selectedMockImageUrl,
+                            imageUrl: finalImageUrl,
                             eventDate: _eventDate!,
                             maxGuests: _maxParticipants.toInt(),
                             locationName: _locationController.text,

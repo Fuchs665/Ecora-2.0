@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models.dart';
@@ -293,6 +294,19 @@ class EcoraDataService {
     }
     _notificationBadgeCount = 0;
     notificationBadgeNotifier.value = 0;
+  }
+
+  /// Carica un'immagine nel bucket 'event_covers' e restituisce l'URL pubblico.
+  Future<String?> uploadEventImage(String fileName, Uint8List fileBytes) async {
+    try {
+      final storage = Supabase.instance.client.storage.from('event_covers');
+      final filePath = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      await storage.uploadBinary(filePath, fileBytes);
+      return storage.getPublicUrl(filePath);
+    } catch (e) {
+      debugPrint("Errore upload immagine: $e");
+      return null;
+    }
   }
 
   /// Crea un evento reale sulla tabella `events` (status: published).
