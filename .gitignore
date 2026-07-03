@@ -21,3 +21,6 @@ debug.keystore
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Local dev-server config (machine-specific paths)
+.claude/launch.json
