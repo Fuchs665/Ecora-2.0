@@ -43,3 +43,10 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+// Firebase (push FCM): il plugin google-services richiede google-services.json
+// in questa cartella. Applicato solo se il file esiste, cosi' il build Android
+// resta possibile anche prima della configurazione Firebase.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}

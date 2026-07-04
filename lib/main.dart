@@ -9,6 +9,7 @@ export 'theme.dart';
 
 import 'models.dart';
 import 'data_service.dart';
+import 'push_service.dart';
 export 'models.dart';
 export 'data_service.dart';
 
@@ -47,6 +48,13 @@ class _EcoraAppState extends State<EcoraApp> {
     // Listening to profile logout changes
     EcoraDataService.instance.currentProfileNotifier
         .addListener(_profileListener);
+    // Push: rimozione token al logout + registrazione se la sessione
+    // era gia' stata ripristinata prima di runApp.
+    EcoraDataService.instance.beforeLogout =
+        EcoraPushService.instance.unregisterDevice;
+    if (EcoraDataService.instance.currentProfileNotifier.value != null) {
+      EcoraPushService.instance.registerDevice();
+    }
   }
 
   @override
@@ -60,6 +68,9 @@ class _EcoraAppState extends State<EcoraApp> {
     // Return to login screen automatically if logged out
     if (EcoraDataService.instance.currentProfileNotifier.value == null) {
       if (mounted) setState(() {});
+    } else {
+      // Login (o registrazione) completati: registra il device per le push.
+      EcoraPushService.instance.registerDevice();
     }
   }
 

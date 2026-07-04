@@ -24,3 +24,6 @@ debug.keystore
 
 # Local dev-server config (machine-specific paths)
 .claude/launch.json
+
+# Firebase config (per-project secret-ish, machine/device specific)
+android/app/google-services.json

@@ -73,10 +73,22 @@ class EcoraDataService {
     }
   }
 
+  /// Hook opzionale eseguito prima della signOut (impostato da main.dart:
+  /// rimozione del token push del device). Evita un import circolare
+  /// data_service <-> push_service.
+  Future<void> Function()? beforeLogout;
+
   Future<void> logout() async {
     // Prima si sblocca la UI, poi si revoca la sessione in rete:
     // la chiamata HTTP non deve mai tenere l'utente bloccato sulla schermata.
     currentProfileNotifier.value = null;
+    try {
+      // Va eseguito PRIMA della signOut: la RLS own-rows su device_tokens
+      // richiede la sessione ancora valida.
+      await beforeLogout?.call();
+    } catch (e) {
+      debugPrint("Errore nell'hook pre-logout: $e");
+    }
     try {
       await Supabase.instance.client.auth
           .signOut(scope: SignOutScope.local);
