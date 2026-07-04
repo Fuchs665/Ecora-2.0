@@ -6,6 +6,21 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models.dart';
 
+/// Content-type per gli upload nel bucket `profile_photos`, che accetta
+/// solo jpeg/png/webp: derivato dall'estensione, jpeg come default sicuro.
+String contentTypeForFileName(String fileName) {
+  final ext =
+      fileName.contains('.') ? fileName.split('.').last.toLowerCase() : '';
+  switch (ext) {
+    case 'png':
+      return 'image/png';
+    case 'webp':
+      return 'image/webp';
+    default:
+      return 'image/jpeg';
+  }
+}
+
 // --- REACTIVE EXPERT SUPABASE SIMULATOR (Singleton Object) ---
 // Note: This service wraps real Supabase queries in ValueNotifiers for legacy compatibility.
 // In the future, this should be refactored to use standard StreamBuilders.
@@ -460,6 +475,69 @@ class EcoraDataService {
     } catch (e) {
       debugPrint("Errore upload immagine: $e");
       return null;
+    }
+  }
+
+  /// Numero massimo di foto nella galleria profilo (limite lato client;
+  /// il bucket limita comunque dimensione e tipi di file lato server).
+  static const int maxProfilePhotos = 6;
+
+  /// Carica una foto nella PROPRIA galleria profilo. Il path inizia con
+  /// l'uid: la policy INSERT del bucket rifiuta cartelle altrui.
+  Future<String?> uploadProfilePhoto(
+      String fileName, Uint8List fileBytes) async {
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return "Sessione scaduta. Accedi di nuovo.";
+
+      final storage =
+          Supabase.instance.client.storage.from('profile_photos');
+      final path =
+          '$uid/${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      await storage.uploadBinary(
+        path,
+        fileBytes,
+        fileOptions:
+            FileOptions(contentType: contentTypeForFileName(fileName)),
+      );
+      return null;
+    } catch (e) {
+      debugPrint("Errore upload foto profilo: $e");
+      return "Caricamento non riuscito. Riprova.";
+    }
+  }
+
+  /// Galleria di un utente: lista file + signed URL (1h). Il bucket è
+  /// privato: chi non può vedere la galleria (privacy/blocchi, RLS 0008)
+  /// riceve semplicemente una lista vuota.
+  Future<List<ProfilePhoto>> fetchProfilePhotos(String userId) async {
+    try {
+      final storage =
+          Supabase.instance.client.storage.from('profile_photos');
+      final files = await storage.list(path: userId);
+      final photos = <ProfilePhoto>[];
+      for (final f in files) {
+        final path = '$userId/${f.name}';
+        final url = await storage.createSignedUrl(path, 3600);
+        photos.add(ProfilePhoto(path: path, url: url));
+      }
+      return photos;
+    } catch (e) {
+      debugPrint("Errore caricamento galleria profilo: $e");
+      return const [];
+    }
+  }
+
+  /// Elimina una foto dalla propria galleria. Ritorna null se ok.
+  Future<String?> deleteProfilePhoto(String path) async {
+    try {
+      await Supabase.instance.client.storage
+          .from('profile_photos')
+          .remove([path]);
+      return null;
+    } catch (e) {
+      debugPrint("Errore eliminazione foto profilo: $e");
+      return "Eliminazione non riuscita. Riprova.";
     }
   }
 

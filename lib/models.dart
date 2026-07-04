@@ -196,6 +196,16 @@ class SupabaseParticipationRequest {
   }
 }
 
+class ProfilePhoto {
+  /// Path nel bucket `profile_photos` (es. "<uid>/<timestamp>_<file>").
+  final String path;
+
+  /// Signed URL temporanea per la visualizzazione (bucket privato).
+  final String url;
+
+  ProfilePhoto({required this.path, required this.url});
+}
+
 class ChatMessage {
   final String id;
   final String eventId;

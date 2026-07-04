@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'main.dart';
 import 'client_navigation_hub.dart' show ChatRoomCard;
+import 'profile_gallery.dart';
 import 'user_profile_page.dart';
 import 'event_details_page.dart';
 
@@ -484,7 +485,8 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
               ),
             ],
           ),
-          content: Column(
+          content: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -582,7 +584,16 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              const Text(
+                "GALLERIA PROFILO",
+                style: TextStyle(
+                    fontSize: 9, color: textSecondary, letterSpacing: 1),
+              ),
+              const SizedBox(height: 6),
+              CandidateGalleryStrip(userId: applicant.id),
             ],
+            ),
           ),
           actions: [
             TextButton(

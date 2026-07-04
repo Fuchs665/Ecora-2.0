@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'profile_gallery.dart';
 
 class UserProfilePage extends StatelessWidget {
   final SupabaseProfile profile;
@@ -215,6 +216,14 @@ class UserProfilePage extends StatelessWidget {
                     indicatorColor: premiumGold,
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // --- GALLERIA FOTO PROFILO (bucket privato, RLS 0008) ---
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ProfileGallerySection(profileId: profile.id),
               ),
 
               const Spacer(),
