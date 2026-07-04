@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'chat_screen.dart';
 import 'event_details_page.dart';
 import 'user_profile_page.dart';
 
@@ -1149,9 +1150,10 @@ class MessagesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final data = EcoraDataService.instance;
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1165,87 +1167,137 @@ class MessagesScreen extends StatelessWidget {
                   color: premiumGold,
                 ),
               ),
-              const SizedBox(height: 16),
-              Card(
-                color: slateSurface,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                child: const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Icon(Icons.forum, color: premiumGold, size: 48),
-                      SizedBox(height: 16),
-                      Text(
-                        "Conversazioni Riservate",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: textPrimary),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "I cerchi di chat si bloccano automaticamente in cicli di privacy personalizzati 'Tablo'. Puoi comunicare con altre coppie rigorosamente dopo che entrambi gli inviti a un tavolo condiviso sono stati approvati dall'organizzatore.",
-                        style: TextStyle(
-                            fontSize: 12, color: textSecondary, height: 1.5),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
               const Text(
-                "CHAT ATTIVE (0)",
+                "La chat di un evento si apre quando l'organizzatore approva la tua richiesta.",
                 style: TextStyle(
-                    fontSize: 12, color: textSecondary, letterSpacing: 1),
+                    fontSize: 12, color: textSecondary, height: 1.5),
               ),
-              const SizedBox(height: 12),
-              Card(
-                color: slateSurface.withValues(alpha: 0.5),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF333333),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.lock,
-                            color: textSecondary, size: 16),
-                      ),
-                      const SizedBox(width: 16),
-                      const Expanded(
-                        child: Column(
+              const SizedBox(height: 16),
+              Expanded(
+                child: ValueListenableBuilder<
+                    List<SupabaseParticipationRequest>>(
+                  valueListenable: data.requestsNotifier,
+                  builder: (context, requests, _) {
+                    return ValueListenableBuilder<List<SupabaseEvent>>(
+                      valueListenable: data.eventsNotifier,
+                      builder: (context, events, _) {
+                        final uid =
+                            data.currentProfileNotifier.value?.id ?? "";
+                        final chats = data.activeChatEventsForClient(
+                            events, requests, uid);
+                        if (chats.isEmpty) {
+                          return Card(
+                            color: slateSurface,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            child: const Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.forum,
+                                      color: premiumGold, size: 48),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    "Conversazioni Riservate",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: textPrimary),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    "Nessuna chat attiva al momento. Invia una richiesta di partecipazione a un evento: appena approvata, la stanza apparirà qui.",
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: textSecondary,
+                                        height: 1.5),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Gruppo di Incontro Villa Nobile",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
+                              "CHAT ATTIVE (${chats.length})",
+                              style: const TextStyle(
+                                  fontSize: 12,
                                   color: textSecondary,
-                                  fontSize: 14),
+                                  letterSpacing: 1),
                             ),
-                            Text(
-                              "Chat bloccata fino all'accettazione del tavolo",
-                              style: TextStyle(
-                                  color: Color(0x80FFA0A0), fontSize: 11),
+                            const SizedBox(height: 12),
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: chats.length,
+                                itemBuilder: (context, index) =>
+                                    ChatRoomCard(event: chats[index]),
+                              ),
                             ),
                           ],
-                        ),
-                      ),
-                    ],
-                  ),
+                        );
+                      },
+                    );
+                  },
                 ),
-              )
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Card riutilizzabile per una stanza chat (usata da cliente e gestore).
+class ChatRoomCard extends StatelessWidget {
+  final SupabaseEvent event;
+  final String? subtitle;
+
+  const ChatRoomCard({Key? key, required this.event, this.subtitle})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: slateSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => ChatScreen(event: event),
+          ));
+        },
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: premiumGold.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.forum, color: premiumGold, size: 18),
+        ),
+        title: Text(
+          event.title,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: textPrimary, fontSize: 14),
+        ),
+        subtitle: Text(
+          subtitle ?? event.locationName,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: textSecondary, fontSize: 12),
+        ),
+        trailing:
+            const Icon(Icons.chevron_right, color: textSecondary, size: 20),
       ),
     );
   }

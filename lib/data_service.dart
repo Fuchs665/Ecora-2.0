@@ -295,6 +295,75 @@ class EcoraDataService {
     }
   }
 
+  /// Stream realtime dei messaggi di un evento (ordinati dal più vecchio).
+  /// Le RLS lato DB limitano la visibilità a host + partecipanti approvati.
+  Stream<List<ChatMessage>> messagesStream(String eventId) {
+    return Supabase.instance.client
+        .from('messages')
+        .stream(primaryKey: ['id'])
+        .eq('event_id', eventId)
+        .order('created_at', ascending: true)
+        .map((rows) => rows
+            .map((r) => ChatMessage.fromRow(Map<String, dynamic>.from(r)))
+            .toList());
+  }
+
+  /// Invia un messaggio nella chat di un evento. Ritorna null se ok.
+  Future<String?> sendMessage(String eventId, String content) async {
+    final text = content.trim();
+    if (text.isEmpty) return "Il messaggio è vuoto.";
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return "Sessione scaduta. Accedi di nuovo.";
+
+      await Supabase.instance.client.from('messages').insert({
+        'event_id': eventId,
+        'sender_id': uid,
+        'content': text,
+      });
+      return null;
+    } catch (e) {
+      debugPrint("Errore invio messaggio: $e");
+      return "Invio non riuscito. Riprova.";
+    }
+  }
+
+  /// Carica in cache i profili mancanti tra gli id indicati (per mostrare
+  /// i nickname dei mittenti in chat).
+  Future<void> fetchProfilesByIds(List<String> userIds) async {
+    final missing =
+        userIds.where((id) => getProfileById(id) == null).toSet().toList();
+    if (missing.isEmpty) return;
+    try {
+      final rows = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .in_('id', missing);
+      for (final row in (rows as List)) {
+        final prof =
+            SupabaseProfile.fromRow(Map<String, dynamic>.from(row as Map));
+        _profiles.removeWhere((p) => p.id == prof.id);
+        _profiles.add(prof);
+      }
+      profilesNotifier.value = List.from(_profiles);
+    } catch (e) {
+      debugPrint("Errore nel recupero profili mittenti: $e");
+    }
+  }
+
+  /// Eventi con chat attiva per un cliente: quelli con richiesta approvata.
+  /// Pura (nessuna chiamata di rete), così resta testabile.
+  List<SupabaseEvent> activeChatEventsForClient(
+      List<SupabaseEvent> events,
+      List<SupabaseParticipationRequest> requests,
+      String userId) {
+    final approvedIds = requests
+        .where((r) => r.userId == userId && r.status == 'approved')
+        .map((r) => r.eventId)
+        .toSet();
+    return events.where((e) => approvedIds.contains(e.id)).toList();
+  }
+
   // Stato "visto/eliminato" delle notifiche: solo per sessione.
   // Una tabella notifications dedicata arriverà con le push (Fase 4).
   final Set<String> _seenNotificationIds = {};

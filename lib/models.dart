@@ -196,6 +196,34 @@ class SupabaseParticipationRequest {
   }
 }
 
+class ChatMessage {
+  final String id;
+  final String eventId;
+  final String senderId;
+  final String content;
+  final DateTime? createdAt;
+
+  ChatMessage({
+    required this.id,
+    required this.eventId,
+    required this.senderId,
+    required this.content,
+    this.createdAt,
+  });
+
+  /// Maps a row from the real `messages` table.
+  factory ChatMessage.fromRow(Map<String, dynamic> row) {
+    return ChatMessage(
+      id: row['id']?.toString() ?? '',
+      eventId: row['event_id']?.toString() ?? '',
+      senderId: row['sender_id']?.toString() ?? '',
+      content: row['content']?.toString() ?? '',
+      createdAt:
+          DateTime.tryParse(row['created_at']?.toString() ?? '')?.toLocal(),
+    );
+  }
+}
+
 class NotificationItem {
   final String id;
   final String eventId;

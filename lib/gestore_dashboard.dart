@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'main.dart';
+import 'client_navigation_hub.dart' show ChatRoomCard;
 import 'user_profile_page.dart';
 import 'event_details_page.dart';
 
@@ -1083,32 +1084,79 @@ class ClubMessagesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    final data = EcoraDataService.instance;
+    return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.forum, color: textSecondary, size: 54),
-                SizedBox(height: 16),
-                Text(
-                  "Stanze del Club Protette",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: textPrimary),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "STANZE DEL CLUB",
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  letterSpacing: 1.5,
+                  color: premiumGold,
                 ),
-                SizedBox(height: 8),
-                Text(
-                  "I canali privati si apriranno per i partecipanti confermati una volta verificate le richieste.",
-                  style: TextStyle(
-                      fontSize: 12, color: textSecondary, height: 1.5),
-                  textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Ogni evento pubblicato ha la sua chat riservata con i partecipanti approvati.",
+                style: TextStyle(
+                    fontSize: 12, color: textSecondary, height: 1.5),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ValueListenableBuilder<List<SupabaseEvent>>(
+                  valueListenable: data.eventsNotifier,
+                  builder: (context, events, _) {
+                    final uid = data.currentProfileNotifier.value?.id ?? "";
+                    final myEvents =
+                        events.where((e) => e.organizerId == uid).toList();
+                    if (myEvents.isEmpty) {
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.forum, color: textSecondary, size: 54),
+                            SizedBox(height: 16),
+                            Text(
+                              "Stanze del Club Protette",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: textPrimary),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              "Pubblica un evento per aprire il suo canale privato con i partecipanti confermati.",
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: textSecondary,
+                                  height: 1.5),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: myEvents.length,
+                      itemBuilder: (context, index) {
+                        final event = myEvents[index];
+                        return ChatRoomCard(
+                          event: event,
+                          subtitle:
+                              "${event.currentApprovedCount} partecipanti approvati",
+                        );
+                      },
+                    );
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
