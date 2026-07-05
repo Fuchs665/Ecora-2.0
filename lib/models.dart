@@ -1,5 +1,13 @@
 
 
+/// Colonne leggibili di `profiles`. Dal Block 6.2 (migration 0012) i grant
+/// SELECT sono per colonna e `select=*` fallisce con permission denied:
+/// ogni lettura del client DEVE enumerare le colonne. I timestamp di
+/// consenso (age_confirmed_at/terms_accepted_at) sono esclusi di proposito.
+const String kProfileSelectColumns =
+    'id, role, nickname, avatar_url, generic_location, is_verified, '
+    'created_at, profile_type, privacy_level';
+
 class SupabaseProfile {
   final String id;
   final String fullName;

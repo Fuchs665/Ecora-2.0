@@ -398,7 +398,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
       Map<String, dynamic>? profileData = await Supabase.instance.client
           .from('profiles')
-          .select()
+          .select(kProfileSelectColumns)
           .eq('id', user.id)
           .maybeSingle();
 
@@ -425,7 +425,7 @@ class _AuthScreenState extends State<AuthScreen> {
         );
         profileData = await Supabase.instance.client
             .from('profiles')
-            .select()
+            .select(kProfileSelectColumns)
             .eq('id', user.id)
             .maybeSingle();
         profileData ??= {

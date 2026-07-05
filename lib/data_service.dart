@@ -106,7 +106,7 @@ class EcoraDataService {
 
       final row = await Supabase.instance.client
           .from('profiles')
-          .select()
+          .select(kProfileSelectColumns)
           .eq('id', session.user.id)
           .maybeSingle()
           .timeout(const Duration(seconds: 5));
@@ -204,7 +204,7 @@ class EcoraDataService {
       if (userIds.isNotEmpty) {
         final profRows = await Supabase.instance.client
             .from('profiles')
-            .select()
+            .select(kProfileSelectColumns)
             .in_('id', userIds);
         for (final row in (profRows as List)) {
           final prof =
@@ -260,7 +260,7 @@ class EcoraDataService {
 
       final profRows = await Supabase.instance.client
           .from('profiles')
-          .select()
+          .select(kProfileSelectColumns)
           .in_('id', blockedIds);
       final blocked = (profRows as List)
           .map((r) =>
@@ -364,7 +364,7 @@ class EcoraDataService {
     try {
       final rows = await Supabase.instance.client
           .from('profiles')
-          .select()
+          .select(kProfileSelectColumns)
           .in_('id', missing);
       for (final row in (rows as List)) {
         final prof =
