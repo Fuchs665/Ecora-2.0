@@ -1,7 +1,9 @@
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'client_navigation_hub.dart';
 import 'gestore_dashboard.dart';
 import 'theme.dart';
@@ -13,9 +15,9 @@ import 'push_service.dart';
 export 'models.dart';
 export 'data_service.dart';
 
-// TODO(Fase 6): sostituire con l'URL reale della privacy policy e attivare
-// il link cliccabile (richiede url_launcher). Vedi landmine in CLAUDE.md.
-const String kPrivacyPolicyUrl = 'https://example.com/ecora-privacy';
+// Privacy policy ospitata su GitHub Pages (cartella /docs del repo).
+const String kPrivacyPolicyUrl =
+    'https://fuchs665.github.io/Ecora-2.0/privacy.html';
 
 // --- FLUTTER APPLICATION BARRIER ---
 
@@ -308,6 +310,25 @@ class _AuthScreenState extends State<AuthScreen> {
   // Consenso obbligatorio alla registrazione (Fase 3 — Trust & Safety).
   bool _ageConfirmed = false;
   bool _termsAccepted = false;
+
+  // Rende cliccabile il link alla privacy policy nel testo di consenso.
+  late final TapGestureRecognizer _privacyRecognizer = TapGestureRecognizer()
+    ..onTap = _openPrivacyPolicy;
+
+  @override
+  void dispose() {
+    _privacyRecognizer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openPrivacyPolicy() async {
+    final uri = Uri.parse(kPrivacyPolicyUrl);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        setState(() => _errorMessage = "Impossibile aprire la Privacy Policy.");
+      }
+    }
+  }
 
   Widget _buildConsentCheckbox({
     required bool value,
@@ -901,18 +922,20 @@ class _AuthScreenState extends State<AuthScreen> {
                   onChanged: (v) =>
                       setState(() => _termsAccepted = v ?? false),
                   child: RichText(
-                    text: const TextSpan(
-                      style: TextStyle(color: textSecondary, fontSize: 12),
+                    text: TextSpan(
+                      style: const TextStyle(
+                          color: textSecondary, fontSize: 12),
                       children: [
-                        TextSpan(text: "Ho letto e accetto la "),
+                        const TextSpan(text: "Ho letto e accetto la "),
                         TextSpan(
                           text: "Privacy Policy e i Termini di Servizio",
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: premiumGold,
                             fontWeight: FontWeight.bold,
                           ),
+                          recognizer: _privacyRecognizer,
                         ),
-                        TextSpan(text: "."),
+                        const TextSpan(text: "."),
                       ],
                     ),
                   ),
