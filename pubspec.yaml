@@ -27,3 +27,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+# sign_in_with_apple e' una dipendenza transitiva di supabase_flutter 1.x
+# (mai usata: l'app non offre login Apple), fissata da supabase_flutter a
+# <6.0.0. Le versioni <6.0.0 falliscono la build Android su Flutter/Kotlin
+# recenti (API v1-embedding "Registrar" rimossa). Forziamo l'ultima 6.x,
+# che ha migrato al setup Gradle moderno, senza toccare supabase_flutter.
+dependency_overrides:
+  sign_in_with_apple: ^6.1.4
