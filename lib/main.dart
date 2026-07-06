@@ -925,7 +925,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   height: 48,
                   child: ElevatedButton(
                     style: ecoraPrimaryButtonStyle(),
-                    onPressed: _isLoading ? null : _handleRegister,
+                    onPressed: (_isLoading || !_ageConfirmed || !_termsAccepted)
+                        ? null
+                        : _handleRegister,
                     child: _isLoading
                         ? const SizedBox(
                             width: 20,
