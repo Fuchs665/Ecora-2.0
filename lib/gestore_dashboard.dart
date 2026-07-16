@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'main.dart';
 import 'client_navigation_hub.dart' show ChatRoomCard;
 import 'profile_gallery.dart';
+import 'subscription_panel.dart';
+import 'subscription_service.dart';
 import 'user_profile_page.dart';
 import 'event_details_page.dart';
 
@@ -25,6 +27,26 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
     EcoraDataService.instance.fetchEvents();
     EcoraDataService.instance.fetchHostRequests();
     EcoraDataService.instance.fetchBlockedUsers();
+    EcoraSubscriptionService.instance.refreshStatus();
+  }
+
+  /// Gate UI sulla creazione evento: senza abbonamento attivo si apre il
+  /// foglio d'acquisto invece del form. Difesa in profondita': anche
+  /// aggirandolo, l'INSERT verrebbe rifiutato dalla RLS (migrazione 0013).
+  /// Lo stato viene riletto dal DB a ogni tentativo: e' una SELECT leggera
+  /// e copre il caso "ho appena comprato su un altro device".
+  Future<void> _tryOpenCreateForm() async {
+    final service = EcoraSubscriptionService.instance;
+    await service.refreshStatus();
+    if (!mounted) return;
+    final status = service.statusNotifier.value;
+    if (status != null && status.isActiveAt(DateTime.now())) {
+      setState(() {
+        _showCreateForm = true;
+      });
+    } else {
+      await showSubscriptionRequiredSheet(context);
+    }
   }
 
   @override
@@ -109,9 +131,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
               currentIndex: _selectedTab,
               onTap: (index) {
                 if (index == 2) {
-                  setState(() {
-                    _showCreateForm = true;
-                  });
+                  _tryOpenCreateForm();
                 } else {
                   setState(() {
                     _selectedTab = index;
@@ -184,11 +204,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
             ),
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              setState(() {
-                _showCreateForm = true;
-              });
-            },
+            onPressed: _tryOpenCreateForm,
             backgroundColor: premiumGold,
             foregroundColor: matteDark,
             shape: const CircleBorder(),
@@ -246,6 +262,10 @@ class ClubDashboardScreen extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+
+            // Stato abbonamento (Block 5.4): CTA di acquisto quando manca.
+            const SubscriptionStatusCard(),
             const SizedBox(height: 24),
 
             // Red Alert banner if guests are pending review

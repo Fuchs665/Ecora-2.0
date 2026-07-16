@@ -607,7 +607,10 @@ class EcoraDataService {
       return null;
     } catch (e) {
       debugPrint("Errore creazione evento: $e");
-      return "Creazione evento non riuscita. Verifica di avere un profilo gestore e di essere connesso.";
+      // Dal Block 5.1 la RLS rifiuta l'INSERT anche senza abbonamento
+      // attivo, non solo senza ruolo gestore: il messaggio copre entrambi.
+      return "Creazione evento non riuscita. Verifica la connessione e che "
+          "l'abbonamento gestore sia attivo.";
     }
   }
 
