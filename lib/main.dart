@@ -12,6 +12,7 @@ export 'theme.dart';
 import 'models.dart';
 import 'data_service.dart';
 import 'push_service.dart';
+import 'subscription_service.dart';
 export 'models.dart';
 export 'data_service.dart';
 
@@ -51,11 +52,25 @@ class _EcoraAppState extends State<EcoraApp> {
     EcoraDataService.instance.currentProfileNotifier
         .addListener(_profileListener);
     // Push: rimozione token al logout + registrazione se la sessione
-    // era gia' stata ripristinata prima di runApp.
-    EcoraDataService.instance.beforeLogout =
-        EcoraPushService.instance.unregisterDevice;
+    // era gia' stata ripristinata prima di runApp. Al logout si azzera
+    // anche lo stato abbonamento locale (la riga DB resta, e' dell'account).
+    EcoraDataService.instance.beforeLogout = () async {
+      await EcoraPushService.instance.unregisterDevice();
+      EcoraSubscriptionService.instance.reset();
+    };
     if (EcoraDataService.instance.currentProfileNotifier.value != null) {
       EcoraPushService.instance.registerDevice();
+      _initSubscriptionsIfGestore();
+    }
+  }
+
+  // Solo i gestori acquistano: il listener del purchaseStream va agganciato
+  // al loro login/ripristino, cosi' Google puo' riconsegnare gli acquisti
+  // rimasti in sospeso (verifica fallita per rete, app chiusa a meta', ...).
+  void _initSubscriptionsIfGestore() {
+    final profile = EcoraDataService.instance.currentProfileNotifier.value;
+    if (profile?.role == 'gestore') {
+      EcoraSubscriptionService.instance.init();
     }
   }
 
@@ -71,8 +86,10 @@ class _EcoraAppState extends State<EcoraApp> {
     if (EcoraDataService.instance.currentProfileNotifier.value == null) {
       if (mounted) setState(() {});
     } else {
-      // Login (o registrazione) completati: registra il device per le push.
+      // Login (o registrazione) completati: registra il device per le push
+      // e, per i gestori, aggancia il flusso abbonamento.
       EcoraPushService.instance.registerDevice();
+      _initSubscriptionsIfGestore();
     }
   }
 
