@@ -29,21 +29,21 @@ flutter:
   fonts:
     - family: EcoraDisplay
       fonts:
-        - asset: assets/fonts/PlayfairDisplay-Variable.ttf
+        - asset: assets/fonts/PlayfairDisplay-Medium.ttf
           weight: 500
-        - asset: assets/fonts/PlayfairDisplay-Variable.ttf
+        - asset: assets/fonts/PlayfairDisplay-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/PlayfairDisplay-Variable.ttf
+        - asset: assets/fonts/PlayfairDisplay-Bold.ttf
           weight: 700
     - family: EcoraUI
       fonts:
-        - asset: assets/fonts/Inter-Variable.ttf
+        - asset: assets/fonts/Inter-Regular.ttf
           weight: 400
-        - asset: assets/fonts/Inter-Variable.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Inter-Variable.ttf
+        - asset: assets/fonts/Inter-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/Inter-Variable.ttf
+        - asset: assets/fonts/Inter-Bold.ttf
           weight: 700
 
 # sign_in_with_apple e' una dipendenza transitiva di supabase_flutter 1.x

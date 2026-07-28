@@ -65,7 +65,7 @@ const String _kUiFont = 'EcoraUI';
 
 /// Scala tipografica: displayLarge è l'unico uso lecito del logo/brand.
 /// Nessun valore sotto i 12px.
-const TextTheme _ecoraTextThemeBase = TextTheme(
+const TextTheme ecoraTextTheme = TextTheme(
   displayLarge: TextStyle(
     fontFamily: _kDisplayFont,
     fontSize: 40,
@@ -118,8 +118,6 @@ const TextTheme _ecoraTextThemeBase = TextTheme(
     color: EcoraColors.textTertiary,
   ),
 );
-
-final TextTheme ecoraTextTheme = _ecoraTextThemeBase.apply(fontFamily: _kUiFont);
 
 /// `ThemeData` completo del design system. Le schermate leggono gli stili
 /// da `Theme.of(context)` invece di stilizzare a mano.
