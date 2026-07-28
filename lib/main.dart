@@ -98,16 +98,7 @@ class _EcoraAppState extends State<EcoraApp> {
     return MaterialApp(
       title: 'Ecora',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Serif',
-        scaffoldBackgroundColor: matteDark,
-        colorScheme: const ColorScheme.dark(
-          primary: premiumGold,
-          onPrimary: matteDark,
-          secondary: premiumGold,
-          surface: slateSurface,
-        ),
-      ),
+      theme: ecoraTheme(),
       home: BiometricGate(
         child: ValueListenableBuilder<SupabaseProfile?>(
           valueListenable: EcoraDataService.instance.currentProfileNotifier,
