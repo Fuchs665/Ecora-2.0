@@ -15,7 +15,7 @@ Flutter (Android-first) + Supabase (Postgres, Auth, Storage). Roles: `cliente` (
 - Any Python tooling: safe Windows console encoding (no crashes on non-ASCII/emoji).
 
 ## Commands (Flutter not on PATH)
-- Flutter: `C:\src\flutter\flutter\bin\flutter.bat`
+- Flutter: `C:\Users\FCD\Documents\flutter\bin\flutter.bat`
 - Deps: `flutter.bat pub get`
 - Analyze: `flutter.bat analyze`
 - Test: `flutter.bat test`
