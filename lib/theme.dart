@@ -20,7 +20,7 @@ abstract class EcoraColors {
 
   static const Color textPrimary = Color(0xFFF4F1EB);
   static const Color textSecondary = Color(0xFFA19C93);
-  static const Color textTertiary = Color(0xFF6F6A62);
+  static const Color textTertiary = Color(0xFF8B867C);
 
   static const Color success = Color(0xFF5BA871);
   static const Color danger = Color(0xFFE0605C);
