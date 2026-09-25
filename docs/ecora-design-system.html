@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ecora — Design System v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#0E0E11; --surface:#17171B; --elevated:#1F1F25;
+    --hairline:rgba(255,255,255,.07); --hairline-strong:rgba(255,255,255,.12);
+    --gold:#C9A96A; --gold-bright:#E6CD97; --gold-deep:#8A7343;
+    --tp:#F4F1EB; --ts:#A19C93; --tt:#6F6A62;
+    --success:#5BA871; --danger:#E0605C; --warning:#DDA65A;
+    --r-sm:8px; --r-md:12px; --r-lg:20px; --r-pill:999px;
+    --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s7:32px; --s8:40px; --s9:56px;
+    --display:'Playfair Display',Georgia,serif;
+    --ui:'Inter',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--tp);font-family:var(--ui);
+       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:var(--s9) var(--s6) 96px}
+  .eyebrow{font:700 11px/1.3 var(--ui);letter-spacing:1.6px;text-transform:uppercase;color:var(--gold)}
+  h1{font:600 40px/1.15 var(--display);letter-spacing:-.5px;margin:var(--s3) 0 var(--s2)}
+  h2{font:600 24px/1.25 var(--display);margin:0 0 var(--s2)}
+  h3{font:600 17px/1.3 var(--display);margin:0 0 var(--s2)}
+  p{margin:0 0 var(--s4);color:var(--ts);max-width:64ch}
+  .lead{font-size:16px;color:var(--ts)}
+  section{margin-top:var(--s9);padding-top:var(--s7);border-top:1px solid var(--hairline)}
+  .card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s5)}
+  .grid{display:grid;gap:var(--s4)}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+
+  /* --- rule box --- */
+  .rule{background:linear-gradient(135deg,rgba(201,169,106,.10),rgba(201,169,106,.02));
+        border:1px solid rgba(201,169,106,.30);border-radius:var(--r-md);padding:var(--s6)}
+  .rule h3{color:var(--gold)}
+  .rule p{color:var(--tp);opacity:.85;margin-bottom:0}
+
+  /* --- swatches --- */
+  .sw{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--hairline)}
+  .sw .chip{height:76px}
+  .sw .meta{padding:var(--s3);background:var(--surface)}
+  .sw .name{font:600 13px/1.3 var(--ui)}
+  .sw .hex{font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ts)}
+  .sw .use{font-size:11px;color:var(--tt);margin-top:var(--s1);display:block}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--hairline)}
+  th{font:700 11px/1.3 var(--ui);letter-spacing:1.2px;text-transform:uppercase;color:var(--gold)}
+  td{color:var(--ts)}
+  td.mono{font-family:ui-monospace,Menlo,monospace;color:var(--tp)}
+  .tag{display:inline-block;font:700 10px/1 var(--ui);letter-spacing:.6px;padding:4px 7px;border-radius:var(--r-pill)}
+  .aaa{background:rgba(91,168,113,.16);color:var(--success)}
+  .aa{background:rgba(201,169,106,.16);color:var(--gold)}
+  .lg{background:rgba(221,166,90,.14);color:var(--warning)}
+
+  /* --- type specimens --- */
+  .spec{border-bottom:1px solid var(--hairline);padding:var(--s4) 0;display:flex;
+        align-items:baseline;justify-content:space-between;gap:var(--s5);flex-wrap:wrap}
+  .spec .label{font:500 11px/1.4 ui-monospace,Menlo,monospace;color:var(--tt);white-space:nowrap}
+
+  /* --- components --- */
+  .btn{font:700 12px/1 var(--ui);letter-spacing:1.2px;text-transform:uppercase;
+       padding:15px 22px;border-radius:var(--r-pill);border:0;cursor:pointer;display:inline-block}
+  .btn-p{background:var(--gold);color:#0E0E11}
+  .btn-s{background:transparent;color:var(--gold);border:1.5px solid var(--gold)}
+  .btn-g{background:transparent;color:var(--ts);border:1px solid var(--hairline-strong)}
+  .input{background:rgba(31,31,37,.6);border:1px solid var(--hairline);border-radius:var(--r-md);
+         padding:14px 16px;color:var(--tp);font:400 14px var(--ui);width:100%}
+  .input.focus{border-color:var(--gold)}
+
+  /* --- metric strip --- */
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--hairline);
+           border:1px solid var(--hairline);border-radius:var(--r-md);overflow:hidden}
+  .metric{background:var(--surface);padding:var(--s4) var(--s3);text-align:center}
+  .metric .n{font:600 26px/1 var(--display);color:var(--tp);display:block}
+  .metric .n .u{font-size:14px;color:var(--ts)}
+  .metric .l{font:600 10px/1.3 var(--ui);letter-spacing:1px;text-transform:uppercase;
+             color:var(--tt);margin-top:6px;display:block}
+  .metric.hot .n{color:var(--gold)}
+
+  /* --- phone mock --- */
+  .phones{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--s6)}
+  .phone{background:var(--canvas);border:1px solid var(--hairline-strong);border-radius:26px;
+         padding:var(--s5) var(--s4);position:relative}
+  .phone::before{content:'';position:absolute;top:10px;left:50%;transform:translateX(-50%);
+                 width:66px;height:4px;border-radius:99px;background:var(--hairline-strong)}
+  .phone .inner{margin-top:var(--s4)}
+  .badge-old{position:absolute;top:-11px;left:var(--s5);background:var(--danger);color:#0E0E11;
+             font:700 10px/1 var(--ui);letter-spacing:1px;padding:5px 10px;border-radius:var(--r-pill)}
+  .badge-new{position:absolute;top:-11px;left:var(--s5);background:var(--gold);color:#0E0E11;
+             font:700 10px/1 var(--ui);letter-spacing:1px;padding:5px 10px;border-radius:var(--r-pill)}
+
+  .evcard{display:flex;gap:var(--s3);background:var(--surface);border:1px solid var(--hairline);
+          border-radius:var(--r-md);padding:var(--s3);align-items:center}
+  .evthumb{width:56px;height:56px;border-radius:var(--r-sm);flex:none;
+           background:linear-gradient(135deg,#2A2A32,#1A1A20);display:grid;place-items:center;
+           color:var(--gold-deep);font:600 18px var(--display)}
+  .fill{height:4px;border-radius:99px;background:var(--hairline-strong);margin-top:7px;overflow:hidden}
+  .fill i{display:block;height:100%;background:var(--gold);border-radius:99px}
+
+  .oldstyle{font-family:Georgia,serif}
+  .old-label{color:#D4AF37;font-weight:900;letter-spacing:2px;font-size:11px}
+  .old-btn{background:#D4AF37;color:#1A1A1A;border:0;border-radius:24px;padding:13px 18px;
+           font-weight:900;font-size:11px;letter-spacing:1.5px}
+
+  .spacer{display:flex;align-items:flex-end;gap:var(--s3);flex-wrap:wrap}
+  .spacer div{background:rgba(201,169,106,.22);border-top:2px solid var(--gold);text-align:center;
+              font:500 10px/1 ui-monospace,Menlo,monospace;color:var(--ts);padding-top:5px}
+  .radii{display:flex;gap:var(--s4);flex-wrap:wrap}
+  .radii div{width:88px;height:64px;background:var(--elevated);border:1px solid var(--hairline);
+             display:grid;place-items:center;font:500 11px ui-monospace,Menlo,monospace;color:var(--ts)}
+  footer{margin-top:var(--s9);padding-top:var(--s6);border-top:1px solid var(--hairline);
+         color:var(--tt);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <span class="eyebrow">Blocco B.1 · Fondamenta</span>
+  <h1>Ecora Design System</h1>
+  <p class="lead">Specifica dei token da implementare in <code>lib/theme.dart</code> prima di toccare qualsiasi schermata. Ogni valore qui è definitivo: se una schermata ha bisogno di un numero che non è in questa pagina, si aggiunge qui prima, non nel widget.</p>
+
+  <!-- ==================== LA REGOLA ==================== -->
+  <section>
+    <span class="eyebrow">Il principio</span>
+    <h2>La regola dell'oro</h2>
+    <p>Oggi l'oro è ovunque: titoli, icone, bordi, etichette, divisori, bottoni. Quando tutto è prezioso, niente lo è. Questa è la singola regola che cambia di più la qualità percepita, e non costa una riga di codice in più.</p>
+    <div class="rule">
+      <h3>Massimo un accento dorato per blocco visivo</h3>
+      <p>L'oro si usa solo per: <strong>l'azione primaria dello schermo</strong>, <strong>lo stato attivo della navigazione</strong>, e <strong>un solo dato di rilievo per card</strong>. Tutto il resto vive nei tre livelli di testo. Un titolo di sezione non è un'azione: va in <em>textPrimary</em>, non in oro.</p>
+    </div>
+  </section>
+
+  <!-- ==================== PALETTE ==================== -->
+  <section>
+    <span class="eyebrow">Colore</span>
+    <h2>Palette</h2>
+    <p>L'oro attuale (<code>#D4AF37</code>) è il giallo saturo di default: legge come bigiotteria. Sostituito da un oro champagne desaturato, che su fondo scuro dà l'effetto metallo caldo invece che plastica gialla. Il fondo scende a un near-black leggermente freddo: fa risaltare il caldo dell'oro per contrasto di temperatura.</p>
+
+    <h3 style="margin-top:var(--s6)">Superfici</h3>
+    <div class="grid g4" style="margin-bottom:var(--s6)">
+      <div class="sw"><div class="chip" style="background:#0E0E11"></div><div class="meta"><span class="name">canvas</span><span class="hex">#0E0E11</span><span class="use">sfondo di ogni Scaffold</span></div></div>
+      <div class="sw"><div class="chip" style="background:#17171B"></div><div class="meta"><span class="name">surface</span><span class="hex">#17171B</span><span class="use">card, barre, input</span></div></div>
+      <div class="sw"><div class="chip" style="background:#1F1F25"></div><div class="meta"><span class="name">elevated</span><span class="hex">#1F1F25</span><span class="use">dialoghi, sheet, menu</span></div></div>
+      <div class="sw"><div class="chip" style="background:#2B2B32"></div><div class="meta"><span class="name">hairline</span><span class="hex">rgba(255,255,255,.07)</span><span class="use">bordo di ogni superficie</span></div></div>
+    </div>
+
+    <h3>Accento e testo</h3>
+    <div class="grid g4" style="margin-bottom:var(--s6)">
+      <div class="sw"><div class="chip" style="background:#C9A96A"></div><div class="meta"><span class="name">gold</span><span class="hex">#C9A96A</span><span class="use">azione primaria, stato attivo</span></div></div>
+      <div class="sw"><div class="chip" style="background:#E6CD97"></div><div class="meta"><span class="name">goldBright</span><span class="hex">#E6CD97</span><span class="use">pressed / hover</span></div></div>
+      <div class="sw"><div class="chip" style="background:#8A7343"></div><div class="meta"><span class="name">goldDeep</span><span class="hex">#8A7343</span><span class="use">solo bordi e decorazioni</span></div></div>
+      <div class="sw"><div class="chip" style="background:#F4F1EB"></div><div class="meta"><span class="name">textPrimary</span><span class="hex">#F4F1EB</span><span class="use">titoli e contenuto</span></div></div>
+      <div class="sw"><div class="chip" style="background:#A19C93"></div><div class="meta"><span class="name">textSecondary</span><span class="hex">#A19C93</span><span class="use">descrizioni, supporto</span></div></div>
+      <div class="sw"><div class="chip" style="background:#6F6A62"></div><div class="meta"><span class="name">textTertiary</span><span class="hex">#6F6A62</span><span class="use">solo metadati ≥13px</span></div></div>
+      <div class="sw"><div class="chip" style="background:#5BA871"></div><div class="meta"><span class="name">success</span><span class="hex">#5BA871</span><span class="use">approvato, conferma</span></div></div>
+      <div class="sw"><div class="chip" style="background:#E0605C"></div><div class="meta"><span class="name">danger</span><span class="hex">#E0605C</span><span class="use">rifiuta, blocca, errore</span></div></div>
+    </div>
+
+    <h3>Contrasto verificato (WCAG 2.1)</h3>
+    <p style="font-size:13px">Calcolato sui valori reali, non stimato. Le due voci <span class="tag lg">AA-lg</span> sono ammesse solo per bordi e metadati non essenziali: mai per testo che l'utente deve leggere per decidere.</p>
+    <table>
+      <thead><tr><th>Colore</th><th>su canvas</th><th>su surface</th><th>su elevated</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">gold</td><td>8.60 <span class="tag aaa">AAA</span></td><td>7.97 <span class="tag aaa">AAA</span></td><td>7.31 <span class="tag aaa">AAA</span></td></tr>
+        <tr><td class="mono">goldBright</td><td>12.43 <span class="tag aaa">AAA</span></td><td>11.53 <span class="tag aaa">AAA</span></td><td>10.57 <span class="tag aaa">AAA</span></td></tr>
+        <tr><td class="mono">goldDeep</td><td>4.23 <span class="tag lg">AA-lg</span></td><td>3.93 <span class="tag lg">AA-lg</span></td><td>3.60 <span class="tag lg">AA-lg</span></td></tr>
+        <tr><td class="mono">textPrimary</td><td>17.10 <span class="tag aaa">AAA</span></td><td>15.86 <span class="tag aaa">AAA</span></td><td>14.54 <span class="tag aaa">AAA</span></td></tr>
+        <tr><td class="mono">textSecondary</td><td>7.06 <span class="tag aaa">AAA</span></td><td>6.55 <span class="tag aa">AA</span></td><td>6.00 <span class="tag aa">AA</span></td></tr>
+        <tr><td class="mono">textTertiary</td><td>3.59 <span class="tag lg">AA-lg</span></td><td>3.33 <span class="tag lg">AA-lg</span></td><td>3.06 <span class="tag lg">AA-lg</span></td></tr>
+        <tr><td class="mono">success</td><td>6.69 <span class="tag aa">AA</span></td><td>6.20 <span class="tag aa">AA</span></td><td>5.69 <span class="tag aa">AA</span></td></tr>
+        <tr><td class="mono">danger</td><td>5.50 <span class="tag aa">AA</span></td><td>5.10 <span class="tag aa">AA</span></td><td>4.68 <span class="tag aa">AA</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ==================== TIPOGRAFIA ==================== -->
+  <section>
+    <span class="eyebrow">Tipografia</span>
+    <h2>Scala</h2>
+    <p><strong>Playfair Display</strong> per display e titoli, <strong>Inter</strong> per tutto il resto. Entrambi gratuiti su Google Fonts, da <em>bundlare nell'APK</em> (cartella <code>assets/fonts/</code>) e non scaricare a runtime: l'app deve essere identica offline e su ogni device. Oggi <code>fontFamily:'Serif'</code> usa il serif di sistema, che cambia tra Samsung e Pixel.</p>
+    <div style="margin-top:var(--s6)">
+      <div class="spec"><span style="font:600 40px/1.15 var(--display);letter-spacing:-.5px">Ecora</span><span class="label">displayL · Playfair 600 · 40/46 · ls −0.5 · solo brand</span></div>
+      <div class="spec"><span style="font:600 28px/1.2 var(--display)">Serata Ambra</span><span class="label">displayM · Playfair 600 · 28/34</span></div>
+      <div class="spec"><span style="font:600 19px/1.3 var(--display)">Richieste in attesa</span><span class="label">title · Playfair 600 · 19/25</span></div>
+      <div class="spec"><span class="eyebrow">Abbonamento gestore</span><span class="label">eyebrow · Inter 700 · 11/14 · ls +1.6 · MAIUSCOLO</span></div>
+      <div class="spec"><span style="font:400 16px/1.5 var(--ui)">Testo di lettura principale, per paragrafi e descrizioni degli eventi.</span><span class="label">bodyL · Inter 400 · 16/24</span></div>
+      <div class="spec"><span style="font:400 14px/1.5 var(--ui);color:var(--ts)">Testo di supporto, sottotitoli e descrizioni secondarie.</span><span class="label">body · Inter 400 · 14/21</span></div>
+      <div class="spec"><span style="font:500 12px/1.4 var(--ui);color:var(--tt)">Metadato, orario, contatore</span><span class="label">caption · Inter 500 · 12/17 · minimo assoluto</span></div>
+    </div>
+    <div class="rule" style="margin-top:var(--s6)">
+      <h3>Niente sotto i 12px</h3>
+      <p>Oggi ci sono testi a 9px (badge notifiche, etichette del box candidato) e a 10px. Il gestore tipo di un locale non ha vent'anni e legge al buio. Sotto i 12px non si scende mai; sotto i 14px solo per metadati che non servono a decidere.</p>
+    </div>
+  </section>
+
+  <!-- ==================== SPAZIO E FORMA ==================== -->
+  <section>
+    <span class="eyebrow">Spazio e forma</span>
+    <h2>Griglia da 4pt</h2>
+    <p>Ogni margine, padding e gap è un multiplo di 4. Nessun valore arbitrario: se serve 18, si usa 16 o 20.</p>
+    <div class="spacer" style="margin-bottom:var(--s7)">
+      <div style="width:4px;height:24px">4</div><div style="width:8px;height:34px">8</div>
+      <div style="width:12px;height:44px">12</div><div style="width:16px;height:54px">16</div>
+      <div style="width:20px;height:64px">20</div><div style="width:24px;height:74px">24</div>
+      <div style="width:32px;height:84px">32</div><div style="width:40px;height:94px">40</div>
+      <div style="width:56px;height:104px">56</div>
+    </div>
+    <h3>Raggi</h3>
+    <p style="font-size:13px">Oggi convivono 8, 10, 12, 20 e 24 senza criterio. Da qui in avanti sono quattro, ognuno con un ruolo.</p>
+    <div class="radii">
+      <div style="border-radius:8px">8 · controlli</div>
+      <div style="border-radius:12px">12 · card, input</div>
+      <div style="border-radius:20px">20 · sheet, dialog</div>
+      <div style="border-radius:999px">999 · bottoni, pill</div>
+    </div>
+    <h3 style="margin-top:var(--s6)">Elevazione</h3>
+    <p style="font-size:13px">In un'interfaccia scura la profondità si fa con la <em>luminosità della superficie più un filo di bordo</em>, non con le ombre. Le ombre restano solo per il FAB e i dialoghi modali. Ogni superficie porta sempre il suo bordo <code>hairline</code>: è quello che dà il taglio netto, "inciso", che legge come premium.</p>
+  </section>
+
+  <!-- ==================== MOVIMENTO ==================== -->
+  <section>
+    <span class="eyebrow">Movimento</span>
+    <h2>Durate e curve</h2>
+    <table>
+      <thead><tr><th>Token</th><th>Durata</th><th>Curva</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">motionMicro</td><td class="mono">120ms</td><td class="mono">easeOutCubic</td><td>pressione, ripple, cambio di icona</td></tr>
+        <tr><td class="mono">motionBase</td><td class="mono">220ms</td><td class="mono">easeOutCubic</td><td>cambio tab, apparizione card, snackbar</td></tr>
+        <tr><td class="mono">motionEnter</td><td class="mono">320ms</td><td class="mono">easeOutCubic</td><td>navigazione di pagina, bottom sheet, Hero</td></tr>
+        <tr><td class="mono">motionCelebrate</td><td class="mono">520ms</td><td class="mono">easeOutBack</td><td>solo: ospite approvato, abbonamento attivato</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:var(--s4);font-size:13px">Regola: <strong>in entrata sempre <code>easeOut</code>, in uscita <code>easeIn</code></strong>. Gli elementi entrano decelerando (sembrano avere peso) ed escono accelerando (tolgono il disturbo). <code>easeOutBack</code> solo nei due momenti di gratificazione: usato ovunque diventa fastidioso.</p>
+  </section>
+
+  <!-- ==================== COMPONENTI ==================== -->
+  <section>
+    <span class="eyebrow">Componenti</span>
+    <h2>Anatomia</h2>
+    <div class="grid g2">
+      <div class="card">
+        <span class="eyebrow">Azioni</span>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;align-items:center">
+          <button class="btn btn-p">Approva ospite</button>
+          <button class="btn btn-s">Dettagli</button>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;align-items:center">
+          <button class="btn btn-g">Annulla</button>
+          <button class="btn" style="background:transparent;color:var(--danger);border:1.5px solid rgba(224,96,92,.4)">Rifiuta</button>
+        </div>
+        <p style="font-size:12px;margin:16px 0 0">Una sola azione dorata per schermata. Le distruttive non sono mai dorate.</p>
+      </div>
+      <div class="card">
+        <span class="eyebrow">Campo di testo</span>
+        <div style="margin-top:16px"><input class="input" placeholder="Titolo dell'evento"></div>
+        <div style="margin-top:12px"><input class="input focus" value="Serata Ambra"></div>
+        <p style="font-size:12px;margin:16px 0 0">Bordo neutro a riposo, dorato solo al focus. È l'unico momento in cui un input merita l'accento.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== PRIMA / DOPO ==================== -->
+  <section>
+    <span class="eyebrow">Applicazione</span>
+    <h2>Dashboard gestore — prima e dopo</h2>
+    <p>La schermata della demo commerciale. A sinistra com'è oggi, a destra come diventa applicando i token e la gerarchia della fase C.</p>
+
+    <div class="phones" style="margin-top:var(--s7)">
+
+      <!-- PRIMA -->
+      <div class="phone oldstyle" style="background:#1A1A1A;border-color:#333">
+        <span class="badge-old">Oggi</span>
+        <div class="inner">
+          <div class="old-label" style="font-size:18px;letter-spacing:2px">CONSOLLE CLUB</div>
+          <div style="color:#A0A0A0;font-size:12px;margin-top:2px">Dashboard Organizzatore • Tavoli Attivi</div>
+
+          <div style="background:#2A2A2A;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;margin-top:24px">
+            <div style="display:flex;gap:12px;align-items:center">
+              <span style="color:#A0A0A0;font-size:22px">🔒</span>
+              <div>
+                <div class="old-label">ABBONAMENTO GESTORE</div>
+                <div style="color:#A0A0A0;font-size:13px;font-weight:600">Nessun abbonamento attivo</div>
+              </div>
+            </div>
+            <div style="color:#A0A0A0;font-size:12px;margin-top:12px">Per pubblicare nuovi tavoli serve il piano mensile.</div>
+            <div style="margin-top:12px"><button class="old-btn">ABBONATI</button></div>
+          </div>
+
+          <div style="background:rgba(255,82,82,.1);border:1px solid rgba(255,82,82,.5);border-radius:12px;padding:16px;margin-top:24px;display:flex;gap:16px;align-items:center">
+            <span style="color:#FF5252;font-size:22px">⚠</span>
+            <div>
+              <div style="color:#fff;font-weight:700;font-size:13px">APPROVAZIONI ACCESSO IN ATTESA</div>
+              <div style="color:#A0A0A0;font-size:12px">3 ospiti in attesa di screening di sicurezza e fiducia.</div>
+            </div>
+          </div>
+
+          <div class="old-label" style="margin-top:24px;display:block">I TUOI TAVOLI ATTIVI</div>
+          <div style="margin-top:12px;height:78px;border:1px dashed #444;border-radius:12px;display:grid;place-items:center;color:#666;font-size:12px">(vuoto — nessun empty state)</div>
+        </div>
+      </div>
+
+      <!-- DOPO -->
+      <div class="phone">
+        <span class="badge-new">Dopo</span>
+        <div class="inner">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <span class="eyebrow">Il tuo locale</span>
+              <div style="font:600 26px/1.2 var(--display);margin-top:4px">Villa Ambra</div>
+            </div>
+            <span style="font:600 10px/1 var(--ui);letter-spacing:.8px;color:var(--success);
+                         background:rgba(91,168,113,.14);padding:6px 10px;border-radius:999px">ATTIVO</span>
+          </div>
+
+          <div class="metrics" style="margin-top:20px">
+            <div class="metric hot"><span class="n">3</span><span class="l">da valutare</span></div>
+            <div class="metric"><span class="n">24</span><span class="l">richieste · mese</span></div>
+            <div class="metric"><span class="n">78<span class="u">%</span></span><span class="l">riempimento</span></div>
+          </div>
+
+          <button class="btn btn-p" style="width:100%;margin-top:16px">Crea nuovo tavolo</button>
+
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:32px">
+            <span style="font:600 17px/1.3 var(--display)">Prossimi tavoli</span>
+            <span style="font:500 12px var(--ui);color:var(--tt)">2 attivi</span>
+          </div>
+
+          <div style="margin-top:12px;display:grid;gap:8px">
+            <div class="evcard">
+              <div class="evthumb">A</div>
+              <div style="flex:1;min-width:0">
+                <div style="font:600 14px/1.3 var(--ui)">Ballo in Maschera</div>
+                <div style="font:500 12px var(--ui);color:var(--ts);margin-top:2px">Sab 8 ago · 7 di 12 confermati</div>
+                <div class="fill"><i style="width:58%"></i></div>
+              </div>
+              <span style="font:700 11px var(--ui);color:var(--gold)">3</span>
+            </div>
+            <div class="evcard">
+              <div class="evthumb">S</div>
+              <div style="flex:1;min-width:0">
+                <div style="font:600 14px/1.3 var(--ui)">Serata Ambra</div>
+                <div style="font:500 12px var(--ui);color:var(--ts);margin-top:2px">Ven 21 ago · 4 di 10 confermati</div>
+                <div class="fill"><i style="width:40%"></i></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--hairline);
+                      display:flex;justify-content:space-between;align-items:center">
+            <span style="font:500 12px var(--ui);color:var(--tt)">Piano mensile · rinnovo 16/08</span>
+            <span style="font:600 12px var(--ui);color:var(--ts)">Gestisci</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-top:var(--s7)">
+      <div class="card"><h3>Il numero prima del testo</h3><p style="font-size:13px;margin:0">Tre metriche in cima, calcolate dai dati già in memoria. È la prima cosa che un gestore guarda e l'unica che ricorda dopo la demo.</p></div>
+      <div class="card"><h3>L'abbonamento scende</h3><p style="font-size:13px;margin:0">Da blocco con CTA a riga discreta a fondo schermata. Chi paga non vuole la ricevuta ogni giorno; chi non paga la trova comunque al primo tentativo di pubblicare.</p></div>
+      <div class="card"><h3>L'allarme diventa dato</h3><p style="font-size:13px;margin:0">Il banner rosso a tutta larghezza diventa il primo contatore, dorato. Stessa informazione, senza il tono da centrale operativa.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    Ecora Design System v1 · 28 luglio 2026 · Contrasti calcolati secondo WCAG 2.1 sui valori esatti della palette.<br>
+    Da implementare in <code>lib/theme.dart</code> — blocco B.1 del piano di lavoro.
+  </footer>
+</div>
+</body>
+</html>

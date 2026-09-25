@@ -1,6 +1,19 @@
 # Ecora — Piano di lavoro operativo
 **Approvato:** 28 luglio 2026 · **Strategia:** prima i locali → poi lo Store → poi gli utenti
-**Documento collegato:** `docs/AUDIT_2026-07-28.md`
+**Documenti collegati:** `docs/AUDIT_2026-07-28.md` · `docs/ecora-design-system.html`
+
+---
+
+## Stato avanzamento
+
+| Blocco | Stato | Note |
+|---|---|---|
+| 0.1 · CLAUDE.md allineato | ✅ fatto | assunzione di dominio e divieti presenti |
+| 0.2 · `.env.example` ripulito | ✅ fatto | |
+| A.1 · Revoca accesso anonimo | ✅ fatto | `0014_revoke_anon_events.sql`, verificato |
+| A.2 · Dipendenze inutilizzate | ⚠️ **aperto** | `flutter_map`, `latlong2`, `geolocator` sono ancora in `pubspec.yaml`. Verificare il diff dell'ultimo commit e se `ACCESS_FINE_LOCATION` compare nel merged manifest. Se si decide di tenerle per la mappa futura, scrivere il perché nel CLAUDE.md. |
+| B.1 · Design system | 🔵 specifica pronta | vedi `docs/ecora-design-system.html`, da implementare in `lib/theme.dart` |
+| B.2 → E.4 | ⬜ da fare | |
 
 ---
 
