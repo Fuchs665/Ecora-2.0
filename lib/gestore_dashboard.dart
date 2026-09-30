@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'main.dart';
 import 'attendance.dart';
 import 'client_navigation_hub.dart' show ChatRoomCard;
+import 'dashboard_skeleton.dart';
 import 'gestore_metrics.dart';
 import 'profile_gallery.dart';
 import 'subscription_panel.dart';
@@ -23,13 +24,36 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
       0; // 0 = Owner Feed, 1 = Guest Inspector, 3 = Chats/Messages, 4 = Club Profile
   bool _showCreateForm = false;
 
+  /// Vero finché le letture iniziali non sono finite (Blocco C.2): la
+  /// dashboard mostra lo skeleton invece di "0", "—" e il vuoto.
+  bool _loading = true;
+
   @override
   void initState() {
     super.initState();
-    EcoraDataService.instance.fetchEvents();
-    EcoraDataService.instance.fetchHostRequests();
-    EcoraDataService.instance.fetchBlockedUsers();
-    EcoraSubscriptionService.instance.refreshStatus();
+    _loadDashboard();
+  }
+
+  /// Le quattro letture iniziali, in parallelo. Lo skeleton si spegne anche
+  /// se falliscono: oggi le fetch inghiottono gli errori, quindi un errore
+  /// di rete finisce nello stato vuoto come se non ci fossero serate.
+  Future<void> _loadDashboard() async {
+    try {
+      await Future.wait([
+        EcoraDataService.instance.fetchEvents(),
+        EcoraDataService.instance.fetchHostRequests(),
+        EcoraDataService.instance.fetchBlockedUsers(),
+        EcoraSubscriptionService.instance.refreshStatus(),
+      ]);
+    } catch (e) {
+      debugPrint("Errore nel caricamento della dashboard: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
   }
 
   /// Gate UI sulla creazione evento: senza abbonamento attivo si apre il
@@ -76,12 +100,14 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
                 host: hostProfile,
                 events: events,
                 requests: requests,
+                loading: _loading,
                 onSelectRequestInspector: () {
                   setState(() {
                     _selectedTab = 1;
                     _showCreateForm = false;
                   });
                 },
+                onCreateEvent: _tryOpenCreateForm,
               );
             },
           ),
@@ -230,12 +256,21 @@ class ClubDashboardScreen extends StatelessWidget {
   final List<SupabaseParticipationRequest> requests;
   final VoidCallback onSelectRequestInspector;
 
+  /// Letture iniziali in corso: skeleton al posto dei dati (Blocco C.2).
+  final bool loading;
+
+  /// Apre la creazione serata, con lo stesso controllo dell'abbonamento
+  /// del pulsante "+". Usato dallo stato vuoto.
+  final VoidCallback onCreateEvent;
+
   const ClubDashboardScreen({
     Key? key,
     required this.host,
     required this.events,
     required this.requests,
     required this.onSelectRequestInspector,
+    required this.onCreateEvent,
+    this.loading = false,
   }) : super(key: key);
 
   /// "ARCADIA CLUB · BOLOGNA": nome del locale e città, se nota.
@@ -300,190 +335,242 @@ class ClubDashboardScreen extends StatelessWidget {
             Text("Le tue serate", style: textTheme.displayMedium),
             const SizedBox(height: EcoraSpace.s16),
 
-            // Tre numeri prima di ogni altra cosa (Blocco C.1).
-            GestoreMetricsStrip(metrics: metrics),
-            const SizedBox(height: EcoraSpace.s24),
+            // Finché le letture iniziali non finiscono (Blocco C.2) lo
+            // skeleton prende il posto di tutto ciò che deriva dai dati: i
+            // notifier si aggiornano uno alla volta (e dopo un logout hanno
+            // ancora quelli della sessione precedente), e l'abbonamento
+            // sembrerebbe scaduto finché refreshStatus non risponde.
+            if (loading)
+              const DashboardSkeleton()
+            else ...[
+              // Tre numeri prima di ogni altra cosa (Blocco C.1).
+              GestoreMetricsStrip(metrics: metrics),
+              const SizedBox(height: EcoraSpace.s24),
 
-            // Red Alert banner if guests are pending review
-            if (pendingCount > 0) ...[
-              GestureDetector(
-                onTap: onSelectRequestInspector,
-                child: Card(
-                  color: Colors.redAccent.withValues(alpha: 0.1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                        color: Colors.redAccent.withValues(alpha: 0.5), width: 1),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.new_releases,
-                            color: Colors.redAccent, size: 28),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "APPROVAZIONI ACCESSO IN ATTESA",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: textPrimary,
-                                    fontSize: 13),
-                              ),
-                              Text(
-                                "$pendingCount ospiti in attesa di screening di sicurezza e fiducia.",
-                                style: const TextStyle(
-                                    color: textSecondary, fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right, color: Colors.redAccent),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            // Serate concluse da non più di 7 giorni (Blocco B.2c).
-            if (toClose.isNotEmpty) ...[
-              Text("DA CHIUDERE", style: textTheme.labelSmall),
-              const SizedBox(height: EcoraSpace.s8),
-              for (final event in toClose)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: EcoraSpace.s8),
+              // Red Alert banner if guests are pending review
+              if (pendingCount > 0) ...[
+                GestureDetector(
+                  onTap: onSelectRequestInspector,
                   child: Card(
+                    color: Colors.redAccent.withValues(alpha: 0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                          color: Colors.redAccent.withValues(alpha: 0.5), width: 1),
+                    ),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(EcoraSpace.s16,
-                          EcoraSpace.s12, EcoraSpace.s12, EcoraSpace.s12),
+                      padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
+                          const Icon(Icons.new_releases,
+                              color: Colors.redAccent, size: 28),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(event.title,
-                                    style: textTheme.titleLarge),
+                                const Text(
+                                  "APPROVAZIONI ACCESSO IN ATTESA",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: textPrimary,
+                                      fontSize: 13),
+                                ),
                                 Text(
-                                  "${event.currentApprovedCount} ospiti "
-                                  "approvati · segna chi è venuto",
-                                  style: textTheme.bodySmall,
+                                  "$pendingCount ospiti in attesa di screening di sicurezza e fiducia.",
+                                  style: const TextStyle(
+                                      color: textSecondary, fontSize: 12),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: EcoraSpace.s8),
-                          OutlinedButton(
-                            onPressed: () => _openAttendance(context, event),
-                            child: const Text("Chi è venuto?"),
-                          ),
+                          const Icon(Icons.chevron_right, color: Colors.redAccent),
                         ],
                       ),
                     ),
                   ),
                 ),
-              const SizedBox(height: EcoraSpace.s16),
-            ],
+                const SizedBox(height: 24),
+              ],
 
-            const Text(
-              "I TUOI TAVOLI ATTIVI",
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: premiumGold,
-                  letterSpacing: 1.0),
-            ),
-            const SizedBox(height: 12),
-
-            // Active list of table events for the club host
-            ...hostEvents.map((event) {
-              final eventInquiries = requests
-                  .where((r) => r.eventId == event.id && r.status == 'pending')
-                  .length;
-
-              return Card(
-                color: slateSurface,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                margin: const EdgeInsets.only(bottom: 12),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EventDetailsPage(event: event),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            event.imageUrl,
-                            width: 72,
-                            height: 72,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, _, __) => Container(
-                              color: Colors.grey,
-                              width: 72,
-                              height: 72,
+              // Serate concluse da non più di 7 giorni (Blocco B.2c).
+              if (toClose.isNotEmpty) ...[
+                Text("DA CHIUDERE", style: textTheme.labelSmall),
+                const SizedBox(height: EcoraSpace.s8),
+                for (final event in toClose)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: EcoraSpace.s8),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(EcoraSpace.s16,
+                            EcoraSpace.s12, EcoraSpace.s12, EcoraSpace.s12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(event.title,
+                                      style: textTheme.titleLarge),
+                                  Text(
+                                    "${event.currentApprovedCount} ospiti "
+                                    "approvati · segna chi è venuto",
+                                    style: textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: EcoraSpace.s8),
+                            OutlinedButton(
+                              onPressed: () => _openAttendance(context, event),
+                              child: const Text("Chi è venuto?"),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                event.title,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: textPrimary),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "${event.currentApprovedCount} / ${event.maxParticipants} coppie confermate",
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    color: premiumGold,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                              if (eventInquiries > 0) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  "$eventInquiries richieste in attesa",
-                                  style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ]
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right, color: premiumGold),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
-            const SizedBox(height: EcoraSpace.s12),
+                const SizedBox(height: EcoraSpace.s16),
+              ],
 
-            // Abbonamento declassato (Blocco C.1): riga discreta se attivo,
-            // card con acquisto se non attivo.
-            const SubscriptionStatusCard(),
+              // Nessuna serata ancora: la strada verso la prima (Blocco C.2).
+              if (hostEvents.isEmpty) ...[
+                _NoEventsCard(onCreateEvent: onCreateEvent),
+                const SizedBox(height: EcoraSpace.s24),
+              ] else ...[
+                const Text(
+                  "I TUOI TAVOLI ATTIVI",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: premiumGold,
+                      letterSpacing: 1.0),
+                ),
+                const SizedBox(height: 12),
+
+                // Active list of table events for the club host
+                ...hostEvents.map((event) {
+                  final eventInquiries = requests
+                      .where((r) => r.eventId == event.id && r.status == 'pending')
+                      .length;
+
+                  return Card(
+                    color: slateSurface,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EventDetailsPage(event: event),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                event.imageUrl,
+                                width: 72,
+                                height: 72,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, _, __) => Container(
+                                  color: Colors.grey,
+                                  width: 72,
+                                  height: 72,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    event.title,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: textPrimary),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "${event.currentApprovedCount} / ${event.maxParticipants} coppie confermate",
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        color: premiumGold,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                  if (eventInquiries > 0) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "$eventInquiries richieste in attesa",
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ]
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right, color: premiumGold),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+                const SizedBox(height: EcoraSpace.s12),
+              ],
+
+              // Abbonamento declassato (Blocco C.1): riga discreta se attivo,
+              // card con acquisto se non attivo.
+              const SubscriptionStatusCard(),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Stato vuoto della dashboard (Blocco C.2): il gestore non ha ancora
+/// serate. Porta diritto alla creazione della prima.
+class _NoEventsCard extends StatelessWidget {
+  final VoidCallback onCreateEvent;
+
+  const _NoEventsCard({required this.onCreateEvent});
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(EcoraSpace.s24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Nessuna serata in programma", style: textTheme.titleLarge),
+            const SizedBox(height: EcoraSpace.s8),
+            Text(
+              "Quando pubblichi una serata, qui trovi posti, conferme e "
+              "richieste degli ospiti.",
+              style: textTheme.bodyMedium?.copyWith(
+                color: EcoraColors.inkMuted,
+              ),
+            ),
+            const SizedBox(height: EcoraSpace.s24),
+            ElevatedButton(
+              onPressed: onCreateEvent,
+              child: const Text("Crea la prima serata"),
+            ),
           ],
         ),
       ),
