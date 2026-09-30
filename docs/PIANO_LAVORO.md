@@ -16,7 +16,8 @@
 | C.1 · Fascia metriche + abbonamento declassato | ✅ fatto | Tavola "Serate". Riempimento medio calcolato solo sulle serate concluse. La lista mostra solo le serate del gestore (prima c'erano anche quelle degli altri locali). Nuovo stile `EcoraTextStyles.metric`, da riportare nel design system. |
 | B.4 · Bug ordine operazioni | ✅ fatto | La scheda candidato si chiude solo a salvataggio riuscito (approva, rifiuta e blocca); durante l'attesa pulsanti spenti e dialogo non chiudibile, in caso di errore il messaggio resta nel dialogo. |
 | B.3 · Copy onesto | ✅ fatto | Tolte 8 promesse false (anonimato end-to-end, dispositivo mai registrato, nickname/località nascosti, indirizzo e GPS svelati solo dopo approvazione, alta affidabilità, età fissa a 30, "Organizzati: 45"). Età, assenze e affidabilità nascoste finché B.2 non porta dati veri. `test/honest_copy_test.dart` impedisce che le frasi tornino. |
-| B.2, C.2 → E.4 | ⬜ da fare | |
+| B.2a · Migrazione età e presenze | ✅ scritta, **da applicare** | `supabase/migrations/0015_presenze_e_eta.sql`: `profiles.birth_year` (18+, immutabile dopo il primo salvataggio, leggibile dagli iscritti), tabella `event_attendance` (lettura solo al gestore della serata), `mark_attendance()` (solo gestore della serata, solo approvati, da inizio serata a +7 giorni), `get_guest_reliability()` (presenze/assenze su tutti i locali, solo per sé o per i gestori a cui l'utente si è candidato). Provata su Postgres locale: `supabase/tests/0015_presenze_e_eta_test.sql`. Da applicare dal SQL Editor prima di B.2b/B.2c. |
+| B.2b, B.2c, C.2 → E.4 | ⬜ da fare | |
 
 ---
 
@@ -69,8 +70,8 @@ Blocca la demo ai locali. Nessuna quantità di restyling compensa un dato falso.
 **B.1 · Fondamenta del design system.**
 `theme.dart` sono 67 righe: cinque colori e quattro builder. Tutto il resto — tipografia, spaziature, raggi, ombre, durate delle animazioni — è hardcoded nelle schermate. **Va fatto prima di ogni altro lavoro visivo**, altrimenti ogni blocco successivo ri-hardcoda e il restyling costa il triplo. Include: scala tipografica completa in `ThemeData`, token di spaziatura, font custom (Playfair Display + Inter), `CardTheme`/`DialogTheme`/`SnackBarTheme` centralizzati.
 
-**B.2 · No-show ed età reali.**
-Migration: colonne `birth_year` (o `age`) e `no_shows` su `profiles`, con `no_shows` scrivibile solo dal gestore host tramite RPC dedicata. UI: campo età obbligatorio in registrazione; nella dashboard gestore, dopo la data dell'evento, una lista "chi è venuto?" con toggle presente/assente che incrementa il contatore. La scheda candidato smette di mostrare numeri inventati.
+**B.2 · No-show ed età reali.** Diviso in B.2a (migrazione), B.2b (età in registrazione), B.2c (presenze in dashboard e scheda candidato).
+Migration: colonna `birth_year` su `profiles`. Le assenze NON sono una colonna di `profiles` (ogni utente può aggiornare la propria riga e le azzererebbe): si salva la presenza di ogni ospite approvato in `event_attendance`, scritta solo dal gestore host tramite RPC, e i conteggi si calcolano da lì. UI: campo età obbligatorio in registrazione; nella dashboard gestore, dopo la data dell'evento, una lista "chi è venuto?" con toggle presente/assente che incrementa il contatore. La scheda candidato smette di mostrare numeri inventati.
 
 **B.3 · Copy onesto.** Tre bugie da correggere:
 - `main.dart:1074` — «Anonimato assoluto end-to-end. L'identità del tuo dispositivo non viene mai registrata» (falso: `device_tokens`, e nessuna cifratura E2E)
