@@ -6,13 +6,16 @@
 /// consenso (age_confirmed_at/terms_accepted_at) sono esclusi di proposito.
 const String kProfileSelectColumns =
     'id, role, nickname, avatar_url, generic_location, is_verified, '
-    'created_at, profile_type, privacy_level';
+    'created_at, profile_type, privacy_level, birth_year';
 
 class SupabaseProfile {
   final String id;
   final String fullName;
   final String role; // 'cliente' or 'gestore'
-  final int age;
+
+  /// Anno di nascita (migrazione 0015). Null finché l'utente non lo
+  /// inserisce; per le coppie è quello del più giovane.
+  final int? birthYear;
   final String gender; // 'Uomo', 'Donna', 'Coppia'
   final int noShows;
   final int participationsCount;
@@ -24,7 +27,7 @@ class SupabaseProfile {
     required this.id,
     required this.fullName,
     required this.role,
-    required this.age,
+    this.birthYear,
     required this.gender,
     this.noShows = 0,
     this.participationsCount = 0,
@@ -37,7 +40,7 @@ class SupabaseProfile {
     String? id,
     String? fullName,
     String? role,
-    int? age,
+    int? birthYear,
     String? gender,
     int? noShows,
     int? participationsCount,
@@ -49,7 +52,7 @@ class SupabaseProfile {
       id: id ?? this.id,
       fullName: fullName ?? this.fullName,
       role: role ?? this.role,
-      age: age ?? this.age,
+      birthYear: birthYear ?? this.birthYear,
       gender: gender ?? this.gender,
       noShows: noShows ?? this.noShows,
       participationsCount: participationsCount ?? this.participationsCount,
@@ -59,9 +62,15 @@ class SupabaseProfile {
     );
   }
 
+  /// Età in anni compiuti o da compiere quest'anno: con il solo anno di
+  /// nascita può superare quella reale di uno. Null se l'anno manca.
+  int? ageAt(DateTime now) {
+    final year = birthYear;
+    return year == null ? null : now.year - year;
+  }
+
   /// Maps a row from the real `profiles` table.
-  /// age/gender are not stored in the DB yet: gender is derived from
-  /// profile_type, age uses a neutral placeholder.
+  /// gender is not stored in the DB: it is derived from profile_type.
   factory SupabaseProfile.fromRow(Map<String, dynamic> row) {
     final String? profileType = row['profile_type']?.toString();
     final String gender;
@@ -78,7 +87,7 @@ class SupabaseProfile {
       id: row['id']?.toString() ?? '',
       fullName: row['nickname']?.toString() ?? 'Utente Anonimo',
       role: row['role']?.toString() ?? 'cliente',
-      age: 30,
+      birthYear: (row['birth_year'] as num?)?.toInt(),
       gender: gender,
       profileType: profileType,
       privacyLevel: row['privacy_level']?.toString(),

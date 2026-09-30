@@ -17,7 +17,8 @@
 | B.4 · Bug ordine operazioni | ✅ fatto | La scheda candidato si chiude solo a salvataggio riuscito (approva, rifiuta e blocca); durante l'attesa pulsanti spenti e dialogo non chiudibile, in caso di errore il messaggio resta nel dialogo. |
 | B.3 · Copy onesto | ✅ fatto | Tolte 8 promesse false (anonimato end-to-end, dispositivo mai registrato, nickname/località nascosti, indirizzo e GPS svelati solo dopo approvazione, alta affidabilità, età fissa a 30, "Organizzati: 45"). Età, assenze e affidabilità nascoste finché B.2 non porta dati veri. `test/honest_copy_test.dart` impedisce che le frasi tornino. |
 | B.2a · Migrazione età e presenze | ✅ scritta, **da applicare** | `supabase/migrations/0015_presenze_e_eta.sql`: `profiles.birth_year` (18+, immutabile dopo il primo salvataggio, leggibile dagli iscritti), tabella `event_attendance` (lettura solo al gestore della serata), `mark_attendance()` (solo gestore della serata, solo approvati, da inizio serata a +7 giorni), `get_guest_reliability()` (presenze/assenze su tutti i locali, solo per sé o per i gestori a cui l'utente si è candidato). Provata su Postgres locale: `supabase/tests/0015_presenze_e_eta_test.sql`. Da applicare dal SQL Editor prima di B.2b/B.2c. |
-| B.2b, B.2c, C.2 → E.4 | ⬜ da fare | |
+| B.2b · Età in registrazione | ✅ fatto, **richiede 0015 applicata** | Anno di nascita obbligatorio in registrazione (18+, per le coppie del più giovane), salvato anche nei metadati auth per il flusso con conferma email. I clienti iscritti prima lo inseriscono una volta al primo accesso (`BirthYearScreen`). Età vera in scheda candidato, lista richieste e profilo. `birth_year` è in `kProfileSelectColumns`: senza la migrazione 0015 il login fallisce. |
+| B.2c, C.2 → E.4 | ⬜ da fare | |
 
 ---
 

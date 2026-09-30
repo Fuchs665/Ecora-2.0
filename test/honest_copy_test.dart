@@ -22,6 +22,7 @@ void main() {
     'GPS precisi': 'le coordinate arrivano a tutti con get_events_with_stats',
     'non saranno rivelati': 'nickname e zona sono leggibili dagli iscritti',
     '? "45"': 'numero di eventi organizzati inventato',
+    'age: 30': 'età inventata: si usa birth_year (B.2b)',
   };
 
   test('i sorgenti sono stati trovati', () {

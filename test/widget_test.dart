@@ -179,7 +179,7 @@ void main() {
         id: 'u1',
         fullName: 'Alex & Sofia',
         role: 'cliente',
-        age: 32,
+        birthYear: 1990,
         gender: 'Coppia',
       );
       final updated = p.copyWith(noShows: 2);

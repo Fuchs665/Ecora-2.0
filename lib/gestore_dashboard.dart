@@ -537,7 +537,20 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                 fontSize: 13)),
                       ],
                     ),
-                    // Età e assenze tornano con dati veri nel Blocco B.2.
+                    if (applicant.ageAt(DateTime.now()) != null)
+                      Column(
+                        children: [
+                          const Text("ETÀ",
+                              style: TextStyle(
+                                  fontSize: 9, color: textSecondary)),
+                          Text("${applicant.ageAt(DateTime.now())} anni",
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: textPrimary,
+                                  fontSize: 13)),
+                        ],
+                      ),
+                    // Le assenze tornano con dati veri nel Blocco B.2c.
                   ],
                 ),
               ),
@@ -667,7 +680,11 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                               fontSize: 12, color: premiumGold),
                                         ),
                                         Text(
-                                          "Genere: ${applicant.gender}",
+                                          [
+                                            "Genere: ${applicant.gender}",
+                                            if (applicant.ageAt(DateTime.now()) != null)
+                                              "Età: ${applicant.ageAt(DateTime.now())} anni",
+                                          ].join("  •  "),
                                           style: const TextStyle(
                                               fontSize: 11,
                                               color: textSecondary),

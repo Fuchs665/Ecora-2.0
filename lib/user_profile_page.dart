@@ -154,7 +154,11 @@ class UserProfilePage extends StatelessWidget {
               const SizedBox(height: 4),
 
               Text(
-                profile.gender,
+                [
+                  profile.gender,
+                  if (profile.ageAt(DateTime.now()) != null)
+                    "${profile.ageAt(DateTime.now())} anni",
+                ].join("  •  "),
                 style: const TextStyle(
                   fontWeight: FontWeight.normal,
                   fontSize: 14,
@@ -164,7 +168,7 @@ class UserProfilePage extends StatelessWidget {
               const SizedBox(height: 12),
 
               // Affidabilità, presenze e assenze tornano con dati veri
-              // nel Blocco B.2.
+              // nel Blocco B.2c.
               const SizedBox(height: 8),
 
               // --- GALLERIA FOTO PROFILO (bucket privato, RLS 0008) ---

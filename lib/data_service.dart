@@ -121,6 +121,31 @@ class EcoraDataService {
     }
   }
 
+  /// Salva l'anno di nascita del profilo corrente (Blocco B.2b) e aggiorna
+  /// lo stato locale. Il trigger della migrazione 0015 lo rende immutabile
+  /// e rifiuta i minorenni. Ritorna null se ok.
+  Future<String?> saveBirthYear(int year) async {
+    try {
+      final current = currentProfileNotifier.value;
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (current == null || uid == null) {
+        return "Sessione scaduta. Accedi di nuovo.";
+      }
+      await Supabase.instance.client
+          .from('profiles')
+          .update({'birth_year': year}).eq('id', uid);
+      currentProfileNotifier.value = current.copyWith(birthYear: year);
+      return null;
+    } on PostgrestException catch (e) {
+      debugPrint("Errore nel salvataggio dell'anno di nascita: $e");
+      if (e.code == '23514') return "Ecora è riservata ai maggiorenni.";
+      return "Salvataggio non riuscito. Riprova.";
+    } catch (e) {
+      debugPrint("Errore nel salvataggio dell'anno di nascita: $e");
+      return "Salvataggio non riuscito. Riprova.";
+    }
+  }
+
   List<SupabaseEvent> getEventsWithinRadius(
       double userLat, double userLon, double maxDistanceKm) {
     return _events.where((event) {
