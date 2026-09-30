@@ -12,7 +12,7 @@
 | 0.2 · `.env.example` ripulito | ✅ fatto | |
 | A.1 · Revoca accesso anonimo | ✅ fatto | `0014_revoke_anon_events.sql`, verificato |
 | A.2 · Dipendenze inutilizzate | ⚠️ **aperto** | `flutter_map`, `latlong2`, `geolocator` sono ancora in `pubspec.yaml`. Verificare il diff dell'ultimo commit e se `ACCESS_FINE_LOCATION` compare nel merged manifest. Se si decide di tenerle per la mappa futura, scrivere il perché nel CLAUDE.md. |
-| B.1 · Design system | 🔵 specifica pronta | vedi `docs/ecora-design-system.html`, da implementare in `lib/theme.dart` |
+| B.1 · Design system | ✅ v2 nel tema | Direzione "Club privato" (combinazione 7 + copertina Luce, scelta il 30/09/2026). Specifica: design system "Ecora" su claude.ai; tavole della dashboard gestore nella tela "Dashboard gestore Ecora". In `lib/theme.dart` colori, caratteri (Bodoni Moda, Hanken Grotesk), `EcoraDepth`; `test/theme_test.dart` controlla i contrasti. `docs/ecora-design-system.html` descrive la v1 ed è superato. Le schermate con colori scritti a mano si migrano nei blocchi C e D. |
 | B.2 → E.4 | ⬜ da fare | |
 
 ---

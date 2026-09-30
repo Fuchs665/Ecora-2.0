@@ -10,7 +10,7 @@ Flutter (Android-first) + Supabase (Postgres, Auth, Storage). Roles: `cliente` (
 - Before editing files: show a short plan (files + approach) and WAIT for approval.
 - Never touch auth, RLS, or payment code without explicitly calling it out first and waiting for approval.
 - Domain assumption: gestori are exclusively commercial venues with a public address — no events at private homes. This must be anchored to gestore verification (`is_verified` exists in `profiles` but is not yet enforced anywhere).
-- UI: premium dark + gold (tokens at top of lib/main.dart). Consistent across screens. No explicit imagery anywhere (Play Store policy).
+- UI: design system v2 "Club privato" — bottle green + brass, Bodoni Moda italic titles, Hanken Grotesk text, generated "Luce" covers, 3D only in three purposeful moments. Tokens in lib/theme.dart (names match the spec); spec: design system "Ecora" at https://claude.ai/artifact/A2MsQoNJfUDiyyN5849dgW (private to the owner). test/theme_test.dart guards WCAG contrast. Consistent across screens. No explicit imagery anywhere (Play Store policy).
 - The in-memory `SupabaseClient` mock in lib/main.dart is being REMOVED block by block in favor of real Supabase calls. Never add new features on the mock.
 - Any Python tooling: safe Windows console encoding (no crashes on non-ASCII/emoji).
 

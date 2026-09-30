@@ -1,30 +1,52 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-// --- ECORA DESIGN SYSTEM ---
-// Unica fonte di verità per colori, tipografia, spaziature, raggi e
-// movimento. Specifica: docs/ecora-design-system.html (Blocco B.1).
+// --- ECORA DESIGN SYSTEM v2 ---
+// Unica fonte di verità per colori, tipografia, spaziature, raggi,
+// movimento e profondità. Specifica: design system "Ecora" su claude.ai
+// (https://claude.ai/artifact/A2MsQoNJfUDiyyN5849dgW), direzione
+// "Club privato": verde bottiglia, ottone, Bodoni Moda corsivo, Hanken Grotesk.
 // Le schermate si migrano ai token qui sotto una alla volta (blocchi C/D).
 
-/// Palette del design system v1 (canvas near-black + oro champagne).
+/// Palette v2. I nomi coincidono con i token del design system.
 abstract class EcoraColors {
-  static const Color canvas = Color(0xFF0E0E11);
-  static const Color surface = Color(0xFF17171B);
-  static const Color elevated = Color(0xFF1F1F25);
-  static const Color hairline = Color(0x12FFFFFF); // rgba(255,255,255,.07)
-  static const Color hairlineStrong = Color(0x1FFFFFFF); // rgba(255,255,255,.12)
+  // Fondi, dal più basso al più alto.
+  static const Color canvas = Color(0xFF0E1814);
+  static const Color surface = Color(0xFF14211C);
+  static const Color elevated = Color(0xFF1C2D27);
 
-  static const Color gold = Color(0xFFC9A96A);
-  static const Color goldBright = Color(0xFFE6CD97);
-  static const Color goldDeep = Color(0xFF8A7343);
+  // Verde del marchio: grandi campi d'identità, mai fondo di testo piccolo.
+  static const Color bottle = Color(0xFF1F3A30);
+  static const Color bottleLight = Color(0xFF2A4D40);
 
-  static const Color textPrimary = Color(0xFFF4F1EB);
-  static const Color textSecondary = Color(0xFFA19C93);
-  static const Color textTertiary = Color(0xFF8B867C);
+  // Bordi: line e lineStrong sono decorativi, lineControl è ≥3:1 per i campi.
+  static const Color line = Color(0x21EDE8DC);
+  static const Color lineStrong = Color(0x38EDE8DC);
+  static const Color lineControl = Color(0xFF6B7A72);
 
-  static const Color success = Color(0xFF5BA871);
-  static const Color danger = Color(0xFFE0605C);
-  static const Color warning = Color(0xFFDDA65A);
+  // Testo. inkSubtle solo su canvas, surface ed elevated.
+  static const Color ink = Color(0xFFEDE8DC);
+  static const Color inkMuted = Color(0xFFA1ABA3);
+  static const Color inkSubtle = Color(0xFF8A968D);
+
+  // L'unico accento. brassDeep è solo decorativo.
+  static const Color brass = Color(0xFFC3A56C);
+  static const Color brassBright = Color(0xFFD9BE86);
+  static const Color brassDeep = Color(0xFF8C7443);
+  static const Color onBrass = Color(0xFF0E1814);
+
+  // Copertina Luce: solo copertine, testo sempre su coverScrim.
+  static const Color lightBase = Color(0xFF0C221B);
+  static const Color lightAmber = Color(0xFFD4A857);
+  static const Color lightEmerald = Color(0xFF2F8F6E);
+  static const Color lightTeal = Color(0xFF1B5A48);
+  static const Color coverScrim = Color(0x8006100C);
+
+  // Stati, sempre accompagnati da una parola. success è blu di proposito:
+  // il verde è del marchio e verde/rosso si confondono per chi è daltonico.
+  static const Color success = Color(0xFF7DBFE0);
+  static const Color danger = Color(0xFFEC7F72);
+  static const Color warning = Color(0xFFE2B25C);
 }
 
 /// Griglia spaziature da 4pt.
@@ -60,33 +82,67 @@ abstract class EcoraMotion {
   static const Curve celebrateCurve = Curves.easeOutBack;
 }
 
+/// Parametri dei tre momenti in 3D (copertina che segue il telefono, pass
+/// che si gira, luce viva). Prospettiva in Flutter:
+/// `Matrix4.identity()..setEntry(3, 2, 1 / EcoraDepth.perspectiveScreen)`.
+/// Tutto spento quando `MediaQuery.disableAnimationsOf(context)` è vero.
+abstract class EcoraDepth {
+  static const double perspectiveScreen = 1100;
+  static const double perspectivePass = 1000;
+  static const double tiltMaxDegrees = 12;
+  static const double parallaxCover = 18;
+  static const double parallaxLayer = 5;
+}
+
 const String _kDisplayFont = 'EcoraDisplay';
 const String _kUiFont = 'EcoraUI';
 
-/// Scala tipografica: displayLarge è l'unico uso lecito del logo/brand.
-/// Nessun valore sotto i 12px.
+/// Scala tipografica. I titoli (display*, headlineSmall, titleLarge) sono in
+/// Bodoni Moda corsivo e mai sotto i 20px; tutto il resto in Hanken Grotesk.
+/// Nessun testo sotto i 12px tranne labelSmall (overline, sempre maiuscolo).
+/// Mappa verso i token del design system: displayLarge = display-lg,
+/// displayMedium = display-md, headlineSmall = cover-title, titleLarge = title,
+/// labelLarge = button, labelSmall = overline.
 const TextTheme ecoraTextTheme = TextTheme(
   displayLarge: TextStyle(
     fontFamily: _kDisplayFont,
     fontSize: 40,
     height: 46 / 40,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
+    fontStyle: FontStyle.italic,
     letterSpacing: -0.5,
-    color: EcoraColors.textPrimary,
+    color: EcoraColors.ink,
   ),
   displayMedium: TextStyle(
     fontFamily: _kDisplayFont,
     fontSize: 28,
     height: 34 / 28,
-    fontWeight: FontWeight.w600,
-    color: EcoraColors.textPrimary,
+    fontWeight: FontWeight.w500,
+    fontStyle: FontStyle.italic,
+    color: EcoraColors.ink,
+  ),
+  headlineSmall: TextStyle(
+    fontFamily: _kDisplayFont,
+    fontSize: 30,
+    height: 1,
+    fontWeight: FontWeight.w500,
+    fontStyle: FontStyle.italic,
+    color: EcoraColors.ink,
   ),
   titleLarge: TextStyle(
     fontFamily: _kDisplayFont,
-    fontSize: 19,
-    height: 25 / 19,
+    fontSize: 20,
+    height: 26 / 20,
+    fontWeight: FontWeight.w500,
+    fontStyle: FontStyle.italic,
+    color: EcoraColors.ink,
+  ),
+  labelLarge: TextStyle(
+    fontFamily: _kUiFont,
+    fontSize: 14,
+    height: 20 / 14,
     fontWeight: FontWeight.w600,
-    color: EcoraColors.textPrimary,
+    color: EcoraColors.ink,
   ),
   labelSmall: TextStyle(
     fontFamily: _kUiFont,
@@ -94,43 +150,65 @@ const TextTheme ecoraTextTheme = TextTheme(
     height: 14 / 11,
     fontWeight: FontWeight.w700,
     letterSpacing: 1.6,
-    color: EcoraColors.gold,
+    color: EcoraColors.inkMuted,
   ),
   bodyLarge: TextStyle(
     fontFamily: _kUiFont,
     fontSize: 16,
     height: 24 / 16,
     fontWeight: FontWeight.w400,
-    color: EcoraColors.textPrimary,
+    color: EcoraColors.ink,
   ),
   bodyMedium: TextStyle(
     fontFamily: _kUiFont,
     fontSize: 14,
     height: 21 / 14,
     fontWeight: FontWeight.w400,
-    color: EcoraColors.textSecondary,
+    color: EcoraColors.ink,
   ),
   bodySmall: TextStyle(
     fontFamily: _kUiFont,
     fontSize: 12,
     height: 17 / 12,
     fontWeight: FontWeight.w500,
-    color: EcoraColors.textTertiary,
+    color: EcoraColors.inkMuted,
   ),
+);
+
+/// Stili fuori dalla TextTheme di Material.
+abstract class EcoraTextStyles {
+  /// Il nome del marchio finché non esiste un logo: "ECORA", in brass.
+  static const TextStyle wordmark = TextStyle(
+    fontFamily: _kUiFont,
+    fontSize: 12,
+    height: 1,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 3.6,
+    color: EcoraColors.brass,
+  );
+}
+
+const TextStyle _kButtonText = TextStyle(
+  fontFamily: _kUiFont,
+  fontSize: 14,
+  height: 20 / 14,
+  fontWeight: FontWeight.w600,
 );
 
 /// `ThemeData` completo del design system. Le schermate leggono gli stili
 /// da `Theme.of(context)` invece di stilizzare a mano.
 ThemeData ecoraTheme() {
   const colorScheme = ColorScheme.dark(
-    primary: EcoraColors.gold,
-    onPrimary: EcoraColors.canvas,
-    secondary: EcoraColors.goldDeep,
-    onSecondary: EcoraColors.textPrimary,
+    primary: EcoraColors.brass,
+    onPrimary: EcoraColors.onBrass,
+    secondary: EcoraColors.bottle,
+    onSecondary: EcoraColors.ink,
     surface: EcoraColors.surface,
-    onSurface: EcoraColors.textPrimary,
+    onSurface: EcoraColors.ink,
     error: EcoraColors.danger,
     onError: EcoraColors.canvas,
+    outline: EcoraColors.lineControl,
+    outlineVariant: EcoraColors.lineStrong,
   );
 
   return ThemeData(
@@ -140,9 +218,9 @@ ThemeData ecoraTheme() {
     scaffoldBackgroundColor: EcoraColors.canvas,
     fontFamily: _kUiFont,
     textTheme: ecoraTextTheme,
-    dividerColor: EcoraColors.hairline,
+    dividerColor: EcoraColors.line,
     dividerTheme: const DividerThemeData(
-      color: EcoraColors.hairline,
+      color: EcoraColors.line,
       thickness: 1,
       space: 1,
     ),
@@ -158,7 +236,7 @@ ThemeData ecoraTheme() {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(EcoraRadius.card),
-        side: const BorderSide(color: EcoraColors.hairline),
+        side: const BorderSide(color: EcoraColors.line),
       ),
     ),
     dialogTheme: DialogThemeData(
@@ -181,113 +259,119 @@ ThemeData ecoraTheme() {
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: EcoraColors.elevated,
-      contentTextStyle: ecoraTextTheme.bodyMedium?.copyWith(
-        color: EcoraColors.textPrimary,
-      ),
+      contentTextStyle: ecoraTextTheme.bodyMedium,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(EcoraRadius.card),
-        side: const BorderSide(color: EcoraColors.hairline),
+        side: const BorderSide(color: EcoraColors.line),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: EcoraColors.elevated.withValues(alpha: 0.6),
+      fillColor: EcoraColors.elevated,
       labelStyle: const TextStyle(
-        color: EcoraColors.textSecondary,
+        color: EcoraColors.inkMuted,
         fontFamily: _kUiFont,
         fontSize: 12,
       ),
       floatingLabelStyle: const TextStyle(
-        color: EcoraColors.gold,
+        color: EcoraColors.brass,
+        fontFamily: _kUiFont,
+      ),
+      hintStyle: const TextStyle(
+        color: EcoraColors.inkSubtle,
         fontFamily: _kUiFont,
       ),
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: EcoraSpace.s16,
-        vertical: EcoraSpace.s16,
+        horizontal: EcoraSpace.s12,
+        vertical: EcoraSpace.s12,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(EcoraRadius.card),
-        borderSide: const BorderSide(color: EcoraColors.hairline),
+        borderRadius: BorderRadius.circular(EcoraRadius.control),
+        borderSide: const BorderSide(color: EcoraColors.lineControl),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(EcoraRadius.card),
-        borderSide: const BorderSide(color: EcoraColors.gold),
+        borderRadius: BorderRadius.circular(EcoraRadius.control),
+        borderSide: const BorderSide(color: EcoraColors.brass, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(EcoraRadius.card),
+        borderRadius: BorderRadius.circular(EcoraRadius.control),
         borderSide: const BorderSide(color: EcoraColors.danger),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(EcoraRadius.card),
-        borderSide: const BorderSide(color: EcoraColors.danger, width: 1.5),
+        borderRadius: BorderRadius.circular(EcoraRadius.control),
+        borderSide: const BorderSide(color: EcoraColors.danger, width: 2),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: EcoraColors.gold,
-        foregroundColor: EcoraColors.canvas,
-        disabledBackgroundColor: EcoraColors.hairlineStrong,
-        disabledForegroundColor: EcoraColors.textTertiary,
+        foregroundColor: EcoraColors.onBrass,
+        disabledForegroundColor: EcoraColors.inkSubtle,
         elevation: 0,
+        minimumSize: const Size(64, 48),
         padding: const EdgeInsets.symmetric(
           horizontal: EcoraSpace.s24,
-          vertical: EcoraSpace.s16,
+          vertical: EcoraSpace.s12,
         ),
-        textStyle: const TextStyle(
-          fontFamily: _kUiFont,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.2,
-        ),
+        textStyle: _kButtonText,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(EcoraRadius.pill),
+          borderRadius: BorderRadius.circular(EcoraRadius.control),
         ),
+      ).copyWith(
+        // Premuto: brassBright. Disattivato: elevated con bordo lineStrong.
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) return EcoraColors.elevated;
+          if (states.contains(WidgetState.pressed)) return EcoraColors.brassBright;
+          return EcoraColors.brass;
+        }),
+        side: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return const BorderSide(color: EcoraColors.lineStrong);
+          }
+          return BorderSide.none;
+        }),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: EcoraColors.gold,
-        side: const BorderSide(color: EcoraColors.gold, width: 1.5),
+        foregroundColor: EcoraColors.brass,
+        disabledForegroundColor: EcoraColors.inkSubtle,
+        side: const BorderSide(color: EcoraColors.brass),
+        minimumSize: const Size(64, 48),
         padding: const EdgeInsets.symmetric(
           horizontal: EcoraSpace.s24,
-          vertical: EcoraSpace.s16,
+          vertical: EcoraSpace.s12,
         ),
-        textStyle: const TextStyle(
-          fontFamily: _kUiFont,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.2,
-        ),
+        textStyle: _kButtonText,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(EcoraRadius.pill),
+          borderRadius: BorderRadius.circular(EcoraRadius.control),
         ),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: EcoraColors.gold,
-        textStyle: const TextStyle(
-          fontFamily: _kUiFont,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.2,
+        foregroundColor: EcoraColors.inkMuted,
+        minimumSize: const Size(48, 44),
+        textStyle: _kButtonText.copyWith(
+          fontWeight: FontWeight.w500,
+          decoration: TextDecoration.underline,
+          decorationColor: EcoraColors.inkMuted,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(EcoraRadius.pill),
+          borderRadius: BorderRadius.circular(EcoraRadius.control),
         ),
       ),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: EcoraColors.surface,
-      selectedItemColor: EcoraColors.gold,
-      unselectedItemColor: EcoraColors.textTertiary,
+      selectedItemColor: EcoraColors.brass,
+      unselectedItemColor: EcoraColors.inkMuted,
       type: BottomNavigationBarType.fixed,
       showUnselectedLabels: true,
       selectedLabelStyle: TextStyle(
         fontFamily: _kUiFont,
         fontSize: 12,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
       ),
       unselectedLabelStyle: TextStyle(
         fontFamily: _kUiFont,
@@ -305,9 +389,9 @@ ThemeData ecoraTheme() {
 
 const Color matteDark = EcoraColors.canvas;
 const Color slateSurface = EcoraColors.surface;
-const Color premiumGold = EcoraColors.gold;
-const Color textPrimary = EcoraColors.textPrimary;
-const Color textSecondary = EcoraColors.textSecondary;
+const Color premiumGold = EcoraColors.brass;
+const Color textPrimary = EcoraColors.ink;
+const Color textSecondary = EcoraColors.inkMuted;
 
 /// LEGACY — non usare in codice nuovo. Preferire `ecoraTheme().inputDecorationTheme`.
 InputDecoration ecoraInputDecoration(
@@ -326,7 +410,7 @@ InputDecoration ecoraInputDecoration(
     suffixIcon: suffixIcon,
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(EcoraRadius.card),
-      borderSide: const BorderSide(color: EcoraColors.hairline),
+      borderSide: const BorderSide(color: EcoraColors.line),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(EcoraRadius.card),
@@ -342,7 +426,7 @@ BoxDecoration ecoraCardDecoration({double borderRadius = 12}) {
   return BoxDecoration(
     color: slateSurface,
     borderRadius: BorderRadius.circular(borderRadius),
-    border: Border.all(color: EcoraColors.hairline),
+    border: Border.all(color: EcoraColors.line),
   );
 }
 

@@ -27,23 +27,23 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   fonts:
+    # Bodoni Moda e Hanken Grotesk (licenza OFL, vedi assets/fonts/OFL-*.txt):
+    # istanze statiche estratte dai font variabili di github.com/google/fonts.
+    # Bodoni: wght 500, opsz 24 (titoli da 20 a 40px), solo corsivo.
     - family: EcoraDisplay
       fonts:
-        - asset: assets/fonts/PlayfairDisplay-Medium.ttf
+        - asset: assets/fonts/BodoniModa-MediumItalic.ttf
           weight: 500
-        - asset: assets/fonts/PlayfairDisplay-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/PlayfairDisplay-Bold.ttf
-          weight: 700
+          style: italic
     - family: EcoraUI
       fonts:
-        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/HankenGrotesk-Regular.ttf
           weight: 400
-        - asset: assets/fonts/Inter-Medium.ttf
+        - asset: assets/fonts/HankenGrotesk-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Inter-SemiBold.ttf
+        - asset: assets/fonts/HankenGrotesk-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/Inter-Bold.ttf
+        - asset: assets/fonts/HankenGrotesk-Bold.ttf
           weight: 700
 
 # sign_in_with_apple e' una dipendenza transitiva di supabase_flutter 1.x
