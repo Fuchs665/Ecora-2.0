@@ -430,57 +430,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           ? ListView.builder(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 12),
-                              itemCount: filteredEvents.length + 1,
+                              itemCount: filteredEvents.length,
                               itemBuilder: (context, index) {
-                                if (index == 0) {
-                                  // --- PRIVACY BANNER NOTE ---
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 16),
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: premiumGold.withValues(alpha: 0.05),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                          color: premiumGold.withValues(alpha: 0.15)),
-                                    ),
-                                    child: const Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Icon(Icons.privacy_tip,
-                                            color: premiumGold, size: 20),
-                                        SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "BLOCCO PRIVACY DI PRECISIONE",
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 1.0,
-                                                  color: premiumGold,
-                                                ),
-                                              ),
-                                              SizedBox(height: 3),
-                                              Text(
-                                                "I dettagli GPS precisi e l'organizzatore sono bloccati finché il tuo profilo non viene approvato dall'organizzatore dell'evento. Ecora dà priorità al tuo anonimato.",
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: textSecondary,
-                                                  height: 1.4,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-                                final ev = filteredEvents[index - 1];
+                                final ev = filteredEvents[index];
                                 return EventFeedCard(
                                   event: ev,
                                   onClick: () {

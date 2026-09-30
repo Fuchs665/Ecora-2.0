@@ -52,8 +52,6 @@ class UserProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool highTrustEarned = profile.noShows == 0;
-
     return Scaffold(
       backgroundColor: matteDark,
       body: SafeArea(
@@ -156,7 +154,7 @@ class UserProfilePage extends StatelessWidget {
               const SizedBox(height: 4),
 
               Text(
-                "${profile.gender}  •  ${profile.age} anni",
+                profile.gender,
                 style: const TextStyle(
                   fontWeight: FontWeight.normal,
                   fontSize: 14,
@@ -165,60 +163,9 @@ class UserProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // --- HIGH TRUST BADGE ---
-              if (highTrustEarned) ...[
-                Card(
-                  color: premiumGold.withValues(alpha: 0.1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(color: premiumGold.withValues(alpha: 0.5), width: 1),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.diamond, color: premiumGold, size: 16),
-                        SizedBox(width: 8),
-                        Text(
-                          "ACCOUNT AD ALTA AFFIDABILITÀ",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            letterSpacing: 1.5,
-                            color: premiumGold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 20),
-
-              // --- STATISTICS METRIC ROW ---
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  StatMetricField(
-                    label: "Presenze",
-                    value: "${profile.participationsCount}",
-                    indicatorColor: premiumGold,
-                  ),
-                  StatMetricField(
-                    label: "No-Show",
-                    value: "${profile.noShows}",
-                    indicatorColor: profile.noShows > 2 ? Colors.red : textSecondary,
-                  ),
-                  StatMetricField(
-                    label: "Organizzati",
-                    value: profile.role == "gestore" ? "45" : "0",
-                    indicatorColor: premiumGold,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
+              // Affidabilità, presenze e assenze tornano con dati veri
+              // nel Blocco B.2.
+              const SizedBox(height: 8),
 
               // --- GALLERIA FOTO PROFILO (bucket privato, RLS 0008) ---
               Align(

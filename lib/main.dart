@@ -1062,8 +1062,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     Expanded(
                       child: Text(
                         _isLogin
-                            ? "Protetto rigorosamente da tunnel crittografati Supabase. Anonimato assoluto end-to-end. L'identità del tuo dispositivo non viene mai registrata."
-                            : "Compilando il modulo acconsenti al pre-screening rigoroso. Il tuo nickname e la tua località non saranno rivelati finché non sarai approvato a un tavolo condiviso.",
+                            ? "La connessione con Ecora è cifrata. Gli altri iscritti vedono solo il nickname, la zona e le foto che scegli di caricare."
+                            : "Iscrivendoti accetti la verifica dei gestori: ogni richiesta di partecipazione viene valutata prima di essere approvata.",
                         style: TextStyle(
                           color: textSecondary.withValues(alpha: 0.8),
                           fontSize: 10,

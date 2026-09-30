@@ -537,63 +537,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                 fontSize: 13)),
                       ],
                     ),
-                    Column(
-                      children: [
-                        const Text("ETÀ",
-                            style:
-                                TextStyle(fontSize: 9, color: textSecondary)),
-                        Text("${applicant.age} anni",
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: textPrimary,
-                                fontSize: 13)),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        const Text("ASSENZE (NO-SHOW)",
-                            style:
-                                TextStyle(fontSize: 9, color: textSecondary)),
-                        Text(
-                          "${applicant.noShows}",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: applicant.noShows > 0
-                                ? Colors.red
-                                : Colors.green,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: premiumGold.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.favorite_border,
-                        color: premiumGold, size: 16),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        applicant.noShows == 0
-                            ? "Nessuna assenza passata. Partecipante ad ALTA AFFIDABILITÀ."
-                            : "Attenzione: Il profilo ha assenze passate.",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: applicant.noShows == 0
-                              ? Colors.white70
-                              : Colors.red,
-                        ),
-                      ),
-                    ),
+                    // Età e assenze tornano con dati veri nel Blocco B.2.
                   ],
                 ),
               ),
@@ -676,7 +620,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                 color: premiumGold, size: 54),
                             SizedBox(height: 16),
                             Text(
-                              "Tutti i profili ospiti sono approvati. Tavolo ad alta affidabilità allineato.",
+                              "Nessuna richiesta da valutare.",
                               style:
                                   TextStyle(fontSize: 13, color: textSecondary),
                               textAlign: TextAlign.center,
@@ -723,7 +667,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                               fontSize: 12, color: premiumGold),
                                         ),
                                         Text(
-                                          "Genere: ${applicant.gender}  •  Età: ${applicant.age} anni",
+                                          "Genere: ${applicant.gender}",
                                           style: const TextStyle(
                                               fontSize: 11,
                                               color: textSecondary),
@@ -1022,7 +966,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 controller: _locationController,
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 decoration: ecoraInputDecoration(
-                  "Indirizzo della Location Privata (Svelato solo dopo l'approvazione)",
+                  "Indirizzo del locale (visibile a tutti gli iscritti)",
                 ),
               ),
               const SizedBox(height: 16),

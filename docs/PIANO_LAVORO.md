@@ -15,7 +15,8 @@
 | B.1 · Design system | ✅ v2 nel tema | Direzione "Club privato" (combinazione 7 + copertina Luce, scelta il 30/09/2026). Specifica: design system "Ecora" su claude.ai; tavole della dashboard gestore nella tela "Dashboard gestore Ecora". In `lib/theme.dart` colori, caratteri (Bodoni Moda, Hanken Grotesk), `EcoraDepth`; `test/theme_test.dart` controlla i contrasti. `docs/ecora-design-system.html` descrive la v1 ed è superato. Le schermate con colori scritti a mano si migrano nei blocchi C e D. |
 | C.1 · Fascia metriche + abbonamento declassato | ✅ fatto | Tavola "Serate". Riempimento medio calcolato solo sulle serate concluse. La lista mostra solo le serate del gestore (prima c'erano anche quelle degli altri locali). Nuovo stile `EcoraTextStyles.metric`, da riportare nel design system. |
 | B.4 · Bug ordine operazioni | ✅ fatto | La scheda candidato si chiude solo a salvataggio riuscito (approva, rifiuta e blocca); durante l'attesa pulsanti spenti e dialogo non chiudibile, in caso di errore il messaggio resta nel dialogo. |
-| B.2, B.3, C.2 → E.4 | ⬜ da fare | |
+| B.3 · Copy onesto | ✅ fatto | Tolte 8 promesse false (anonimato end-to-end, dispositivo mai registrato, nickname/località nascosti, indirizzo e GPS svelati solo dopo approvazione, alta affidabilità, età fissa a 30, "Organizzati: 45"). Età, assenze e affidabilità nascoste finché B.2 non porta dati veri. `test/honest_copy_test.dart` impedisce che le frasi tornino. |
+| B.2, C.2 → E.4 | ⬜ da fare | |
 
 ---
 
