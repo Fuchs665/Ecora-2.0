@@ -442,20 +442,8 @@ class RequestInspectorScreen extends StatefulWidget {
 }
 
 class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
-  Future<void> _reviewRequest(
-      BuildContext dialogCtx, String requestId, String status) async {
-    Navigator.of(dialogCtx).pop();
-    final error = await EcoraDataService.instance
-        .reviewParticipationRequest(requestId, status);
-    if (error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
-      );
-    }
-  }
-
-  Future<void> _confirmAndBlockUser(
-      BuildContext dialogCtx, String targetUserId, String targetName) async {
+  /// Secondo dialogo prima del blocco. True solo se confermato.
+  Future<bool> _confirmBlock(BuildContext dialogCtx, String targetName) async {
     final confirmed = await showDialog<bool>(
       context: dialogCtx,
       builder: (ctx) => AlertDialog(
@@ -480,17 +468,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
         ],
       ),
     );
-    if (confirmed != true || !dialogCtx.mounted) return;
-
-    Navigator.of(dialogCtx).pop();
-    final error = await EcoraDataService.instance.blockUser(targetUserId);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(error ?? "$targetName è stato bloccato."),
-        backgroundColor: error != null ? Colors.redAccent : Colors.green,
-      ),
-    );
+    return confirmed == true;
   }
 
   void _showSafetyProfileDialog(
@@ -631,27 +609,29 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
             ),
           ),
           actions: [
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: textSecondary),
-              onPressed: () =>
-                  _confirmAndBlockUser(ctx, applicant.id, applicant.fullName),
-              child: const Text("BLOCCA UTENTE",
-                  style: TextStyle(fontSize: 11)),
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                  foregroundColor: Colors.redAccent),
-              onPressed: () => _reviewRequest(ctx, req.id, "rejected"),
-              child: const Text("RIFIUTA",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E7D32),
-                  foregroundColor: Colors.white),
-              onPressed: () => _reviewRequest(ctx, req.id, "approved"),
-              child: const Text("APPROVA OSPITE",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ReviewActions(
+              onDecision: (decision) {
+                final data = EcoraDataService.instance;
+                switch (decision) {
+                  case ReviewDecision.approve:
+                    return data.reviewParticipationRequest(req.id, "approved");
+                  case ReviewDecision.reject:
+                    return data.reviewParticipationRequest(req.id, "rejected");
+                  case ReviewDecision.block:
+                    return data.blockUser(applicant.id);
+                }
+              },
+              confirmBlock: () => _confirmBlock(ctx, applicant.fullName),
+              onDone: (decision) {
+                Navigator.of(ctx).pop();
+                if (decision == ReviewDecision.block && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("${applicant.fullName} è stato bloccato."),
+                    ),
+                  );
+                }
+              },
             ),
           ],
         );
@@ -781,6 +761,135 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+enum ReviewDecision { approve, reject, block }
+
+/// Pulsanti della scheda candidato (Blocco B.4). Il dialogo si chiude solo
+/// quando il salvataggio è riuscito: durante l'attesa i pulsanti sono
+/// disattivati e il dialogo non si chiude; se fallisce, l'errore resta nel
+/// dialogo e si può riprovare.
+class ReviewActions extends StatefulWidget {
+  /// Esegue la decisione: null se riuscita, altrimenti il messaggio d'errore.
+  final Future<String?> Function(ReviewDecision decision) onDecision;
+
+  /// Conferma prima del blocco. False = annullato, non succede nulla.
+  final Future<bool> Function() confirmBlock;
+
+  /// Dopo una decisione riuscita: chiude il dialogo.
+  final void Function(ReviewDecision decision) onDone;
+
+  const ReviewActions({
+    Key? key,
+    required this.onDecision,
+    required this.confirmBlock,
+    required this.onDone,
+  }) : super(key: key);
+
+  @override
+  State<ReviewActions> createState() => _ReviewActionsState();
+}
+
+class _ReviewActionsState extends State<ReviewActions> {
+  ReviewDecision? _running;
+  String? _error;
+
+  Future<void> _run(ReviewDecision decision) async {
+    if (_running != null) return;
+    if (decision == ReviewDecision.block && !await widget.confirmBlock()) {
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      _running = decision;
+      _error = null;
+    });
+    final error = await widget.onDecision(decision);
+    if (!mounted) return;
+    if (error == null) {
+      // _running resta impostato: i pulsanti restano spenti fino alla chiusura.
+      widget.onDone(decision);
+      return;
+    }
+    setState(() {
+      _running = null;
+      _error = error;
+    });
+  }
+
+  Widget _label(ReviewDecision decision, Widget label) {
+    if (_running != decision) return label;
+    return const SizedBox(
+      width: 16,
+      height: 16,
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        semanticsLabel: "Salvataggio in corso",
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final busy = _running != null;
+    final error = _error;
+    return PopScope(
+      // Niente chiusura (indietro o tocco fuori) mentre si salva.
+      canPop: !busy,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: EcoraSpace.s8),
+              child: Text(
+                error,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: EcoraColors.danger),
+              ),
+            ),
+          OverflowBar(
+            alignment: MainAxisAlignment.end,
+            overflowAlignment: OverflowBarAlignment.end,
+            spacing: EcoraSpace.s8,
+            children: [
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: textSecondary),
+                onPressed: busy ? null : () => _run(ReviewDecision.block),
+                child: _label(
+                  ReviewDecision.block,
+                  const Text("BLOCCA UTENTE", style: TextStyle(fontSize: 11)),
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                onPressed: busy ? null : () => _run(ReviewDecision.reject),
+                child: _label(
+                  ReviewDecision.reject,
+                  const Text("RIFIUTA",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E7D32),
+                    foregroundColor: Colors.white),
+                onPressed: busy ? null : () => _run(ReviewDecision.approve),
+                child: _label(
+                  ReviewDecision.approve,
+                  const Text("APPROVA OSPITE",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
