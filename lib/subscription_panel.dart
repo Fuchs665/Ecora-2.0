@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'italian_dates.dart';
 import 'subscription_service.dart';
 import 'theme.dart';
 
@@ -25,6 +27,40 @@ String subscriptionStatusLabel(SubscriptionStatus? status, DateTime now) {
       : "Attivo fino al $date";
 }
 
+/// Riga discreta della dashboard quando l'abbonamento è attivo (Blocco
+/// C.1): "Abbonamento attivo fino al 12 novembre". Pura.
+String subscriptionActiveLine(SubscriptionStatus status) {
+  final expiry = status.expiryTime?.toLocal();
+  if (expiry == null) return "Abbonamento attivo";
+  return status.autoRenewing
+      ? "Abbonamento attivo · si rinnova ${italianDayMonth(expiry)}"
+      : "Abbonamento attivo fino ${italianDayMonth(expiry, afterA: true)}";
+}
+
+/// Pagina di Google Play dove il gestore rinnova o disdice il piano.
+final Uri kManageSubscriptionUri = Uri.https(
+  'play.google.com',
+  '/store/account/subscriptions',
+  {'sku': kSubscriptionProductId, 'package': 'com.ecora.app'},
+);
+
+Future<void> _openManageSubscription(BuildContext context) async {
+  bool opened;
+  try {
+    opened = await launchUrl(
+      kManageSubscriptionUri,
+      mode: LaunchMode.externalApplication,
+    );
+  } catch (_) {
+    opened = false;
+  }
+  if (!opened && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Impossibile aprire Google Play.")),
+    );
+  }
+}
+
 Future<void> _startPurchase(BuildContext context) async {
   final error = await EcoraSubscriptionService.instance.buySubscription();
   if (error != null && context.mounted) {
@@ -41,9 +77,10 @@ Future<void> _startRestore(BuildContext context) async {
   }
 }
 
-/// Card "ABBONAMENTO GESTORE" per la dashboard: stato corrente, CTA di
-/// acquisto/ripristino quando serve, feedback del flusso asincrono
-/// (purchaseStream) con dismiss manuale.
+/// Abbonamento nella dashboard, declassato sotto la lista (Blocco C.1).
+/// Attivo: una riga discreta con il link "Gestisci". Non attivo: la card
+/// "ABBONAMENTO GESTORE" con acquisto e ripristino. In entrambi i casi il
+/// feedback del flusso asincrono (purchaseStream) con dismiss manuale.
 class SubscriptionStatusCard extends StatelessWidget {
   const SubscriptionStatusCard({Key? key}) : super(key: key);
 
@@ -53,106 +90,153 @@ class SubscriptionStatusCard extends StatelessWidget {
     return ValueListenableBuilder<SubscriptionStatus?>(
       valueListenable: service.statusNotifier,
       builder: (context, status, _) {
-        final active = status?.isActiveAt(DateTime.now()) ?? false;
-        return Container(
-          decoration: ecoraCardDecoration(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    active ? Icons.workspace_premium : Icons.lock_outline,
-                    color: active ? premiumGold : textSecondary,
-                    size: 26,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "ABBONAMENTO GESTORE",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: premiumGold,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subscriptionStatusLabel(status, DateTime.now()),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: active ? textPrimary : textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              if (!active) ...[
-                const SizedBox(height: 12),
-                const Text(
-                  "Per pubblicare nuovi tavoli serve il piano mensile. "
-                  "Gli eventi già pubblicati restano attivi.",
-                  style: TextStyle(fontSize: 12, color: textSecondary),
+        final now = DateTime.now();
+        if (status != null && status.isActiveAt(now)) {
+          return _ActiveSubscriptionLine(status: status);
+        }
+        return _InactiveSubscriptionCard(status: status, now: now);
+      },
+    );
+  }
+}
+
+class _ActiveSubscriptionLine extends StatelessWidget {
+  final SubscriptionStatus status;
+
+  const _ActiveSubscriptionLine({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final bodySmall = Theme.of(context).textTheme.bodySmall;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              "${subscriptionActiveLine(status)} ·",
+              style: bodySmall?.copyWith(color: EcoraColors.inkSubtle),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: bodySmall?.copyWith(
+                  decoration: TextDecoration.underline,
+                  decorationColor: EcoraColors.inkMuted,
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ecoraPrimaryButtonStyle(),
-                        onPressed: () => _startPurchase(context),
-                        child: const Text("Abbonati"),
+              ),
+              onPressed: () => _openManageSubscription(context),
+              child: const Text("Gestisci"),
+            ),
+          ],
+        ),
+        const _PurchaseFeedback(),
+      ],
+    );
+  }
+}
+
+class _InactiveSubscriptionCard extends StatelessWidget {
+  final SubscriptionStatus? status;
+  final DateTime now;
+
+  const _InactiveSubscriptionCard({required this.status, required this.now});
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(EcoraSpace.s16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.lock_outline,
+                  color: EcoraColors.inkMuted,
+                  size: 24,
+                ),
+                const SizedBox(width: EcoraSpace.s12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("ABBONAMENTO GESTORE", style: textTheme.labelSmall),
+                      const SizedBox(height: EcoraSpace.s4),
+                      Text(
+                        subscriptionStatusLabel(status, now),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    TextButton(
-                      onPressed: () => _startRestore(context),
-                      child: const Text(
-                        "Ripristina",
-                        style: TextStyle(color: textSecondary),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
-              ValueListenableBuilder<String?>(
-                valueListenable: service.feedbackNotifier,
-                builder: (context, feedback, _) {
-                  if (feedback == null) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.info_outline,
-                            color: premiumGold, size: 16),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            feedback,
-                            style: const TextStyle(
-                                fontSize: 12, color: textPrimary),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close,
-                              color: textSecondary, size: 16),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          onPressed: () =>
-                              service.feedbackNotifier.value = null,
-                        ),
-                      ],
-                    ),
-                  );
-                },
+            ),
+            const SizedBox(height: EcoraSpace.s12),
+            Text(
+              "Per pubblicare nuovi tavoli serve il piano mensile. "
+              "Gli eventi già pubblicati restano attivi.",
+              style: textTheme.bodySmall,
+            ),
+            const SizedBox(height: EcoraSpace.s12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _startPurchase(context),
+                    child: const Text("Abbonati"),
+                  ),
+                ),
+                const SizedBox(width: EcoraSpace.s12),
+                TextButton(
+                  onPressed: () => _startRestore(context),
+                  child: const Text("Ripristina"),
+                ),
+              ],
+            ),
+            const _PurchaseFeedback(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Esito del flusso d'acquisto, chiudibile a mano.
+class _PurchaseFeedback extends StatelessWidget {
+  const _PurchaseFeedback();
+
+  @override
+  Widget build(BuildContext context) {
+    final service = EcoraSubscriptionService.instance;
+    return ValueListenableBuilder<String?>(
+      valueListenable: service.feedbackNotifier,
+      builder: (context, feedback, _) {
+        if (feedback == null) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(top: EcoraSpace.s12),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline,
+                  color: EcoraColors.brass, size: 16),
+              const SizedBox(width: EcoraSpace.s8),
+              Expanded(
+                child: Text(
+                  feedback,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: EcoraColors.ink),
+                ),
+              ),
+              IconButton(
+                tooltip: "Chiudi",
+                icon: const Icon(Icons.close,
+                    color: EcoraColors.inkMuted, size: 16),
+                onPressed: () => service.feedbackNotifier.value = null,
               ),
             ],
           ),

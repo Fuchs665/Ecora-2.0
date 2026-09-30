@@ -172,11 +172,15 @@ class SupabaseParticipationRequest {
   final String eventId;
   final String status; // 'pending', 'approved', 'rejected'
 
+  /// Momento dell'invio, in ora locale. Null se assente o illeggibile.
+  final DateTime? createdAt;
+
   SupabaseParticipationRequest({
     required this.id,
     required this.userId,
     required this.eventId,
     required this.status,
+    this.createdAt,
   });
 
   SupabaseParticipationRequest copyWith({
@@ -184,12 +188,14 @@ class SupabaseParticipationRequest {
     String? userId,
     String? eventId,
     String? status,
+    DateTime? createdAt,
   }) {
     return SupabaseParticipationRequest(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       eventId: eventId ?? this.eventId,
       status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -200,6 +206,8 @@ class SupabaseParticipationRequest {
       userId: row['user_id']?.toString() ?? '',
       eventId: row['event_id']?.toString() ?? '',
       status: row['status']?.toString() ?? 'pending',
+      createdAt:
+          DateTime.tryParse(row['created_at']?.toString() ?? '')?.toLocal(),
     );
   }
 }

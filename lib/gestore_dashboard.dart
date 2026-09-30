@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'main.dart';
 import 'client_navigation_hub.dart' show ChatRoomCard;
+import 'gestore_metrics.dart';
 import 'profile_gallery.dart';
 import 'subscription_panel.dart';
 import 'subscription_service.dart';
@@ -71,6 +72,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
             valueListenable: EcoraDataService.instance.eventsNotifier,
             builder: (context, events, _) {
               return ClubDashboardScreen(
+                host: hostProfile,
                 events: events,
                 requests: requests,
                 onSelectRequestInspector: () {
@@ -222,51 +224,59 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
 // --- SUB-SCREEN 1: OWNER FEED SCREEN (CLUB DASHBOARD) ---
 
 class ClubDashboardScreen extends StatelessWidget {
+  final SupabaseProfile host;
   final List<SupabaseEvent> events;
   final List<SupabaseParticipationRequest> requests;
   final VoidCallback onSelectRequestInspector;
 
   const ClubDashboardScreen({
     Key? key,
+    required this.host,
     required this.events,
     required this.requests,
     required this.onSelectRequestInspector,
   }) : super(key: key);
 
+  /// "ARCADIA CLUB · BOLOGNA": nome del locale e città, se nota.
+  String get _venueOverline {
+    final city = host.genericLocation;
+    final venue = (city == null || city.trim().isEmpty)
+        ? host.fullName
+        : "${host.fullName} · $city";
+    return venue.toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final pendingCount = requests.where((r) => r.status == 'pending').length;
+    // La RPC restituisce gli eventi pubblicati di tutti i locali.
+    final hostEvents = eventsHostedBy(events, host.id);
+    final metrics = computeGestoreMetrics(
+      hostEvents: hostEvents,
+      requests: requests,
+      now: DateTime.now(),
+    );
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(
+            EcoraSpace.s16,
+            EcoraSpace.s24,
+            EcoraSpace.s16,
+            EcoraSpace.s16,
+          ),
           children: [
-            // Club Info Console banner Header
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "CONSOLLE CLUB",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
-                    letterSpacing: 2.0,
-                    color: premiumGold,
-                    fontFamily: 'Serif',
-                  ),
-                ),
-                Text(
-                  "Dashboard Organizzatore • Tavoli Attivi",
-                  style: TextStyle(fontSize: 12, color: textSecondary),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+            // Intestazione (tavola "Serate")
+            Text(_venueOverline, style: textTheme.labelSmall),
+            const SizedBox(height: EcoraSpace.s4),
+            Text("Le tue serate", style: textTheme.displayMedium),
+            const SizedBox(height: EcoraSpace.s16),
 
-            // Stato abbonamento (Block 5.4): CTA di acquisto quando manca.
-            const SubscriptionStatusCard(),
-            const SizedBox(height: 24),
+            // Tre numeri prima di ogni altra cosa (Blocco C.1).
+            GestoreMetricsStrip(metrics: metrics),
+            const SizedBox(height: EcoraSpace.s24),
 
             // Red Alert banner if guests are pending review
             if (pendingCount > 0) ...[
@@ -325,7 +335,7 @@ class ClubDashboardScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Active list of table events for the club host
-            ...events.map((event) {
+            ...hostEvents.map((event) {
               final eventInquiries = requests
                   .where((r) => r.eventId == event.id && r.status == 'pending')
                   .length;
@@ -403,6 +413,11 @@ class ClubDashboardScreen extends StatelessWidget {
                 ),
               );
             }).toList(),
+            const SizedBox(height: EcoraSpace.s12),
+
+            // Abbonamento declassato (Blocco C.1): riga discreta se attivo,
+            // card con acquisto se non attivo.
+            const SubscriptionStatusCard(),
           ],
         ),
       ),

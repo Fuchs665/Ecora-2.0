@@ -154,12 +154,22 @@ void main() {
       expect(r.eventId, 'ev-9');
       expect(r.userId, 'u-7');
       expect(r.status, 'approved');
+      expect(
+          r.createdAt!.isAtSameMomentAs(DateTime.utc(2026, 7, 1, 10)), isTrue);
+      expect(r.createdAt!.isUtc, isFalse, reason: 'convertita in ora locale');
     });
 
     test('null status defaults to pending', () {
       final r = SupabaseParticipationRequest.fromRow(
           {'id': 'x', 'event_id': 'e', 'user_id': 'u'});
       expect(r.status, 'pending');
+      expect(r.createdAt, isNull);
+    });
+
+    test('unreadable created_at becomes null', () {
+      final r = SupabaseParticipationRequest.fromRow(
+          {'id': 'x', 'event_id': 'e', 'user_id': 'u', 'created_at': 'boh'});
+      expect(r.createdAt, isNull);
     });
   });
 

@@ -13,7 +13,8 @@
 | A.1 · Revoca accesso anonimo | ✅ fatto | `0014_revoke_anon_events.sql`, verificato |
 | A.2 · Dipendenze inutilizzate | ⚠️ **aperto** | `flutter_map`, `latlong2`, `geolocator` sono ancora in `pubspec.yaml`. Verificare il diff dell'ultimo commit e se `ACCESS_FINE_LOCATION` compare nel merged manifest. Se si decide di tenerle per la mappa futura, scrivere il perché nel CLAUDE.md. |
 | B.1 · Design system | ✅ v2 nel tema | Direzione "Club privato" (combinazione 7 + copertina Luce, scelta il 30/09/2026). Specifica: design system "Ecora" su claude.ai; tavole della dashboard gestore nella tela "Dashboard gestore Ecora". In `lib/theme.dart` colori, caratteri (Bodoni Moda, Hanken Grotesk), `EcoraDepth`; `test/theme_test.dart` controlla i contrasti. `docs/ecora-design-system.html` descrive la v1 ed è superato. Le schermate con colori scritti a mano si migrano nei blocchi C e D. |
-| B.2 → E.4 | ⬜ da fare | |
+| C.1 · Fascia metriche + abbonamento declassato | ✅ fatto | Tavola "Serate". Riempimento medio calcolato solo sulle serate concluse. La lista mostra solo le serate del gestore (prima c'erano anche quelle degli altri locali). Nuovo stile `EcoraTextStyles.metric`, da riportare nel design system. |
+| B.2 → B.4, C.2 → E.4 | ⬜ da fare | |
 
 ---
 
@@ -89,11 +90,14 @@ Tre numeri sotto l'intestazione, prima di ogni altra cosa: richieste ricevute ne
 Quattro fetch asincrone in `initState` e nessun indicatore: alla prima apertura — cioè durante la demo — il gestore vede un titolo seguito dal vuoto. Skeleton shimmer in caricamento, empty state con CTA diretta alla creazione del primo evento.
 
 **C.3 · Vocabolario unificato + label di navigazione visibili.**
-Oggi: Tavoli, Consolle, Ispettore, Scudo, Stanze del Club, Creatore, Incontro Riservato, Protocollo d'Ingresso. Da tenere: "Tavoli". Da sostituire con parole normali: tutto il resto. Le quattro icone della bottom nav sono mute e due di esse sono scudi.
+Oggi: Tavoli, Consolle, Ispettore, Scudo, Stanze del Club, Creatore, Incontro Riservato, Protocollo d'Ingresso. Da sostituire con parole normali: tutto. "Tavoli" diventa "Serate", come nella tela "Dashboard gestore Ecora" (deciso il 30/09/2026; l'intestazione della dashboard lo usa già da C.1). Le quattro icone della bottom nav sono mute e due di esse sono scudi.
 **Nota del Release Manager:** questa ripulitura risolve gratis anche il rischio di posizionamento sulla scheda Play Store. Va fatta una volta sola, con entrambi gli obiettivi in mente.
 
 **C.4 · Navigazione e FAB rifatti.**
 Via l'item invisibile con `Opacity(0)`, via il cerotto `index: _selectedTab == 2 ? 0 : _selectedTab`, via i due hit target sovrapposti. `BottomAppBar` con `notchMargin`, oppure — meglio — "Crea evento" come pulsante primario in cima alla dashboard, dove sta l'azione che genera fatturato.
+
+**C.5 · Card delle serate come da tavola.**
+Nella tavola "Serate" la lista diventa una card "Prossima serata" (copertina, posti, richieste da valutare con "Valuta", al posto del banner rosso) e una lista "In programma" con il tassello della data. Restano fuori finché non ci sono i dati: posti divisi in coppie/donne/uomini (oggi esiste solo `max_guests`) e il pulsante "Porta" per il check-in.
 
 ---
 
@@ -126,7 +130,7 @@ Da affrontare **dopo** la validazione nei locali, **prima** della pubblicazione.
 
 ```
 0.1 → 0.2 → A.1 → A.2 → B.1 → B.2 → B.3 → B.4
-   → C.1 → C.2 → C.3 → C.4 → D.1 → D.2
+   → C.1 → C.2 → C.3 → C.4 → C.5 → D.1 → D.2
    → [demo ai locali + closed testing 12 tester]
    → E.1 → E.2 → E.3 → E.4 → pubblicazione
 ```
