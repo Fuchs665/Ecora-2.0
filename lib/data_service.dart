@@ -40,6 +40,10 @@ class EcoraDataService {
       ValueNotifier([]);
   final ValueNotifier<int> notificationBadgeNotifier = ValueNotifier(0);
 
+  /// Presenze/assenze dei richiedenti, per user id (Blocco B.2c).
+  final ValueNotifier<Map<String, GuestReliability>> reliabilityNotifier =
+      ValueNotifier({});
+
   final List<SupabaseProfile> _profiles = [];
   List<SupabaseEvent> _events = [];
   List<SupabaseParticipationRequest> _requests = [];
@@ -238,12 +242,68 @@ class EcoraDataService {
           _profiles.add(prof);
         }
         profilesNotifier.value = List.from(_profiles);
+        await fetchGuestReliability(userIds);
       }
 
       _requests = requests;
       requestsNotifier.value = List.from(_requests);
     } catch (e) {
       debugPrint("Errore nel recupero delle richieste reali: $e");
+    }
+  }
+
+  /// Presenze e assenze dei richiedenti su tutti i locali. Il database
+  /// risponde solo per chi si è candidato a una serata del gestore.
+  /// In caso di errore resta l'ultimo dato: la scheda mostra solo ciò che sa.
+  Future<void> fetchGuestReliability(List<String> userIds) async {
+    if (userIds.isEmpty) return;
+    try {
+      final rows = await Supabase.instance.client
+          .rpc('get_guest_reliability', params: {'p_user_ids': userIds});
+      final next = Map<String, GuestReliability>.from(
+          reliabilityNotifier.value);
+      for (final row in (rows as List)) {
+        final map = Map<String, dynamic>.from(row as Map);
+        next[map['user_id'].toString()] = GuestReliability.fromRow(map);
+      }
+      reliabilityNotifier.value = next;
+    } catch (e) {
+      debugPrint("Errore nel recupero dell'affidabilità ospiti: $e");
+    }
+  }
+
+  /// Presenze già segnate per [requestIds]: request id -> venuto sì/no.
+  /// Le richieste senza voce non sono ancora state segnate.
+  Future<Map<String, bool>> fetchAttendance(List<String> requestIds) async {
+    if (requestIds.isEmpty) return {};
+    final rows = await Supabase.instance.client
+        .from('event_attendance')
+        .select('request_id, attended')
+        .in_('request_id', requestIds);
+    return {
+      for (final row in (rows as List))
+        row['request_id'].toString(): row['attended'] == true,
+    };
+  }
+
+  /// Segna se l'ospite di [requestId] è venuto. Le regole (solo il gestore
+  /// della serata, solo approvati, entro 7 giorni) le applica il database.
+  /// Ritorna null se ok, altrimenti il messaggio da mostrare.
+  Future<String?> markAttendance(String requestId, bool attended) async {
+    try {
+      await Supabase.instance.client.rpc('mark_attendance',
+          params: {'p_request_id': requestId, 'p_attended': attended});
+      return null;
+    } on PostgrestException catch (e) {
+      debugPrint("Errore nel segnare la presenza: $e");
+      // I messaggi della funzione SQL sono già in italiano e per l'utente.
+      const known = {'42501', '22023', '22004', 'P0002'};
+      return known.contains(e.code)
+          ? e.message
+          : "Operazione non riuscita. Riprova.";
+    } catch (e) {
+      debugPrint("Errore nel segnare la presenza: $e");
+      return "Operazione non riuscita. Riprova.";
     }
   }
 

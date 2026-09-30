@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'main.dart';
+import 'attendance.dart';
 import 'client_navigation_hub.dart' show ChatRoomCard;
 import 'gestore_metrics.dart';
 import 'profile_gallery.dart';
@@ -246,6 +247,30 @@ class ClubDashboardScreen extends StatelessWidget {
     return venue.toUpperCase();
   }
 
+  /// Foglio "Chi è venuto?" di una serata conclusa (Blocco B.2c).
+  void _openAttendance(BuildContext context, SupabaseEvent event) {
+    final data = EcoraDataService.instance;
+    final guests = [
+      for (final r in requests)
+        if (r.eventId == event.id && r.status == 'approved')
+          AttendanceGuest(
+            requestId: r.id,
+            name: data.getProfileById(r.userId)?.fullName ?? "Ospite",
+          ),
+    ];
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => AttendanceSheet(
+        eventTitle: event.title,
+        guests: guests,
+        loadMarks: () =>
+            data.fetchAttendance([for (final g in guests) g.requestId]),
+        onMark: data.markAttendance,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pendingCount = requests.where((r) => r.status == 'pending').length;
@@ -257,6 +282,7 @@ class ClubDashboardScreen extends StatelessWidget {
       now: DateTime.now(),
     );
     final textTheme = Theme.of(context).textTheme;
+    final toClose = eventsAwaitingAttendance(hostEvents, DateTime.now());
 
     return Scaffold(
       body: SafeArea(
@@ -322,6 +348,46 @@ class ClubDashboardScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
+            ],
+
+            // Serate concluse da non più di 7 giorni (Blocco B.2c).
+            if (toClose.isNotEmpty) ...[
+              Text("DA CHIUDERE", style: textTheme.labelSmall),
+              const SizedBox(height: EcoraSpace.s8),
+              for (final event in toClose)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: EcoraSpace.s8),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(EcoraSpace.s16,
+                          EcoraSpace.s12, EcoraSpace.s12, EcoraSpace.s12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(event.title,
+                                    style: textTheme.titleLarge),
+                                Text(
+                                  "${event.currentApprovedCount} ospiti "
+                                  "approvati · segna chi è venuto",
+                                  style: textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: EcoraSpace.s8),
+                          OutlinedButton(
+                            onPressed: () => _openAttendance(context, event),
+                            child: const Text("Chi è venuto?"),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: EcoraSpace.s16),
             ],
 
             const Text(
@@ -476,6 +542,8 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
       SupabaseParticipationRequest req,
       SupabaseProfile applicant,
       SupabaseEvent eventObj) {
+    final reliability =
+        EcoraDataService.instance.reliabilityNotifier.value[applicant.id];
     showDialog(
       context: context,
       builder: (BuildContext ctx) {
@@ -550,10 +618,44 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                   fontSize: 13)),
                         ],
                       ),
-                    // Le assenze tornano con dati veri nel Blocco B.2c.
+                    // Presenze e assenze su tutti i locali (Blocco B.2c):
+                    // si mostra solo quello che il database sa davvero.
+                    if (reliability != null && reliability.hasHistory) ...[
+                      Column(
+                        children: [
+                          const Text("PRESENZE",
+                              style: TextStyle(
+                                  fontSize: 9, color: textSecondary)),
+                          Text("${reliability.attended}",
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: textPrimary,
+                                  fontSize: 13)),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          const Text("ASSENZE",
+                              style: TextStyle(
+                                  fontSize: 9, color: textSecondary)),
+                          Text("${reliability.noShows}",
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: textPrimary,
+                                  fontSize: 13)),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
+              if (reliability != null && !reliability.hasHistory) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  "Nessuna presenza registrata su Ecora finora.",
+                  style: TextStyle(fontSize: 12, color: textSecondary),
+                ),
+              ],
               const SizedBox(height: 16),
               const Text(
                 "GALLERIA PROFILO",

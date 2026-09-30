@@ -276,3 +276,22 @@ class NotificationItem {
     this.read = false,
   });
 }
+
+/// Presenze e assenze di un ospite su tutti i locali (Blocco B.2c), da
+/// `get_guest_reliability()` della migrazione 0015.
+class GuestReliability {
+  final int attended;
+  final int noShows;
+
+  const GuestReliability({required this.attended, required this.noShows});
+
+  /// Nessuna serata con presenza segnata: niente da dire, né bene né male.
+  bool get hasHistory => attended + noShows > 0;
+
+  factory GuestReliability.fromRow(Map<String, dynamic> row) {
+    return GuestReliability(
+      attended: (row['attended'] as num?)?.toInt() ?? 0,
+      noShows: (row['no_shows'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
