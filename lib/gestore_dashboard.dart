@@ -224,7 +224,7 @@ class GestoreBottomNav extends StatelessWidget {
                         '$pendingCount',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
@@ -593,7 +593,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                       children: [
                         const Text("GENERE",
                             style:
-                                TextStyle(fontSize: 9, color: textSecondary)),
+                                TextStyle(fontSize: 12, color: textSecondary)),
                         Text(applicant.gender,
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -606,7 +606,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                         children: [
                           const Text("ETÀ",
                               style: TextStyle(
-                                  fontSize: 9, color: textSecondary)),
+                                  fontSize: 12, color: textSecondary)),
                           Text("${applicant.ageAt(DateTime.now())} anni",
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -621,7 +621,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                         children: [
                           const Text("PRESENZE",
                               style: TextStyle(
-                                  fontSize: 9, color: textSecondary)),
+                                  fontSize: 12, color: textSecondary)),
                           Text("${reliability.attended}",
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -633,7 +633,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                         children: [
                           const Text("ASSENZE",
                               style: TextStyle(
-                                  fontSize: 9, color: textSecondary)),
+                                  fontSize: 12, color: textSecondary)),
                           Text("${reliability.noShows}",
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -656,7 +656,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
               const Text(
                 "GALLERIA PROFILO",
                 style: TextStyle(
-                    fontSize: 9, color: textSecondary, letterSpacing: 1),
+                    fontSize: 12, color: textSecondary, letterSpacing: 1),
               ),
               const SizedBox(height: 6),
               CandidateGalleryStrip(userId: applicant.id),
@@ -784,7 +784,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                               "Età: ${applicant.ageAt(DateTime.now())} anni",
                                           ].join("  •  "),
                                           style: const TextStyle(
-                                              fontSize: 11,
+                                              fontSize: 12,
                                               color: textSecondary),
                                         )
                                       ],
@@ -807,7 +807,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                                       style: TextStyle(
                                           color: matteDark,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 11),
+                                          fontSize: 12),
                                     ),
                                   ),
                                 ],
@@ -925,7 +925,7 @@ class _ReviewActionsState extends State<ReviewActions> {
                 onPressed: busy ? null : () => _run(ReviewDecision.block),
                 child: _label(
                   ReviewDecision.block,
-                  const Text("BLOCCA UTENTE", style: TextStyle(fontSize: 11)),
+                  const Text("BLOCCA UTENTE", style: TextStyle(fontSize: 12)),
                 ),
               ),
               TextButton(
@@ -1123,7 +1123,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
               const SizedBox(height: 20),
 
               Text(
-                "Limite Massimo Coppie Partecipanti: ${_maxParticipants.toInt()}",
+                "Limite massimo ospiti: ${_maxParticipants.toInt()}",
                 style: const TextStyle(color: textSecondary, fontSize: 13),
               ),
               Slider(
@@ -1131,7 +1131,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 min: 4.0,
                 max: 20.0,
                 activeColor: premiumGold,
-                inactiveColor: const Color(0xFF424242),
+                inactiveColor: EcoraColors.lineStrong,
                 onChanged: (val) {
                   setState(() {
                     _maxParticipants = val;
@@ -1145,7 +1145,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 "COPERTINA",
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 11,
+                    fontSize: 12,
                     color: premiumGold,
                     letterSpacing: 1.0),
               ),

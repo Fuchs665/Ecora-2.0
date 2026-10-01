@@ -183,7 +183,7 @@ class UserProfilePage extends StatelessWidget {
                             ),
                             Text(
                               "La tua vera foto, l'età e le statistiche sono visibili solo ai locali verificati quando richiedi la partecipazione.",
-                              style: TextStyle(fontSize: 11, color: textSecondary, height: 1.35),
+                              style: TextStyle(fontSize: 12, color: textSecondary, height: 1.35),
                             )
                           ],
                         ),
@@ -534,7 +534,7 @@ class StatMetricField extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label.toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10, letterSpacing: 0.5, color: textSecondary),
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12, letterSpacing: 0.5, color: textSecondary),
             ),
           ],
         ),

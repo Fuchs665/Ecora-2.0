@@ -63,7 +63,7 @@ void main() {
             onEvaluate: () => evaluated++));
     expect(find.text('Valuta'), findsNothing);
     expect(find.text('PROSSIMA SERATA'), findsOneWidget);
-    expect(find.text('4 / 10 coppie confermate'), findsOneWidget);
+    expect(find.text('4 / 10 ospiti confermati'), findsOneWidget);
 
     await pump(
         tester,

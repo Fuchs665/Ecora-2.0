@@ -38,7 +38,7 @@ String eventDateLabel(String eventDate) {
 }
 
 String _confirmedLabel(SupabaseEvent e) =>
-    "${e.currentApprovedCount} / ${e.maxParticipants} coppie confermate";
+    "${e.currentApprovedCount} / ${e.maxParticipants} ospiti confermati";
 
 /// Card "Prossima serata": copertina, posti e richieste da valutare.
 class NextEventCard extends StatelessWidget {

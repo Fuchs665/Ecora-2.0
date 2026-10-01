@@ -99,7 +99,7 @@ class _ChatScreenState extends State<ChatScreen> {
             const Text(
               "CHAT DELLA SERATA",
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 letterSpacing: 1.5,
                 fontWeight: FontWeight.w900,
                 color: premiumGold,
@@ -217,7 +217,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Text(
                   senderName,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: premiumGold,
                   ),
@@ -234,7 +234,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Text(
                   time,
                   style:
-                      const TextStyle(fontSize: 10, color: textSecondary),
+                      const TextStyle(fontSize: 12, color: textSecondary),
                 ),
               ),
           ],

@@ -120,7 +120,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
                             '$badgeCount',
                             style: const TextStyle(
                               color: matteDark,
-                              fontSize: 9,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,
@@ -305,7 +305,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 child: Text(
                                   "Lista",
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color:
                                         !_isMapView ? matteDark : textSecondary,
@@ -327,7 +327,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 child: Text(
                                   "Mappa",
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color:
                                         _isMapView ? matteDark : textSecondary,
@@ -402,7 +402,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             min: 1.0,
                             max: 50.0,
                             activeColor: premiumGold,
-                            inactiveColor: const Color(0xFF424242),
+                            inactiveColor: EcoraColors.lineStrong,
                             onChanged: (val) {
                               setState(() {
                                 _radiusKm = val;
@@ -526,7 +526,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       child: const Text(
                                         "Tocca un punto per i dettagli",
                                         style: TextStyle(
-                                            color: textSecondary, fontSize: 11),
+                                            color: textSecondary, fontSize: 12),
                                       ),
                                     ),
                                   ),
@@ -605,7 +605,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                       const Text(
                                                         "Firenze Sud — Tocca per richiedere l'accesso",
                                                         style: TextStyle(
-                                                            fontSize: 11,
+                                                            fontSize: 12,
                                                             color:
                                                                 textSecondary),
                                                         maxLines: 1,
@@ -829,7 +829,7 @@ class EventFeedCard extends StatelessWidget {
                     child: Text(
                       "URGENTE: ${(event.tableCompletionPercentage * 100).toInt()}% DEI POSTI OCCUPATI",
                       style: const TextStyle(
-                        fontSize: 9,
+                        fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: matteDark,
                         letterSpacing: 0.5,
@@ -878,7 +878,7 @@ class EventFeedCard extends StatelessWidget {
                             Text(
                               "Alta Affidabilità",
                               style: TextStyle(
-                                fontSize: 8,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: premiumGold,
                               ),
@@ -897,7 +897,7 @@ class EventFeedCard extends StatelessWidget {
                       SizedBox(width: 4),
                       Text(
                         "Zona Colline del Sud, Firenze (Solo Approvati)",
-                        style: TextStyle(fontSize: 11, color: textSecondary),
+                        style: TextStyle(fontSize: 12, color: textSecondary),
                       ),
                     ],
                   ),
@@ -917,16 +917,16 @@ class EventFeedCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "${event.currentApprovedCount} di ${event.maxParticipants} coppie confermate",
+                        "${event.currentApprovedCount} di ${event.maxParticipants} ospiti confermati",
                         style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
                             color: premiumGold,
                             fontWeight: FontWeight.w600),
                       ),
                       Text(
                         "${(event.tableCompletionPercentage * 100).toInt()}% dei posti occupati",
                         style:
-                            const TextStyle(fontSize: 10, color: textSecondary),
+                            const TextStyle(fontSize: 12, color: textSecondary),
                       )
                     ],
                   ),
@@ -1075,7 +1075,7 @@ class NotificationsScreen extends StatelessWidget {
                                           Text(
                                             item.timestamp,
                                             style: const TextStyle(
-                                                fontSize: 10,
+                                                fontSize: 12,
                                                 color: premiumGold),
                                           ),
                                         ],

@@ -1100,7 +1100,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             : "Iscrivendoti accetti la verifica dei gestori: ogni richiesta di partecipazione viene valutata prima di essere approvata.",
                         style: TextStyle(
                           color: textSecondary.withValues(alpha: 0.8),
-                          fontSize: 10,
+                          fontSize: 12,
                           height: 1.4,
                         ),
                       ),

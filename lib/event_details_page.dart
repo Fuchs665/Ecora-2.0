@@ -205,7 +205,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                 "${(widget.event.tableCompletionPercentage * 100).toInt()}% DEI POSTI OCCUPATI",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 10,
+                                  fontSize: 12,
                                   color: matteDark,
                                   letterSpacing: 1.0,
                                 ),
@@ -251,7 +251,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                 const Icon(Icons.people, color: textSecondary, size: 16),
                                 const SizedBox(width: 8),
                                 Text(
-                                  "Massimo ${widget.event.maxParticipants} coppie · ${widget.event.currentApprovedCount} confermate",
+                                  "Massimo ${widget.event.maxParticipants} ospiti · ${widget.event.currentApprovedCount} confermate",
                                   style: const TextStyle(fontSize: 13, color: textSecondary),
                                 ),
                               ],
@@ -348,7 +348,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                               Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  const Text("Coordinate Precise", style: TextStyle(fontSize: 10, color: textSecondary)),
+                                                  const Text("Coordinate Precise", style: TextStyle(fontSize: 12, color: textSecondary)),
                                                   Text(
                                                     "Lat: ${widget.event.latitude.toStringAsFixed(5)} / Lng: ${widget.event.longitude.toStringAsFixed(5)}",
                                                     style: const TextStyle(fontSize: 12, color: premiumGold, fontWeight: FontWeight.bold),
