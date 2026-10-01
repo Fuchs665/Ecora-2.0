@@ -136,8 +136,7 @@ class SupabaseEvent {
       organizerId: json['host_id']?.toString() ?? '',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 43.7695,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 11.2558,
-      imageUrl: json['image_url']?.toString() ??
-          "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=600",
+      imageUrl: json['image_url']?.toString() ?? '',
       eventDate:
           json['event_date']?.toString() ?? DateTime.now().toIso8601String(),
       maxParticipants: (json['max_guests'] as num?)?.toInt() ?? 0,

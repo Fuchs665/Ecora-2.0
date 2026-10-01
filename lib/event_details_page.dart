@@ -1,3 +1,4 @@
+import 'cover_placeholder.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'main.dart';
@@ -172,16 +173,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         children: [
                           EcoraHero(
                             tag: eventCoverHeroTag(widget.event.id),
-                            child: Image.network(
-                              widget.event.imageUrl,
+                            child: EcoraNetworkImage(
+                              url: widget.event.imageUrl,
                               width: double.infinity,
                               height: 240,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, _, __) => Container(
-                                color: Colors.grey,
-                                width: double.infinity,
-                                height: 240,
-                              ),
                             ),
                           ),
                           // Premium dark shader gradient

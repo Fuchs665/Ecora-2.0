@@ -1,3 +1,4 @@
+import 'cover_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'main.dart';
 import 'profile_gallery.dart';
@@ -11,16 +12,6 @@ class UserProfilePage extends StatelessWidget {
     required this.profile,
     required this.onLogout,
   }) : super(key: key);
-
-  String _getProfileAvatarUrl() {
-    if (profile.gender == "Coppia") {
-      return "https://images.unsplash.com/photo-1516575307900-510b501c3bf4?auto=format&fit=crop&q=80&w=300";
-    } else if (profile.gender == "Donna") {
-      return "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=300";
-    } else {
-      return "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300";
-    }
-  }
 
   void _showEditSheet(BuildContext context) {
     showModalBottomSheet(
@@ -125,14 +116,7 @@ class UserProfilePage extends StatelessWidget {
                       padding: const EdgeInsets.all(4),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(60),
-                        child: Container(
-                          color: slateSurface,
-                          child: Image.network(
-                            _getProfileAvatarUrl(),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, _, __) => const Icon(Icons.person, color: premiumGold, size: 40),
-                          ),
-                        ),
+                        child: _InitialAvatar(name: profile.fullName),
                       ),
                     ),
                   ],
@@ -555,6 +539,34 @@ class StatMetricField extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Avatar disegnato: Luce con l'iniziale del nome (nessuna foto hardcoded).
+class _InitialAvatar extends StatelessWidget {
+  final String name;
+
+  const _InitialAvatar({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = name.trim();
+    final initial = trimmed.isEmpty ? '' : trimmed.substring(0, 1).toUpperCase();
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const CustomPaint(painter: LucePainter()),
+        Center(
+          child: Text(
+            initial,
+            style: Theme.of(context)
+                .textTheme
+                .displayMedium
+                ?.copyWith(color: EcoraColors.ink),
+          ),
+        ),
+      ],
     );
   }
 }

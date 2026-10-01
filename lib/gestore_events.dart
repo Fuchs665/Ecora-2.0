@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'cover_placeholder.dart';
 import 'italian_dates.dart';
 import 'models.dart';
 import 'motion.dart';
@@ -39,29 +40,6 @@ String eventDateLabel(String eventDate) {
 String _confirmedLabel(SupabaseEvent e) =>
     "${e.currentApprovedCount} / ${e.maxParticipants} coppie confermate";
 
-/// Sfondo Luce, usato se la copertina manca o non si carica.
-class _LuceBackdrop extends StatelessWidget {
-  const _LuceBackdrop();
-
-  @override
-  Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            EcoraColors.lightBase,
-            EcoraColors.lightTeal,
-            EcoraColors.lightAmber,
-          ],
-          stops: [0.0, 0.6, 1.0],
-        ),
-      ),
-    );
-  }
-}
-
 /// Card "Prossima serata": copertina, posti e richieste da valutare.
 class NextEventCard extends StatelessWidget {
   final SupabaseEvent event;
@@ -98,13 +76,7 @@ class NextEventCard extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        const _LuceBackdrop(),
-                        Image.network(
-                          event.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, _, __) =>
-                              const SizedBox.shrink(),
-                        ),
+                        EcoraNetworkImage(url: event.imageUrl),
                       ],
                     ),
                   ),

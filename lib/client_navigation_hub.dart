@@ -1,3 +1,4 @@
+import 'cover_placeholder.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'main.dart';
@@ -569,19 +570,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                     tag: eventCoverHeroTag(
                                                         _selectedPointEvent!
                                                             .id),
-                                                    child: Image.network(
-                                                      _selectedPointEvent!
+                                                    child: EcoraNetworkImage(
+                                                      url: _selectedPointEvent!
                                                           .imageUrl,
                                                       width: 64,
                                                       height: 64,
-                                                      fit: BoxFit.cover,
-                                                      errorBuilder:
-                                                          (context, _, __) =>
-                                                              Container(
-                                                        color: Colors.grey,
-                                                        width: 64,
-                                                        height: 64,
-                                                      ),
                                                     ),
                                                   ),
                                                 ),
@@ -795,16 +788,10 @@ class EventFeedCard extends StatelessWidget {
                       topRight: Radius.circular(24)),
                   child: EcoraHero(
                     tag: eventCoverHeroTag(event.id),
-                    child: Image.network(
-                      event.imageUrl,
+                    child: EcoraNetworkImage(
+                      url: event.imageUrl,
                       width: double.infinity,
                       height: 180,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, _, __) => Container(
-                        color: Colors.grey,
-                        width: double.infinity,
-                        height: 180,
-                      ),
                     ),
                   ),
                 ),
