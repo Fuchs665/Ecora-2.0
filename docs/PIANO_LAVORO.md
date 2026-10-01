@@ -21,7 +21,8 @@
 | B.2c · Presenze in dashboard e scheda | ✅ fatto, **richiede 0015 applicata** | Sezione "Da chiudere" in dashboard per le serate iniziate da non più di 7 giorni, con il foglio "Chi è venuto?" (Presente/Assente per ogni ospite approvato, salvataggio immediato con `mark_attendance`, la scelta torna com'era se il database rifiuta). Scheda candidato: presenze e assenze su tutti i locali da `get_guest_reliability`, oppure "Nessuna presenza registrata su Ecora finora"; nessun giudizio automatico. |
 | C.2 · Empty state e skeleton | ✅ fatto | Le quattro letture iniziali della dashboard gestore partono insieme e finché non finiscono tutte (anche in errore) lo skeleton (`lib/dashboard_skeleton.dart`, stessi ingombri di fascia metriche e righe serata, pulsazione ferma con "rimuovi animazioni") prende il posto di tutto ciò che deriva dai dati, card abbonamento compresa: prima di `refreshStatus` sembrerebbe scaduto. Senza serate del gestore: "Nessuna serata in programma" con "Crea la prima serata", che passa dallo stesso controllo abbonamento del "+". **Aperto:** le fetch inghiottono gli errori, quindi un errore di rete finisce nello stato vuoto come "nessuna serata"; nessun timeout sulle chiamate Supabase, quindi una fetch appesa tiene lo skeleton per sempre; la schermata richieste (secondo tab) resta vuota senza indicatore durante il caricamento; `logout()` non svuota eventi e richieste. |
 | C.3 · Vocabolario unificato | ✅ fatto | Serate, ospite, il locale; nav gestore: Serate, Richieste, Crea, Chat, Profilo, con etichette visibili anche nella nav cliente. `test/vocabulary_test.dart` vieta le parole di prima. Restano "coppie" (D.2) e le stringhe di `main.dart` (accesso, registrazione, consenso), da rivedere con auth. |
-| C.4 → E.4 | ⬜ da fare | |
+| C.4 · Navigazione gestore senza FAB | ✅ fatto | Nav a 4 voci (Serate, Richieste, Chat, Profilo) estratta in `GestoreBottomNav`, senza item invisibile, cerotto sull'indice né FAB. "CREA SERATA" è un pulsante pieno in cima alla dashboard, con lo stesso gate d'abbonamento. `test/gestore_nav_test.dart`. |
+| C.5 → E.4 | ⬜ da fare | |
 
 ---
 
@@ -100,7 +101,7 @@ Quattro fetch asincrone in `initState` e nessun indicatore: alla prima apertura 
 Oggi: Tavoli, Consolle, Ispettore, Scudo, Stanze del Club, Creatore, Incontro Riservato, Protocollo d'Ingresso. Da sostituire con parole normali: tutto, anche "Tavoli" diventa "Serate", come nella tela "Dashboard gestore Ecora" (deciso il 30/09/2026; l'intestazione della dashboard lo usa già da C.1). Le quattro icone della bottom nav sono mute e due di esse sono scudi.
 **Nota del Release Manager:** questa ripulitura risolve gratis anche il rischio di posizionamento sulla scheda Play Store. Va fatta una volta sola, con entrambi gli obiettivi in mente.
 
-**C.4 · Navigazione e FAB rifatti.**
+**C.4 · Navigazione e FAB rifatti.** *(fatto: scelto il pulsante in cima, non il `BottomAppBar`)*
 Via l'item invisibile con `Opacity(0)`, via il cerotto `index: _selectedTab == 2 ? 0 : _selectedTab`, via i due hit target sovrapposti. `BottomAppBar` con `notchMargin`, oppure — meglio — "Crea evento" come pulsante primario in cima alla dashboard, dove sta l'azione che genera fatturato.
 
 **C.5 · Card delle serate come da tavola.**

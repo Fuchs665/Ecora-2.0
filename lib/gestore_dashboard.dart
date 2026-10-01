@@ -20,8 +20,7 @@ class GestoreDashboard extends StatefulWidget {
 }
 
 class _GestoreDashboardState extends State<GestoreDashboard> {
-  int _selectedTab =
-      0; // 0 = Owner Feed, 1 = Guest Inspector, 3 = Chats/Messages, 4 = Club Profile
+  int _selectedTab = 0; // 0 = Serate, 1 = Richieste, 2 = Chat, 3 = Profilo
   bool _showCreateForm = false;
 
   /// Vero finché le letture iniziali non sono finite (Blocco C.2): la
@@ -83,8 +82,6 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
       return const Scaffold(body: Center(child: Text("Accesso limitato.")));
     }
 
-    final double bottomPadding = MediaQuery.of(context).padding.bottom;
-
     return ValueListenableBuilder<List<SupabaseParticipationRequest>>(
       valueListenable: EcoraDataService.instance.requestsNotifier,
       builder: (context, requests, _) {
@@ -120,7 +117,6 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
               );
             },
           ),
-          const SizedBox.shrink(), // Placeholder index 2 (decorative center)
           const ClubMessagesScreen(),
           UserProfilePage(
             profile: hostProfile,
@@ -141,109 +137,112 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
                   },
                 )
               : IndexedStack(
-                  index:
-                      _selectedTab == 2 ? 0 : _selectedTab, // Safeguard index 2
+                  index: _selectedTab,
                   children: subScreens,
                 ),
-          bottomNavigationBar: Container(
-            height: 76 + bottomPadding,
-            decoration: BoxDecoration(
-              color: slateSurface,
-              border: Border(
-                top: BorderSide(
-                  color: textSecondary.withValues(alpha: 0.1),
-                  width: 1,
-                ),
-              ),
-            ),
-            child: BottomNavigationBar(
-              currentIndex: _selectedTab,
-              onTap: (index) {
-                if (index == 2) {
-                  _tryOpenCreateForm();
-                } else {
-                  setState(() {
-                    _selectedTab = index;
-                    _showCreateForm = false;
-                  });
-                }
-              },
-              backgroundColor: slateSurface,
-              selectedItemColor: premiumGold,
-              unselectedItemColor: textSecondary,
-              type: BottomNavigationBarType.fixed,
-              showSelectedLabels: true,
-              showUnselectedLabels: true,
-              elevation: 0,
-              items: [
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.dashboard, size: 26),
-                  label: "Serate",
-                ),
-                BottomNavigationBarItem(
-                  icon: Stack(
-                    children: [
-                      const Icon(Icons.inbox_outlined, size: 26),
-                      if (pendingCount > 0)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 14,
-                              minHeight: 14,
-                            ),
-                            child: Text(
-                              '$pendingCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  label: "Richieste",
-                ),
-                // Plus button placeholder block in bottom navigation
-                const BottomNavigationBarItem(
-                  icon: Opacity(
-                    opacity: 0,
-                    child: Icon(Icons.add, size: 24),
-                  ),
-                  label: "Crea",
-                ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.forum, size: 26),
-                  label: "Chat",
-                ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.storefront_outlined, size: 26),
-                  label: "Profilo",
-                ),
-              ],
-            ),
+          bottomNavigationBar: GestoreBottomNav(
+            currentIndex: _selectedTab,
+            pendingCount: pendingCount,
+            onTap: (index) {
+              setState(() {
+                _selectedTab = index;
+                _showCreateForm = false;
+              });
+            },
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: _tryOpenCreateForm,
-            backgroundColor: premiumGold,
-            foregroundColor: matteDark,
-            shape: const CircleBorder(),
-            elevation: 4,
-            child: const Icon(Icons.add, size: 28),
-          ),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
         );
       },
+    );
+  }
+}
+
+/// Barra di navigazione del gestore (Blocco C.4): quattro voci, nessun FAB.
+/// Pura: indice corrente, badge richieste e callback, nessuna dipendenza dai
+/// servizi.
+class GestoreBottomNav extends StatelessWidget {
+  final int currentIndex;
+  final int pendingCount;
+  final ValueChanged<int> onTap;
+
+  const GestoreBottomNav({
+    Key? key,
+    required this.currentIndex,
+    required this.onTap,
+    this.pendingCount = 0,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final double bottomPadding = MediaQuery.of(context).padding.bottom;
+    return Container(
+      height: 76 + bottomPadding,
+      decoration: BoxDecoration(
+        color: slateSurface,
+        border: Border(
+          top: BorderSide(
+            color: textSecondary.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+      ),
+      child: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onTap,
+        backgroundColor: slateSurface,
+        selectedItemColor: premiumGold,
+        unselectedItemColor: textSecondary,
+        type: BottomNavigationBarType.fixed,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        elevation: 0,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard, size: 26),
+            label: "Serate",
+          ),
+          BottomNavigationBarItem(
+            icon: Stack(
+              children: [
+                const Icon(Icons.inbox_outlined, size: 26),
+                if (pendingCount > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 14,
+                        minHeight: 14,
+                      ),
+                      child: Text(
+                        '$pendingCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            label: "Richieste",
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.forum, size: 26),
+            label: "Chat",
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.storefront_outlined, size: 26),
+            label: "Profilo",
+          ),
+        ],
+      ),
     );
   }
 }
@@ -333,6 +332,18 @@ class ClubDashboardScreen extends StatelessWidget {
             Text(_venueOverline, style: textTheme.labelSmall),
             const SizedBox(height: EcoraSpace.s4),
             Text("Le tue serate", style: textTheme.displayMedium),
+            const SizedBox(height: EcoraSpace.s16),
+
+            // Azione primaria (Blocco C.4): sempre in vista, stesso gate
+            // d'abbonamento del resto.
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: onCreateEvent,
+                icon: const Icon(Icons.add),
+                label: const Text("CREA SERATA"),
+              ),
+            ),
             const SizedBox(height: EcoraSpace.s16),
 
             // Finché le letture iniziali non finiscono (Blocco C.2) lo
