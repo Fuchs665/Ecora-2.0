@@ -5,6 +5,7 @@ import 'main.dart';
 import 'attendance.dart';
 import 'client_navigation_hub.dart' show ChatRoomCard;
 import 'dashboard_skeleton.dart';
+import 'gestore_events.dart';
 import 'gestore_metrics.dart';
 import 'profile_gallery.dart';
 import 'subscription_panel.dart';
@@ -307,7 +308,6 @@ class ClubDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pendingCount = requests.where((r) => r.status == 'pending').length;
     // La RPC restituisce gli eventi pubblicati di tutti i locali.
     final hostEvents = eventsHostedBy(events, host.id);
     final metrics = computeGestoreMetrics(
@@ -317,6 +317,14 @@ class ClubDashboardScreen extends StatelessWidget {
     );
     final textTheme = Theme.of(context).textTheme;
     final toClose = eventsAwaitingAttendance(hostEvents, DateTime.now());
+    final upcoming = splitHostEvents(hostEvents, DateTime.now());
+    int pendingFor(SupabaseEvent e) => requests
+        .where((r) => r.eventId == e.id && r.status == 'pending')
+        .length;
+    void openEvent(SupabaseEvent e) => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => EventDetailsPage(event: e)),
+        );
 
     return Scaffold(
       body: SafeArea(
@@ -357,54 +365,6 @@ class ClubDashboardScreen extends StatelessWidget {
               // Tre numeri prima di ogni altra cosa (Blocco C.1).
               GestoreMetricsStrip(metrics: metrics),
               const SizedBox(height: EcoraSpace.s24),
-
-              // Red Alert banner if guests are pending review
-              if (pendingCount > 0) ...[
-                GestureDetector(
-                  onTap: onSelectRequestInspector,
-                  child: Card(
-                    color: Colors.redAccent.withValues(alpha: 0.1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(
-                          color: Colors.redAccent.withValues(alpha: 0.5), width: 1),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.new_releases,
-                              color: Colors.redAccent, size: 28),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "RICHIESTE DA VALUTARE",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: textPrimary,
-                                      fontSize: 13),
-                                ),
-                                Text(
-                                  pendingCount == 1
-                                      ? "1 richiesta aspetta la tua risposta."
-                                      : "$pendingCount richieste aspettano la tua risposta.",
-                                  style: const TextStyle(
-                                      color: textSecondary, fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.chevron_right, color: Colors.redAccent),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
 
               // Serate concluse da non più di 7 giorni (Blocco B.2c).
               if (toClose.isNotEmpty) ...[
@@ -451,98 +411,31 @@ class ClubDashboardScreen extends StatelessWidget {
                 _NoEventsCard(onCreateEvent: onCreateEvent),
                 const SizedBox(height: EcoraSpace.s24),
               ] else ...[
-                const Text(
-                  "TUTTE LE SERATE",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: premiumGold,
-                      letterSpacing: 1.0),
-                ),
-                const SizedBox(height: 12),
-
-                // Active list of table events for the club host
-                ...hostEvents.map((event) {
-                  final eventInquiries = requests
-                      .where((r) => r.eventId == event.id && r.status == 'pending')
-                      .length;
-
-                  return Card(
-                    color: slateSurface,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EventDetailsPage(event: event),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                event.imageUrl,
-                                width: 72,
-                                height: 72,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, _, __) => Container(
-                                  color: Colors.grey,
-                                  width: 72,
-                                  height: 72,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    event.title,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                        color: textPrimary),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "${event.currentApprovedCount} / ${event.maxParticipants} coppie confermate",
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        color: premiumGold,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                  if (eventInquiries > 0) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      eventInquiries == 1
-                                          ? "1 richiesta in attesa"
-                                          : "$eventInquiries richieste in attesa",
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.red,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ]
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.chevron_right, color: premiumGold),
-                          ],
-                        ),
+                // Prossima serata e lista "In programma" (Blocco C.5). Le
+                // serate già iniziate le gestisce "Da chiudere".
+                if (upcoming.next != null) ...[
+                  NextEventCard(
+                    event: upcoming.next!,
+                    pendingCount: pendingFor(upcoming.next!),
+                    onTap: () => openEvent(upcoming.next!),
+                    onEvaluate: onSelectRequestInspector,
+                  ),
+                  const SizedBox(height: EcoraSpace.s24),
+                ],
+                if (upcoming.upcoming.isNotEmpty) ...[
+                  Text("IN PROGRAMMA", style: textTheme.labelSmall),
+                  const SizedBox(height: EcoraSpace.s8),
+                  for (final event in upcoming.upcoming)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: EcoraSpace.s8),
+                      child: UpcomingEventTile(
+                        event: event,
+                        pendingCount: pendingFor(event),
+                        onTap: () => openEvent(event),
                       ),
                     ),
-                  );
-                }).toList(),
-                const SizedBox(height: EcoraSpace.s12),
+                  const SizedBox(height: EcoraSpace.s12),
+                ],
               ],
 
               // Abbonamento declassato (Blocco C.1): riga discreta se attivo,
