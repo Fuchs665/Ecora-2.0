@@ -172,18 +172,18 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
               selectedItemColor: premiumGold,
               unselectedItemColor: textSecondary,
               type: BottomNavigationBarType.fixed,
-              showSelectedLabels: false,
-              showUnselectedLabels: false,
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
               elevation: 0,
               items: [
                 const BottomNavigationBarItem(
                   icon: Icon(Icons.dashboard, size: 26),
-                  label: "Dashboard",
+                  label: "Serate",
                 ),
                 BottomNavigationBarItem(
                   icon: Stack(
                     children: [
-                      const Icon(Icons.verified_user, size: 26),
+                      const Icon(Icons.inbox_outlined, size: 26),
                       if (pendingCount > 0)
                         Positioned(
                           right: 0,
@@ -211,7 +211,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
                         ),
                     ],
                   ),
-                  label: "Ispettore",
+                  label: "Richieste",
                 ),
                 // Plus button placeholder block in bottom navigation
                 const BottomNavigationBarItem(
@@ -219,15 +219,15 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
                     opacity: 0,
                     child: Icon(Icons.add, size: 24),
                   ),
-                  label: "Creatore",
+                  label: "Crea",
                 ),
                 const BottomNavigationBarItem(
                   icon: Icon(Icons.forum, size: 26),
                   label: "Chat",
                 ),
                 const BottomNavigationBarItem(
-                  icon: Icon(Icons.security, size: 26),
-                  label: "Scudo",
+                  icon: Icon(Icons.storefront_outlined, size: 26),
+                  label: "Profilo",
                 ),
               ],
             ),
@@ -370,14 +370,16 @@ class ClubDashboardScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  "APPROVAZIONI ACCESSO IN ATTESA",
+                                  "RICHIESTE DA VALUTARE",
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: textPrimary,
                                       fontSize: 13),
                                 ),
                                 Text(
-                                  "$pendingCount ospiti in attesa di screening di sicurezza e fiducia.",
+                                  pendingCount == 1
+                                      ? "1 richiesta aspetta la tua risposta."
+                                      : "$pendingCount richieste aspettano la tua risposta.",
                                   style: const TextStyle(
                                       color: textSecondary, fontSize: 12),
                                 ),
@@ -439,7 +441,7 @@ class ClubDashboardScreen extends StatelessWidget {
                 const SizedBox(height: EcoraSpace.s24),
               ] else ...[
                 const Text(
-                  "I TUOI TAVOLI ATTIVI",
+                  "TUTTE LE SERATE",
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -510,7 +512,9 @@ class ClubDashboardScreen extends StatelessWidget {
                                   if (eventInquiries > 0) ...[
                                     const SizedBox(height: 4),
                                     Text(
-                                      "$eventInquiries richieste in attesa",
+                                      eventInquiries == 1
+                                          ? "1 richiesta in attesa"
+                                          : "$eventInquiries richieste in attesa",
                                       style: const TextStyle(
                                           fontSize: 12,
                                           color: Colors.red,
@@ -604,7 +608,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
         title: const Text("Bloccare questo utente?",
             style: TextStyle(color: textPrimary, fontSize: 15)),
         content: Text(
-          "$targetName non potrà più vedere i tuoi eventi né candidarsi. "
+          "$targetName non potrà più vedere le tue serate né candidarsi. "
           "Potrai sempre sbloccarlo dal tuo profilo.",
           style: const TextStyle(color: textSecondary, fontSize: 13),
         ),
@@ -640,10 +644,10 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Row(
             children: [
-              Icon(Icons.shield, color: premiumGold),
+              Icon(Icons.person_outline, color: premiumGold),
               SizedBox(width: 10),
               Text(
-                "PROFILO DI SICUREZZA E FIDUCIA",
+                "PROFILO DELL'OSPITE",
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -798,7 +802,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "ISPETTORE RICHIESTE OSPITI",
+                "RICHIESTE",
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 18,
@@ -808,7 +812,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                 ),
               ),
               const Text(
-                "Consolle di Pre-screening e Approvazione",
+                "Approva o rifiuta chi chiede di partecipare alle tue serate.",
                 style: TextStyle(fontSize: 12, color: textSecondary),
               ),
               const SizedBox(height: 16),
@@ -1071,7 +1075,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
 
   String get _formattedEventDate {
     final d = _eventDate;
-    if (d == null) return "Seleziona data e ora dell'evento";
+    if (d == null) return "Seleziona data e ora della serata";
     return "${d.day.toString().padLeft(2, '0')}/"
         "${d.month.toString().padLeft(2, '0')}/${d.year} — "
         "${d.hour.toString().padLeft(2, '0')}:"
@@ -1132,7 +1136,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    "CREA INCONTRO RISERVATO",
+                    "NUOVA SERATA",
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 16,
@@ -1153,7 +1157,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 controller: _titleController,
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 decoration: ecoraInputDecoration(
-                  "Titolo Incontro (es. Ballo in Maschera Ambra)",
+                  "Titolo della serata (es. Ballo in maschera)",
                 ),
               ),
               const SizedBox(height: 16),
@@ -1163,7 +1167,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 style: const TextStyle(color: textPrimary, fontSize: 13),
                 maxLines: 4,
                 decoration: ecoraInputDecoration(
-                  "Concept Riservato / Protocollo d'Ingresso",
+                  "Descrizione (programma, dress code, regole d'ingresso)",
                 ),
               ),
               const SizedBox(height: 16),
@@ -1231,7 +1235,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
 
               // Selezione copertina
               const Text(
-                "COPERTINA EVENTO",
+                "COPERTINA",
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 11,
@@ -1289,7 +1293,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                    "Compila titolo, indirizzo e data dell'evento."),
+                                    "Compila titolo, indirizzo e data della serata."),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
@@ -1366,7 +1370,7 @@ class _CreateEventFormState extends State<CreateEventForm> {
                           ),
                         )
                       : const Text(
-                          "CARICA EVENTO NEL CLUB",
+                          "PUBBLICA LA SERATA",
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
@@ -1398,7 +1402,7 @@ class ClubMessagesScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "STANZE DEL CLUB",
+                "CHAT DELLE SERATE",
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
@@ -1408,7 +1412,7 @@ class ClubMessagesScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                "Ogni evento pubblicato ha la sua chat riservata con i partecipanti approvati.",
+                "Ogni serata pubblicata ha la sua chat con gli ospiti approvati.",
                 style: TextStyle(
                     fontSize: 12, color: textSecondary, height: 1.5),
               ),
@@ -1428,7 +1432,7 @@ class ClubMessagesScreen extends StatelessWidget {
                             Icon(Icons.forum, color: textSecondary, size: 54),
                             SizedBox(height: 16),
                             Text(
-                              "Stanze del Club Protette",
+                              "Nessuna chat aperta",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -1436,7 +1440,7 @@ class ClubMessagesScreen extends StatelessWidget {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              "Pubblica un evento per aprire il suo canale privato con i partecipanti confermati.",
+                              "Pubblica una serata per aprire la chat con gli ospiti confermati.",
                               style: TextStyle(
                                   fontSize: 12,
                                   color: textSecondary,

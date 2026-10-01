@@ -97,7 +97,7 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "CHAT EVENTO",
+              "CHAT DELLA SERATA",
               style: TextStyle(
                 fontSize: 11,
                 letterSpacing: 1.5,

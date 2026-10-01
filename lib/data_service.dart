@@ -508,7 +508,7 @@ class EcoraDataService {
             .select('id, title')
             .in_('id', eventIds);
         for (final row in (evRows as List)) {
-          titles[row['id'].toString()] = row['title']?.toString() ?? 'Evento';
+          titles[row['id'].toString()] = row['title']?.toString() ?? 'Serata';
         }
       }
 
@@ -530,7 +530,7 @@ class EcoraDataService {
           NotificationItem(
             id: id,
             eventId: r['event_id'].toString(),
-            eventTitle: titles[r['event_id'].toString()] ?? 'Evento',
+            eventTitle: titles[r['event_id'].toString()] ?? 'Serata',
             status: r['status'].toString(),
             timestamp: timestamp,
             read: _seenNotificationIds.contains(id),
@@ -694,7 +694,7 @@ class EcoraDataService {
       debugPrint("Errore creazione evento: $e");
       // Dal Block 5.1 la RLS rifiuta l'INSERT anche senza abbonamento
       // attivo, non solo senza ruolo gestore: il messaggio copre entrambi.
-      return "Creazione evento non riuscita. Verifica la connessione e che "
+      return "Creazione della serata non riuscita. Verifica la connessione e che "
           "l'abbonamento gestore sia attivo.";
     }
   }

@@ -177,8 +177,8 @@ class _InactiveSubscriptionCard extends StatelessWidget {
             ),
             const SizedBox(height: EcoraSpace.s12),
             Text(
-              "Per pubblicare nuovi tavoli serve il piano mensile. "
-              "Gli eventi già pubblicati restano attivi.",
+              "Per pubblicare nuove serate serve il piano mensile. "
+              "Le serate già pubblicate restano attivi.",
               style: textTheme.bodySmall,
             ),
             const SizedBox(height: EcoraSpace.s12),
@@ -283,8 +283,8 @@ Future<void> showSubscriptionRequiredSheet(BuildContext context) {
               ),
               const SizedBox(height: 12),
               const Text(
-                "La pubblicazione di nuovi tavoli è riservata ai gestori "
-                "con piano mensile attivo. Gli eventi già pubblicati, le "
+                "La pubblicazione di nuove serate è riservata ai gestori "
+                "con piano mensile attivo. Le serate già pubblicate, le "
                 "chat e le richieste restano attivi anche senza rinnovo.",
                 style: TextStyle(fontSize: 13, color: textSecondary),
               ),

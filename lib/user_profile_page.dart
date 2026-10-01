@@ -194,11 +194,11 @@ class UserProfilePage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Scudo Privacy Attivo",
+                              "Privacy attiva",
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: textPrimary),
                             ),
                             Text(
-                              "La tua vera foto, l'età e le statistiche sono visibili solo ai club verificati quando richiedi la partecipazione.",
+                              "La tua vera foto, l'età e le statistiche sono visibili solo ai locali verificati quando richiedi la partecipazione.",
                               style: TextStyle(fontSize: 11, color: textSecondary, height: 1.35),
                             )
                           ],
@@ -246,7 +246,7 @@ class UserProfilePage extends StatelessWidget {
                   ),
                   onPressed: onLogout,
                   child: Text(
-                    "ESCI DAL CLUB",
+                    "ESCI DALL'ACCOUNT",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,

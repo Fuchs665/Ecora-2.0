@@ -142,7 +142,7 @@ class SupabaseEvent {
           json['event_date']?.toString() ?? DateTime.now().toIso8601String(),
       maxParticipants: (json['max_guests'] as num?)?.toInt() ?? 0,
       currentApprovedCount: (json['approved_count'] as num?)?.toInt() ?? 0,
-      locationName: json['location_name']?.toString() ?? 'Località riservata',
+      locationName: json['location_name']?.toString() ?? 'Indirizzo nascosto',
     );
   }
 

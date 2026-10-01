@@ -77,7 +77,7 @@ void main() {
         'approved_count': null,
       });
       expect(e.imageUrl, contains('unsplash'));
-      expect(e.locationName, 'Località riservata');
+      expect(e.locationName, 'Indirizzo nascosto');
       expect(e.maxParticipants, 0);
       expect(e.currentApprovedCount, 0);
       expect(e.tableCompletionPercentage, 0.0);
