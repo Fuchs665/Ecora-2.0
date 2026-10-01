@@ -46,202 +46,226 @@ class UserProfilePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: matteDark,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 10),
-
-              // --- DISCREET BRAND HEADER + EDIT ACTION ---
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Text(
-                    "E C O R A",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 13,
-                      letterSpacing: 6.0,
-                      color: premiumGold,
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      icon: const Icon(Icons.edit_outlined,
-                          color: premiumGold, size: 20),
-                      tooltip: "Modifica profilo",
-                      onPressed: () => _showEditSheet(context),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // --- PROFILE PICTURE ARCHITECTURE WITH GOLD CARD METALLIC HALO ---
-              SizedBox(
-                width: 136,
-                height: 136,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Glow outer background halo
-                    Container(
-                      width: 126,
-                      height: 126,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: premiumGold.withValues(alpha: 0.15),
-                            blurRadius: 16,
-                            spreadRadius: 4,
-                          )
-                        ],
-                        gradient: RadialGradient(
-                          colors: [premiumGold.withValues(alpha: 0.25), Colors.transparent],
-                        ),
-                      ),
-                    ),
-
-                    // Outer gold ring
-                    Container(
-                      width: 114,
-                      height: 114,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: premiumGold, width: 2),
-                      ),
-                      padding: const EdgeInsets.all(4),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(60),
-                        child: _InitialAvatar(name: profile.fullName),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // --- FULL NAME & BASIC INFO ---
-              Text(
-                profile.fullName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                  letterSpacing: 0.5,
-                  color: textPrimary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-
-              Text(
-                [
-                  profile.gender,
-                  if (profile.ageAt(DateTime.now()) != null)
-                    "${profile.ageAt(DateTime.now())} anni",
-                ].join("  •  "),
-                style: const TextStyle(
-                  fontWeight: FontWeight.normal,
-                  fontSize: 14,
-                  color: textSecondary,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Affidabilità, presenze e assenze tornano con dati veri
-              // nel Blocco B.2c.
-              const SizedBox(height: 8),
-
-              // --- GALLERIA FOTO PROFILO (bucket privato, RLS 0008) ---
-              Align(
-                alignment: Alignment.centerLeft,
-                child: ProfileGallerySection(profileId: profile.id),
-              ),
-
-              const Spacer(),
-
-              // --- PRIVACY SHIELD FOOTER CARD ---
-              Card(
-                color: slateSurface,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Row(
+        // Scorre se lo schermo è basso o il testo è ingrandito; altrimenti il
+        // pulsante di uscita resta ancorato in fondo (Spacer).
+        child: LayoutBuilder(
+          builder: (context, box) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: box.maxHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(Icons.lock, color: premiumGold, size: 24),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Privacy attiva",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: textPrimary),
+                      const SizedBox(height: 10),
+
+                      // --- DISCREET BRAND HEADER + EDIT ACTION ---
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Text(
+                            "E C O R A",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                              letterSpacing: 6.0,
+                              color: premiumGold,
                             ),
-                            Text(
-                              "La tua vera foto, l'età e le statistiche sono visibili solo ai locali verificati quando richiedi la partecipazione.",
-                              style: TextStyle(fontSize: 12, color: textSecondary, height: 1.35),
-                            )
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              icon: const Icon(Icons.edit_outlined,
+                                  color: premiumGold, size: 20),
+                              tooltip: "Modifica profilo",
+                              onPressed: () => _showEditSheet(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // --- PROFILE PICTURE ARCHITECTURE WITH GOLD CARD METALLIC HALO ---
+                      SizedBox(
+                        width: 136,
+                        height: 136,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Glow outer background halo
+                            Container(
+                              width: 126,
+                              height: 126,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: premiumGold.withValues(alpha: 0.15),
+                                    blurRadius: 16,
+                                    spreadRadius: 4,
+                                  )
+                                ],
+                                gradient: RadialGradient(
+                                  colors: [
+                                    premiumGold.withValues(alpha: 0.25),
+                                    Colors.transparent
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            // Outer gold ring
+                            Container(
+                              width: 114,
+                              height: 114,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: premiumGold, width: 2),
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(60),
+                                child: _InitialAvatar(name: profile.fullName),
+                              ),
+                            ),
                           ],
                         ),
                       ),
+                      const SizedBox(height: 16),
+
+                      // --- FULL NAME & BASIC INFO ---
+                      Text(
+                        profile.fullName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          letterSpacing: 0.5,
+                          color: textPrimary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+
+                      Text(
+                        [
+                          profile.gender,
+                          if (profile.ageAt(DateTime.now()) != null)
+                            "${profile.ageAt(DateTime.now())} anni",
+                        ].join("  •  "),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14,
+                          color: textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Affidabilità, presenze e assenze tornano con dati veri
+                      // nel Blocco B.2c.
+                      const SizedBox(height: 8),
+
+                      // --- GALLERIA FOTO PROFILO (bucket privato, RLS 0008) ---
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: ProfileGallerySection(profileId: profile.id),
+                      ),
+
+                      const Spacer(),
+
+                      // --- PRIVACY SHIELD FOOTER CARD ---
+                      Card(
+                        color: slateSurface,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Icon(Icons.lock, color: premiumGold, size: 24),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Privacy attiva",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: textPrimary),
+                                    ),
+                                    Text(
+                                      "La tua vera foto, l'età e le statistiche sono visibili solo ai locali verificati quando richiedi la partecipazione.",
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: textSecondary,
+                                          height: 1.35),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // --- UTENTI BLOCCATI ---
+                      ValueListenableBuilder<List<SupabaseProfile>>(
+                        valueListenable:
+                            EcoraDataService.instance.blockedNotifier,
+                        builder: (context, blocked, _) {
+                          return Card(
+                            color: slateSurface,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            child: ListTile(
+                              leading:
+                                  const Icon(Icons.block, color: textSecondary),
+                              title: Text(
+                                "Utenti bloccati (${blocked.length})",
+                                style: const TextStyle(
+                                    color: textPrimary, fontSize: 13),
+                              ),
+                              trailing: const Icon(Icons.chevron_right,
+                                  color: textSecondary),
+                              onTap: () => _showBlockedUsersSheet(context),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // --- DEED LOGOUT BUTTON ACTION ---
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF424242)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24)),
+                          ),
+                          onPressed: onLogout,
+                          child: Text(
+                            "ESCI DALL'ACCOUNT",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              letterSpacing: 1.0,
+                              color: Colors.red.withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-
-              // --- UTENTI BLOCCATI ---
-              ValueListenableBuilder<List<SupabaseProfile>>(
-                valueListenable: EcoraDataService.instance.blockedNotifier,
-                builder: (context, blocked, _) {
-                  return Card(
-                    color: slateSurface,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    child: ListTile(
-                      leading:
-                          const Icon(Icons.block, color: textSecondary),
-                      title: Text(
-                        "Utenti bloccati (${blocked.length})",
-                        style: const TextStyle(
-                            color: textPrimary, fontSize: 13),
-                      ),
-                      trailing: const Icon(Icons.chevron_right,
-                          color: textSecondary),
-                      onTap: () => _showBlockedUsersSheet(context),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // --- DEED LOGOUT BUTTON ACTION ---
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF424242)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                  ),
-                  onPressed: onLogout,
-                  child: Text(
-                    "ESCI DALL'ACCOUNT",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      letterSpacing: 1.0,
-                      color: Colors.red.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
+            ),
           ),
         ),
       ),
@@ -289,10 +313,9 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     _profileType = _profileTypes.contains(widget.profile.profileType)
         ? widget.profile.profileType
         : null;
-    _privacyLevel =
-        _privacyOptions.containsValue(widget.profile.privacyLevel)
-            ? widget.profile.privacyLevel
-            : null;
+    _privacyLevel = _privacyOptions.containsValue(widget.profile.privacyLevel)
+        ? widget.profile.privacyLevel
+        : null;
   }
 
   @override
@@ -387,8 +410,8 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             style: const TextStyle(color: textPrimary, fontSize: 13),
             decoration: _fieldDecoration("Livello di privacy"),
             items: _privacyOptions.entries
-                .map((e) =>
-                    DropdownMenuItem(value: e.value, child: Text(e.key)))
+                .map(
+                    (e) => DropdownMenuItem(value: e.value, child: Text(e.key)))
                 .toList(),
             onChanged: (v) => setState(() => _privacyLevel = v),
           ),
@@ -529,12 +552,19 @@ class StatMetricField extends StatelessWidget {
           children: [
             Text(
               value,
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: indicatorColor),
+              style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 24,
+                  color: indicatorColor),
             ),
             const SizedBox(height: 4),
             Text(
               label.toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12, letterSpacing: 0.5, color: textSecondary),
+              style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                  letterSpacing: 0.5,
+                  color: textSecondary),
             ),
           ],
         ),
@@ -552,7 +582,8 @@ class _InitialAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trimmed = name.trim();
-    final initial = trimmed.isEmpty ? '' : trimmed.substring(0, 1).toUpperCase();
+    final initial =
+        trimmed.isEmpty ? '' : trimmed.substring(0, 1).toUpperCase();
     return Stack(
       fit: StackFit.expand,
       children: [

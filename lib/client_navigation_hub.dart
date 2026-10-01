@@ -895,9 +895,11 @@ class EventFeedCard extends StatelessWidget {
                     children: [
                       Icon(Icons.location_on, color: premiumGold, size: 14),
                       SizedBox(width: 4),
-                      Text(
-                        "Zona Colline del Sud, Firenze (Solo Approvati)",
-                        style: TextStyle(fontSize: 12, color: textSecondary),
+                      Expanded(
+                        child: Text(
+                          "Zona Colline del Sud, Firenze (Solo Approvati)",
+                          style: TextStyle(fontSize: 12, color: textSecondary),
+                        ),
                       ),
                     ],
                   ),
@@ -916,17 +918,23 @@ class EventFeedCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        "${event.currentApprovedCount} di ${event.maxParticipants} ospiti confermati",
-                        style: const TextStyle(
-                            fontSize: 12,
-                            color: premiumGold,
-                            fontWeight: FontWeight.w600),
+                      Flexible(
+                        child: Text(
+                          "${event.currentApprovedCount} di ${event.maxParticipants} ospiti confermati",
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: premiumGold,
+                              fontWeight: FontWeight.w600),
+                        ),
                       ),
-                      Text(
-                        "${(event.tableCompletionPercentage * 100).toInt()}% dei posti occupati",
-                        style:
-                            const TextStyle(fontSize: 12, color: textSecondary),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          "${(event.tableCompletionPercentage * 100).toInt()}% dei posti occupati",
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                              fontSize: 12, color: textSecondary),
+                        ),
                       )
                     ],
                   ),
