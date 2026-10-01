@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'motion.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 class EventDetailsPage extends StatefulWidget {
   final SupabaseEvent event;
@@ -169,15 +170,18 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                       // --- TOP HERO COVER PHOTO WITH OVERLAYS ---
                       Stack(
                         children: [
-                          Image.network(
-                            widget.event.imageUrl,
-                            width: double.infinity,
-                            height: 240,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, _, __) => Container(
-                              color: Colors.grey,
+                          EcoraHero(
+                            tag: eventCoverHeroTag(widget.event.id),
+                            child: Image.network(
+                              widget.event.imageUrl,
                               width: double.infinity,
                               height: 240,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, _, __) => Container(
+                                color: Colors.grey,
+                                width: double.infinity,
+                                height: 240,
+                              ),
                             ),
                           ),
                           // Premium dark shader gradient

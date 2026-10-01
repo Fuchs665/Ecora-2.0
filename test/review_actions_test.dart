@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ecora/gestore_dashboard.dart';
@@ -144,5 +145,76 @@ void main() {
     h.result.complete(null);
     await tester.pumpAndSettle();
     expect(h.done, [ReviewDecision.block]);
+  });
+
+  group('haptic', () {
+    final calls = <String>[];
+
+    setUp(() {
+      calls.clear();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'HapticFeedback.vibrate') {
+          calls.add(call.arguments as String);
+        }
+        return null;
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null);
+    });
+
+    testWidgets('vibra leggero su approva riuscita, dopo il risultato',
+        (tester) async {
+      final h = _Harness();
+      await h.open(tester);
+
+      await tester.tap(_approve);
+      await tester.pump();
+      expect(calls, isEmpty);
+
+      h.result.complete(null);
+      await tester.pumpAndSettle();
+      expect(calls, ['HapticFeedbackType.lightImpact']);
+      expect(h.done, [ReviewDecision.approve]);
+    });
+
+    testWidgets('vibra su rifiuta riuscita', (tester) async {
+      final h = _Harness();
+      await h.open(tester);
+
+      await tester.tap(_text('RIFIUTA'));
+      await tester.pump();
+      h.result.complete(null);
+      await tester.pumpAndSettle();
+      expect(calls, ['HapticFeedbackType.lightImpact']);
+    });
+
+    testWidgets('non vibra se il salvataggio fallisce', (tester) async {
+      final h = _Harness();
+      await h.open(tester);
+
+      await tester.tap(_approve);
+      await tester.pump();
+      h.result.complete('Operazione non riuscita. Riprova.');
+      await tester.pumpAndSettle();
+      expect(calls, isEmpty);
+      expect(h.done, isEmpty);
+      expect(find.text('Scheda candidato'), findsOneWidget);
+    });
+
+    testWidgets('non vibra sul blocco', (tester) async {
+      final h = _Harness();
+      await h.open(tester);
+
+      await tester.tap(_text('BLOCCA UTENTE'));
+      await tester.pump();
+      h.result.complete(null);
+      await tester.pumpAndSettle();
+      expect(calls, isEmpty);
+      expect(h.done, [ReviewDecision.block]);
+    });
   });
 }

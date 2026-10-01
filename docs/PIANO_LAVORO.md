@@ -23,7 +23,8 @@
 | C.3 · Vocabolario unificato | ✅ fatto | Serate, ospite, il locale; nav gestore: Serate, Richieste, Crea, Chat, Profilo, con etichette visibili anche nella nav cliente. `test/vocabulary_test.dart` vieta le parole di prima. Restano "coppie" (D.2) e le stringhe di `main.dart` (accesso, registrazione, consenso), da rivedere con auth. |
 | C.4 · Navigazione gestore senza FAB | ✅ fatto | Nav a 4 voci (Serate, Richieste, Chat, Profilo) estratta in `GestoreBottomNav`, senza item invisibile, cerotto sull'indice né FAB. "CREA SERATA" è un pulsante pieno in cima alla dashboard, con lo stesso gate d'abbonamento. `test/gestore_nav_test.dart`. |
 | C.5 · Card delle serate | ✅ fatto | Card "Prossima serata" (copertina con sfondo Luce di riserva, posti, richieste da valutare con "Valuta" che porta alle Richieste, al posto del banner rosso) e lista "In programma" con tassello della data (`lib/gestore_events.dart`). Le serate già iniziate non compaiono: le gestisce "Da chiudere". **Fuori, in attesa dei dati:** posti divisi in coppie/donne/uomini e pulsante "Porta". Resta il fatto che la copertina Luce è solo uno sfondo di riserva: non c'è ancora il generatore. |
-| D.1 → E.4 | ⬜ da fare | |
+| D.1 · Movimento | ✅ fatto | `lib/motion.dart`: `FadeIndexedStack` (dissolvenza sul tab nuovo, i tab del gestore restano montati e conservano lo stato), `AnimatedSwitcher` tra i tab del cliente, `EcoraHero` sulle copertine (`NextEventCard`, `EventFeedCard`, miniatura della mappa verso `EventDetailsPage`; tag `eventCoverHeroTag`), `AnimatedContainer`/`AnimatedSwitcher` sulle card delle serate quando cambiano le richieste, `HapticFeedback.lightImpact()` su approva/rifiuta solo a salvataggio riuscito (B.4 invariato). Tutto spento con "rimuovi animazioni" (`AnimatedSize` con durata zero lancia un'eccezione di layout, quindi `EcoraAnimatedSize` lo salta). `test/motion_test.dart`, `test/review_actions_test.dart`. |
+| D.2 → E.4 | ⬜ da fare | |
 
 ---
 

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'motion.dart';
 import 'chat_screen.dart';
 import 'event_details_page.dart';
 import 'user_profile_page.dart';
@@ -48,7 +49,13 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
     ];
 
     return Scaffold(
-      body: pages[_currentIndex],
+      body: AnimatedSwitcher(
+        duration: motionDuration(context, EcoraMotion.base),
+        child: KeyedSubtree(
+          key: ValueKey(_currentIndex),
+          child: pages[_currentIndex],
+        ),
+      ),
       bottomNavigationBar: Container(
         height: 76,
         decoration: BoxDecoration(
@@ -558,18 +565,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                 ClipRRect(
                                                   borderRadius:
                                                       BorderRadius.circular(8),
-                                                  child: Image.network(
-                                                    _selectedPointEvent!
-                                                        .imageUrl,
-                                                    width: 64,
-                                                    height: 64,
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder:
-                                                        (context, _, __) =>
-                                                            Container(
-                                                      color: Colors.grey,
+                                                  child: EcoraHero(
+                                                    tag: eventCoverHeroTag(
+                                                        _selectedPointEvent!
+                                                            .id),
+                                                    child: Image.network(
+                                                      _selectedPointEvent!
+                                                          .imageUrl,
                                                       width: 64,
                                                       height: 64,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder:
+                                                          (context, _, __) =>
+                                                              Container(
+                                                        color: Colors.grey,
+                                                        width: 64,
+                                                        height: 64,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
@@ -781,15 +793,18 @@ class EventFeedCard extends StatelessWidget {
                   borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24)),
-                  child: Image.network(
-                    event.imageUrl,
-                    width: double.infinity,
-                    height: 180,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, _, __) => Container(
-                      color: Colors.grey,
+                  child: EcoraHero(
+                    tag: eventCoverHeroTag(event.id),
+                    child: Image.network(
+                      event.imageUrl,
                       width: double.infinity,
                       height: 180,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, _, __) => Container(
+                        color: Colors.grey,
+                        width: double.infinity,
+                        height: 180,
+                      ),
                     ),
                   ),
                 ),

@@ -1,5 +1,5 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'main.dart';
 import 'attendance.dart';
@@ -7,6 +7,7 @@ import 'client_navigation_hub.dart' show ChatRoomCard;
 import 'dashboard_skeleton.dart';
 import 'gestore_events.dart';
 import 'gestore_metrics.dart';
+import 'motion.dart';
 import 'profile_gallery.dart';
 import 'subscription_panel.dart';
 import 'subscription_service.dart';
@@ -137,7 +138,7 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
                     });
                   },
                 )
-              : IndexedStack(
+              : FadeIndexedStack(
                   index: _selectedTab,
                   children: subScreens,
                 ),
@@ -869,6 +870,8 @@ class _ReviewActionsState extends State<ReviewActions> {
     if (!mounted) return;
     if (error == null) {
       // _running resta impostato: i pulsanti restano spenti fino alla chiusura.
+      // Haptic solo a salvataggio riuscito, mai prima del risultato.
+      if (decision != ReviewDecision.block) HapticFeedback.lightImpact();
       widget.onDone(decision);
       return;
     }

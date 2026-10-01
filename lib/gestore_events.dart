@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'italian_dates.dart';
 import 'models.dart';
+import 'motion.dart';
 import 'theme.dart';
 
 // Card delle serate della dashboard gestore (Blocco C.5, tavola "Serate").
@@ -92,11 +93,20 @@ class NextEventCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  const _LuceBackdrop(),
-                  Image.network(
-                    event.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, _, __) => const SizedBox.shrink(),
+                  EcoraHero(
+                    tag: eventCoverHeroTag(event.id),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        const _LuceBackdrop(),
+                        Image.network(
+                          event.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, _, __) =>
+                              const SizedBox.shrink(),
+                        ),
+                      ],
+                    ),
                   ),
                   const DecoratedBox(
                     decoration: BoxDecoration(color: EcoraColors.coverScrim),
@@ -135,22 +145,30 @@ class NextEventCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(_confirmedLabel(event), style: textTheme.bodyMedium),
-                      if (pendingCount > 0)
-                        Text(
-                          pendingCount == 1
-                              ? "1 richiesta da valutare"
-                              : "$pendingCount richieste da valutare",
-                          style: textTheme.bodySmall
-                              ?.copyWith(color: EcoraColors.warning),
-                        ),
+                      EcoraAnimatedSize(
+                        child: pendingCount > 0
+                            ? Text(
+                                pendingCount == 1
+                                    ? "1 richiesta da valutare"
+                                    : "$pendingCount richieste da valutare",
+                                style: textTheme.bodySmall
+                                    ?.copyWith(color: EcoraColors.warning),
+                              )
+                            : const SizedBox(width: double.infinity),
+                      ),
                     ],
                   ),
                 ),
-                if (pendingCount > 0)
-                  FilledButton(
-                    onPressed: onEvaluate,
-                    child: const Text("Valuta"),
-                  ),
+                AnimatedSwitcher(
+                  duration: motionDuration(context, EcoraMotion.base),
+                  child: pendingCount > 0
+                      ? FilledButton(
+                          key: const ValueKey('valuta'),
+                          onPressed: onEvaluate,
+                          child: const Text("Valuta"),
+                        )
+                      : const SizedBox.shrink(key: ValueKey('no-valuta')),
+                ),
               ],
             ),
           ),
@@ -185,11 +203,16 @@ class UpcomingEventTile extends StatelessWidget {
           padding: const EdgeInsets.all(EcoraSpace.s12),
           child: Row(
             children: [
-              Container(
+              AnimatedContainer(
+                duration: motionDuration(context, EcoraMotion.base),
+                curve: EcoraMotion.enterCurve,
                 width: 56,
                 padding: const EdgeInsets.symmetric(vertical: EcoraSpace.s8),
                 decoration: BoxDecoration(
-                  border: Border.all(color: EcoraColors.lineControl),
+                  border: Border.all(
+                      color: pendingCount > 0
+                          ? EcoraColors.brass
+                          : EcoraColors.lineControl),
                   borderRadius: BorderRadius.circular(EcoraRadius.control),
                 ),
                 child: Column(
