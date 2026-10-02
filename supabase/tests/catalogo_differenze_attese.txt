@@ -6,4 +6,11 @@
 # 1) Il bucket event_images esiste in produzione (creato dalla dashboard;
 #    la 0004 lo dava per assente; l'app usa event_covers) e nessuna
 #    migrazione lo crea.
+# 2) La migrazione 0017 (ruolo e verifica protetti anche su INSERT) non è
+#    ancora applicata in produzione. Quando lo sarà, rigenerare
+#    catalogo_produzione.txt e togliere queste righe.
 solo produzione: bucket event_images public=f limite=- mime=-
+solo produzione: funzione proteggi_ruolo_profilo() -> trigger secdef=t vol=v lang=plpgsql config=- acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=b65c2ced3951d086f5558244d5bcfdb2
+solo produzione: trigger profiles.trigger_proteggi_profilo CREATE TRIGGER trigger_proteggi_profilo BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION proteggi_ruolo_profilo()
+solo staging: funzione proteggi_ruolo_profilo() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=9c72186b1ad763d2179ce88f1b96d562
+solo staging: trigger profiles.trigger_proteggi_profilo CREATE TRIGGER trigger_proteggi_profilo BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION proteggi_ruolo_profilo()

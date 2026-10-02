@@ -43,7 +43,9 @@
 -- Edge Function push (INSERT su event_requests, UPDATE su events). Gli
 -- argomenti contengono un segreto: non vanno mai copiati qui.
 --
--- Idempotente: rieseguirlo sopra la catena non cambia nulla.
+-- Idempotente e mai distruttivo: ogni oggetto si crea solo se manca, così
+-- rieseguirlo sopra la catena non riporta indietro ciò che le migrazioni
+-- successive hanno cambiato (es. proteggi_ruolo_profilo, 0017).
 -- ============================================================================
 
 -- 1) TABELLE --------------------------------------------------------------------
@@ -98,7 +100,11 @@ alter table public.messages enable row level security;
 
 -- 2) FUNZIONI (testo identico alla produzione) -----------------------------------
 -- Usata dalle policy di messages ed event_requests (0001, 0006).
-create or replace function public.is_approved_for_event(target_event_id uuid)
+do $do$
+begin
+  if to_regprocedure('public.is_approved_for_event(uuid)') is null then
+    execute $fn$
+create function public.is_approved_for_event(target_event_id uuid)
 returns boolean
 language sql
 security definer
@@ -109,11 +115,19 @@ as $$
     and user_id = auth.uid()
     and status = 'approved'
   );
-$$;
+$$
+$fn$;
+  end if;
+end
+$do$;
 
--- Ruolo e verifica si cambiano solo da service_role. Scatta solo su
--- UPDATE, non su INSERT (differenza annotata in docs/PIANO_LAVORO.md).
-create or replace function public.proteggi_ruolo_profilo()
+-- Ruolo e verifica si cambiano solo da service_role. Qui la versione
+-- creata dalla dashboard, solo per UPDATE; la 0017 la estende a INSERT.
+do $do$
+begin
+  if to_regprocedure('public.proteggi_ruolo_profilo()') is null then
+    execute $fn$
+create function public.proteggi_ruolo_profilo()
 returns trigger
 language plpgsql
 security definer
@@ -129,15 +143,31 @@ BEGIN
     END IF;
     RETURN NEW;
 END;
-$$;
+$$
+$fn$;
+  end if;
+end
+$do$;
 
--- La 0003 lo disattiva e riattiva per nome.
-create or replace trigger trigger_proteggi_profilo
-  before update on public.profiles
-  for each row execute function public.proteggi_ruolo_profilo();
+-- La 0003 lo disattiva e riattiva per nome; la 0017 lo estende a INSERT.
+do $do$
+begin
+  if not exists (select 1 from pg_trigger
+                 where tgrelid = 'public.profiles'::regclass
+                   and tgname = 'trigger_proteggi_profilo') then
+    create trigger trigger_proteggi_profilo
+      before update on public.profiles
+      for each row execute function public.proteggi_ruolo_profilo();
+  end if;
+end
+$do$;
 
 -- Non usata dall'app.
-create or replace function public.get_events_within_radius(
+do $do$
+begin
+  if to_regprocedure('public.get_events_within_radius(double precision, double precision, double precision)') is null then
+    execute $fn$
+create function public.get_events_within_radius(
   user_lat double precision,
   user_lon double precision,
   max_distance_km double precision
@@ -154,11 +184,19 @@ as $$
       sin(radians(user_lat)) * sin(radians(latitude))
     )
   ) <= max_distance_km;
-$$;
+$$
+$fn$;
+  end if;
+end
+$do$;
 
 -- RLS attivata da sola su ogni tabella nuova di public (opzione del
 -- progetto Supabase). Le migrazioni la attivano comunque in modo esplicito.
-create or replace function public.rls_auto_enable()
+do $do$
+begin
+  if to_regprocedure('public.rls_auto_enable()') is null then
+    execute $fn$
+create function public.rls_auto_enable()
 returns event_trigger
 language plpgsql
 security definer
@@ -186,7 +224,11 @@ BEGIN
      END IF;
   END LOOP;
 END;
-$$;
+$$
+$fn$;
+  end if;
+end
+$do$;
 
 do $$
 begin
@@ -198,8 +240,15 @@ begin
 end $$;
 
 -- 3) POLICY sopravvissute (nessuna migrazione le crea o le cancella) -------------
-drop policy if exists "Consenti aggiornamento solo al proprietario" on public.profiles;
-create policy "Consenti aggiornamento solo al proprietario" on public.profiles
-  for update to authenticated
-  using (auth.uid() = id)
-  with check (auth.uid() = id);
+do $do$
+begin
+  if not exists (select 1 from pg_policies
+                 where schemaname = 'public' and tablename = 'profiles'
+                   and policyname = 'Consenti aggiornamento solo al proprietario') then
+    create policy "Consenti aggiornamento solo al proprietario" on public.profiles
+      for update to authenticated
+      using (auth.uid() = id)
+      with check (auth.uid() = id);
+  end if;
+end
+$do$;
