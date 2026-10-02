@@ -6,13 +6,16 @@
 /// consenso (age_confirmed_at/terms_accepted_at) sono esclusi di proposito.
 const String kProfileSelectColumns =
     'id, role, nickname, avatar_url, generic_location, is_verified, '
-    'created_at, profile_type, privacy_level';
+    'created_at, profile_type, privacy_level, birth_year';
 
 class SupabaseProfile {
   final String id;
   final String fullName;
   final String role; // 'cliente' or 'gestore'
-  final int age;
+
+  /// Anno di nascita (migrazione 0015). Null finché l'utente non lo
+  /// inserisce; per le coppie è quello del più giovane.
+  final int? birthYear;
   final String gender; // 'Uomo', 'Donna', 'Coppia'
   final int noShows;
   final int participationsCount;
@@ -24,7 +27,7 @@ class SupabaseProfile {
     required this.id,
     required this.fullName,
     required this.role,
-    required this.age,
+    this.birthYear,
     required this.gender,
     this.noShows = 0,
     this.participationsCount = 0,
@@ -37,7 +40,7 @@ class SupabaseProfile {
     String? id,
     String? fullName,
     String? role,
-    int? age,
+    int? birthYear,
     String? gender,
     int? noShows,
     int? participationsCount,
@@ -49,7 +52,7 @@ class SupabaseProfile {
       id: id ?? this.id,
       fullName: fullName ?? this.fullName,
       role: role ?? this.role,
-      age: age ?? this.age,
+      birthYear: birthYear ?? this.birthYear,
       gender: gender ?? this.gender,
       noShows: noShows ?? this.noShows,
       participationsCount: participationsCount ?? this.participationsCount,
@@ -59,9 +62,15 @@ class SupabaseProfile {
     );
   }
 
+  /// Età in anni compiuti o da compiere quest'anno: con il solo anno di
+  /// nascita può superare quella reale di uno. Null se l'anno manca.
+  int? ageAt(DateTime now) {
+    final year = birthYear;
+    return year == null ? null : now.year - year;
+  }
+
   /// Maps a row from the real `profiles` table.
-  /// age/gender are not stored in the DB yet: gender is derived from
-  /// profile_type, age uses a neutral placeholder.
+  /// gender is not stored in the DB: it is derived from profile_type.
   factory SupabaseProfile.fromRow(Map<String, dynamic> row) {
     final String? profileType = row['profile_type']?.toString();
     final String gender;
@@ -78,7 +87,7 @@ class SupabaseProfile {
       id: row['id']?.toString() ?? '',
       fullName: row['nickname']?.toString() ?? 'Utente Anonimo',
       role: row['role']?.toString() ?? 'cliente',
-      age: 30,
+      birthYear: (row['birth_year'] as num?)?.toInt(),
       gender: gender,
       profileType: profileType,
       privacyLevel: row['privacy_level']?.toString(),
@@ -127,13 +136,12 @@ class SupabaseEvent {
       organizerId: json['host_id']?.toString() ?? '',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 43.7695,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 11.2558,
-      imageUrl: json['image_url']?.toString() ??
-          "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=600",
+      imageUrl: json['image_url']?.toString() ?? '',
       eventDate:
           json['event_date']?.toString() ?? DateTime.now().toIso8601String(),
       maxParticipants: (json['max_guests'] as num?)?.toInt() ?? 0,
       currentApprovedCount: (json['approved_count'] as num?)?.toInt() ?? 0,
-      locationName: json['location_name']?.toString() ?? 'Località riservata',
+      locationName: json['location_name']?.toString() ?? 'Indirizzo nascosto',
     );
   }
 
@@ -172,11 +180,15 @@ class SupabaseParticipationRequest {
   final String eventId;
   final String status; // 'pending', 'approved', 'rejected'
 
+  /// Momento dell'invio, in ora locale. Null se assente o illeggibile.
+  final DateTime? createdAt;
+
   SupabaseParticipationRequest({
     required this.id,
     required this.userId,
     required this.eventId,
     required this.status,
+    this.createdAt,
   });
 
   SupabaseParticipationRequest copyWith({
@@ -184,12 +196,14 @@ class SupabaseParticipationRequest {
     String? userId,
     String? eventId,
     String? status,
+    DateTime? createdAt,
   }) {
     return SupabaseParticipationRequest(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       eventId: eventId ?? this.eventId,
       status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -200,6 +214,8 @@ class SupabaseParticipationRequest {
       userId: row['user_id']?.toString() ?? '',
       eventId: row['event_id']?.toString() ?? '',
       status: row['status']?.toString() ?? 'pending',
+      createdAt:
+          DateTime.tryParse(row['created_at']?.toString() ?? '')?.toLocal(),
     );
   }
 }
@@ -258,4 +274,23 @@ class NotificationItem {
     required this.timestamp,
     this.read = false,
   });
+}
+
+/// Presenze e assenze di un ospite su tutti i locali (Blocco B.2c), da
+/// `get_guest_reliability()` della migrazione 0015.
+class GuestReliability {
+  final int attended;
+  final int noShows;
+
+  const GuestReliability({required this.attended, required this.noShows});
+
+  /// Nessuna serata con presenza segnata: niente da dire, né bene né male.
+  bool get hasHistory => attended + noShows > 0;
+
+  factory GuestReliability.fromRow(Map<String, dynamic> row) {
+    return GuestReliability(
+      attended: (row['attended'] as num?)?.toInt() ?? 0,
+      noShows: (row['no_shows'] as num?)?.toInt() ?? 0,
+    );
+  }
 }

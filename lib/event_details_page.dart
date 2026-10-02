@@ -1,6 +1,8 @@
+import 'cover_placeholder.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'motion.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 class EventDetailsPage extends StatefulWidget {
   final SupabaseEvent event;
@@ -88,7 +90,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         title: const Text("Bloccare l'organizzatore?",
             style: TextStyle(color: textPrimary, fontSize: 15)),
         content: const Text(
-          "Non vedrai più i suoi eventi e lui non vedrà più le tue richieste. "
+          "Non vedrai più i sue serate e lui non vedrà più le tue richieste. "
           "Potrai sempre sbloccarlo dal tuo profilo.",
           style: TextStyle(color: textSecondary, fontSize: 13),
         ),
@@ -126,7 +128,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Dettagli Evento",
+          "Dettagli serata",
           style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5, fontSize: 16),
         ),
         leading: IconButton(
@@ -169,13 +171,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                       // --- TOP HERO COVER PHOTO WITH OVERLAYS ---
                       Stack(
                         children: [
-                          Image.network(
-                            widget.event.imageUrl,
-                            width: double.infinity,
-                            height: 240,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, _, __) => Container(
-                              color: Colors.grey,
+                          EcoraHero(
+                            tag: eventCoverHeroTag(widget.event.id),
+                            child: EcoraNetworkImage(
+                              url: widget.event.imageUrl,
                               width: double.infinity,
                               height: 240,
                             ),
@@ -203,10 +202,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                "${(widget.event.tableCompletionPercentage * 100).toInt()}% RISERVATO",
+                                "${(widget.event.tableCompletionPercentage * 100).toInt()}% DEI POSTI OCCUPATI",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 10,
+                                  fontSize: 12,
                                   color: matteDark,
                                   letterSpacing: 1.0,
                                 ),
@@ -252,7 +251,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                 const Icon(Icons.people, color: textSecondary, size: 16),
                                 const SizedBox(width: 8),
                                 Text(
-                                  "Limite tavolo: massimo ${widget.event.maxParticipants} coppie (${widget.event.currentApprovedCount} confermate)",
+                                  "Massimo ${widget.event.maxParticipants} ospiti · ${widget.event.currentApprovedCount} confermate",
                                   style: const TextStyle(fontSize: 13, color: textSecondary),
                                 ),
                               ],
@@ -260,7 +259,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             const SizedBox(height: 20),
 
                             const Text(
-                              "IL CONCEPT",
+                              "DESCRIZIONE",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
@@ -277,7 +276,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
 
                             // --- SHIELD DISCREET LOCATION VIEW COMPONENT ---
                             const Text(
-                              "LOCALIZZAZIONE RISERVATA",
+                              "DOVE",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
@@ -349,7 +348,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                               Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  const Text("Coordinate Precise", style: TextStyle(fontSize: 10, color: textSecondary)),
+                                                  const Text("Coordinate Precise", style: TextStyle(fontSize: 12, color: textSecondary)),
                                                   Text(
                                                     "Lat: ${widget.event.latitude.toStringAsFixed(5)} / Lng: ${widget.event.longitude.toStringAsFixed(5)}",
                                                     style: const TextStyle(fontSize: 12, color: premiumGold, fontWeight: FontWeight.bold),
@@ -390,7 +389,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                                   Icon(Icons.lock, color: premiumGold, size: 36),
                                                   SizedBox(height: 12),
                                                   Text(
-                                                    "Indirizzo sbloccato dopo l'approvazione del Club",
+                                                    "Indirizzo sbloccato dopo l'approvazione del gestore",
                                                     style: TextStyle(
                                                       color: premiumGold,
                                                       fontWeight: FontWeight.w900,
@@ -438,7 +437,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                               Icon(Icons.key, color: matteDark, size: 18),
                               SizedBox(width: 8),
                               Text(
-                                "RICHIEDI INVITO PRIVATO",
+                                "CHIEDI DI PARTECIPARE",
                                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.0),
                               ),
                             ],
@@ -456,7 +455,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           ),
-                          onPressed: null, // Disabled awaiting screening
+                          onPressed: null, // Disabled awaiting approval
                           child: const Text(
                             "IN ATTESA DI APPROVAZIONE",
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),

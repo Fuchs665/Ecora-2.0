@@ -1,6 +1,10 @@
+import 'account_deletion.dart';
+import 'cover_placeholder.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'main.dart';
 import 'profile_gallery.dart';
+import 'subscription_service.dart';
 
 class UserProfilePage extends StatelessWidget {
   final SupabaseProfile profile;
@@ -11,16 +15,6 @@ class UserProfilePage extends StatelessWidget {
     required this.profile,
     required this.onLogout,
   }) : super(key: key);
-
-  String _getProfileAvatarUrl() {
-    if (profile.gender == "Coppia") {
-      return "https://images.unsplash.com/photo-1516575307900-510b501c3bf4?auto=format&fit=crop&q=80&w=300";
-    } else if (profile.gender == "Donna") {
-      return "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=300";
-    } else {
-      return "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300";
-    }
-  }
 
   void _showEditSheet(BuildContext context) {
     showModalBottomSheet(
@@ -50,263 +44,282 @@ class UserProfilePage extends StatelessWidget {
     );
   }
 
+  /// Eliminazione account (Blocco E.1b). Il foglio chiama il server; solo a
+  /// eliminazione riuscita si chiude e si esce, come un logout.
+  void _showDeleteAccountSheet(BuildContext context) {
+    final warnings = DeletionWarnings.compute(
+      profile: profile,
+      events: EcoraDataService.instance.eventsNotifier.value,
+      subscription: EcoraSubscriptionService.instance.statusNotifier.value,
+      now: DateTime.now(),
+    );
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      enableDrag: false,
+      backgroundColor: slateSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => DeleteAccountSheet(
+        warnings: warnings,
+        onDelete: EcoraDataService.instance.requestAccountDeletion,
+        onDeleted: () async {
+          await EcoraDataService.instance.logout();
+          ecoraMessengerKey.currentState?.showSnackBar(
+              const SnackBar(content: Text(kDeleteAccountDone)));
+        },
+        onOpenGooglePlay: () => launchUrl(Uri.parse(kPlaySubscriptionsUrl),
+            mode: LaunchMode.externalApplication),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final bool highTrustEarned = profile.noShows == 0;
-
     return Scaffold(
       backgroundColor: matteDark,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 10),
-
-              // --- DISCREET BRAND HEADER + EDIT ACTION ---
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Text(
-                    "E C O R A",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 13,
-                      letterSpacing: 6.0,
-                      color: premiumGold,
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      icon: const Icon(Icons.edit_outlined,
-                          color: premiumGold, size: 20),
-                      tooltip: "Modifica profilo",
-                      onPressed: () => _showEditSheet(context),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // --- PROFILE PICTURE ARCHITECTURE WITH GOLD CARD METALLIC HALO ---
-              SizedBox(
-                width: 136,
-                height: 136,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Glow outer background halo
-                    Container(
-                      width: 126,
-                      height: 126,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: premiumGold.withValues(alpha: 0.15),
-                            blurRadius: 16,
-                            spreadRadius: 4,
-                          )
-                        ],
-                        gradient: RadialGradient(
-                          colors: [premiumGold.withValues(alpha: 0.25), Colors.transparent],
-                        ),
-                      ),
-                    ),
-
-                    // Outer gold ring
-                    Container(
-                      width: 114,
-                      height: 114,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: premiumGold, width: 2),
-                      ),
-                      padding: const EdgeInsets.all(4),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(60),
-                        child: Container(
-                          color: slateSurface,
-                          child: Image.network(
-                            _getProfileAvatarUrl(),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, _, __) => const Icon(Icons.person, color: premiumGold, size: 40),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // --- FULL NAME & BASIC INFO ---
-              Text(
-                profile.fullName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                  letterSpacing: 0.5,
-                  color: textPrimary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-
-              Text(
-                "${profile.gender}  •  ${profile.age} anni",
-                style: const TextStyle(
-                  fontWeight: FontWeight.normal,
-                  fontSize: 14,
-                  color: textSecondary,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // --- HIGH TRUST BADGE ---
-              if (highTrustEarned) ...[
-                Card(
-                  color: premiumGold.withValues(alpha: 0.1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(color: premiumGold.withValues(alpha: 0.5), width: 1),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.diamond, color: premiumGold, size: 16),
-                        SizedBox(width: 8),
-                        Text(
-                          "ACCOUNT AD ALTA AFFIDABILITÀ",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                            letterSpacing: 1.5,
-                            color: premiumGold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 20),
-
-              // --- STATISTICS METRIC ROW ---
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  StatMetricField(
-                    label: "Presenze",
-                    value: "${profile.participationsCount}",
-                    indicatorColor: premiumGold,
-                  ),
-                  StatMetricField(
-                    label: "No-Show",
-                    value: "${profile.noShows}",
-                    indicatorColor: profile.noShows > 2 ? Colors.red : textSecondary,
-                  ),
-                  StatMetricField(
-                    label: "Organizzati",
-                    value: profile.role == "gestore" ? "45" : "0",
-                    indicatorColor: premiumGold,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // --- GALLERIA FOTO PROFILO (bucket privato, RLS 0008) ---
-              Align(
-                alignment: Alignment.centerLeft,
-                child: ProfileGallerySection(profileId: profile.id),
-              ),
-
-              const Spacer(),
-
-              // --- PRIVACY SHIELD FOOTER CARD ---
-              Card(
-                color: slateSurface,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Row(
+        // Scorre se lo schermo è basso o il testo è ingrandito; altrimenti il
+        // pulsante di uscita resta ancorato in fondo (Spacer).
+        child: LayoutBuilder(
+          builder: (context, box) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: box.maxHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(Icons.lock, color: premiumGold, size: 24),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Scudo Privacy Attivo",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: textPrimary),
+                      const SizedBox(height: 10),
+
+                      // --- DISCREET BRAND HEADER + EDIT ACTION ---
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Text(
+                            "E C O R A",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                              letterSpacing: 6.0,
+                              color: premiumGold,
                             ),
-                            Text(
-                              "La tua vera foto, l'età e le statistiche sono visibili solo ai club verificati quando richiedi la partecipazione.",
-                              style: TextStyle(fontSize: 11, color: textSecondary, height: 1.35),
-                            )
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              icon: const Icon(Icons.edit_outlined,
+                                  color: premiumGold, size: 20),
+                              tooltip: "Modifica profilo",
+                              onPressed: () => _showEditSheet(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // --- PROFILE PICTURE ARCHITECTURE WITH GOLD CARD METALLIC HALO ---
+                      SizedBox(
+                        width: 136,
+                        height: 136,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Glow outer background halo
+                            Container(
+                              width: 126,
+                              height: 126,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: premiumGold.withValues(alpha: 0.15),
+                                    blurRadius: 16,
+                                    spreadRadius: 4,
+                                  )
+                                ],
+                                gradient: RadialGradient(
+                                  colors: [
+                                    premiumGold.withValues(alpha: 0.25),
+                                    Colors.transparent
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            // Outer gold ring
+                            Container(
+                              width: 114,
+                              height: 114,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: premiumGold, width: 2),
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(60),
+                                child: _InitialAvatar(name: profile.fullName),
+                              ),
+                            ),
                           ],
                         ),
                       ),
+                      const SizedBox(height: 16),
+
+                      // --- FULL NAME & BASIC INFO ---
+                      Text(
+                        profile.fullName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          letterSpacing: 0.5,
+                          color: textPrimary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+
+                      Text(
+                        [
+                          profile.gender,
+                          if (profile.ageAt(DateTime.now()) != null)
+                            "${profile.ageAt(DateTime.now())} anni",
+                        ].join("  •  "),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14,
+                          color: textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Affidabilità, presenze e assenze tornano con dati veri
+                      // nel Blocco B.2c.
+                      const SizedBox(height: 8),
+
+                      // --- GALLERIA FOTO PROFILO (bucket privato, RLS 0008) ---
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: ProfileGallerySection(profileId: profile.id),
+                      ),
+
+                      const Spacer(),
+
+                      // --- PRIVACY SHIELD FOOTER CARD ---
+                      Card(
+                        color: slateSurface,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Icon(Icons.lock, color: premiumGold, size: 24),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Privacy attiva",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: textPrimary),
+                                    ),
+                                    Text(
+                                      "La tua vera foto, l'età e le statistiche sono visibili solo ai locali verificati quando richiedi la partecipazione.",
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: textSecondary,
+                                          height: 1.35),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // --- UTENTI BLOCCATI ---
+                      ValueListenableBuilder<List<SupabaseProfile>>(
+                        valueListenable:
+                            EcoraDataService.instance.blockedNotifier,
+                        builder: (context, blocked, _) {
+                          return Card(
+                            color: slateSurface,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            child: ListTile(
+                              leading:
+                                  const Icon(Icons.block, color: textSecondary),
+                              title: Text(
+                                "Utenti bloccati (${blocked.length})",
+                                style: const TextStyle(
+                                    color: textPrimary, fontSize: 13),
+                              ),
+                              trailing: const Icon(Icons.chevron_right,
+                                  color: textSecondary),
+                              onTap: () => _showBlockedUsersSheet(context),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // --- ELIMINA ACCOUNT (E.1b) ---
+                      Card(
+                        color: slateSurface,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          leading: const Icon(Icons.delete_outline,
+                              color: EcoraColors.danger),
+                          title: const Text(
+                            kDeleteAccountEntry,
+                            style: TextStyle(
+                                color: EcoraColors.danger, fontSize: 13),
+                          ),
+                          trailing: const Icon(Icons.chevron_right,
+                              color: textSecondary),
+                          onTap: () => _showDeleteAccountSheet(context),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // --- DEED LOGOUT BUTTON ACTION ---
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF424242)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24)),
+                          ),
+                          onPressed: onLogout,
+                          child: Text(
+                            "ESCI DALL'ACCOUNT",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              letterSpacing: 1.0,
+                              color: Colors.red.withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-
-              // --- UTENTI BLOCCATI ---
-              ValueListenableBuilder<List<SupabaseProfile>>(
-                valueListenable: EcoraDataService.instance.blockedNotifier,
-                builder: (context, blocked, _) {
-                  return Card(
-                    color: slateSurface,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    child: ListTile(
-                      leading:
-                          const Icon(Icons.block, color: textSecondary),
-                      title: Text(
-                        "Utenti bloccati (${blocked.length})",
-                        style: const TextStyle(
-                            color: textPrimary, fontSize: 13),
-                      ),
-                      trailing: const Icon(Icons.chevron_right,
-                          color: textSecondary),
-                      onTap: () => _showBlockedUsersSheet(context),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // --- DEED LOGOUT BUTTON ACTION ---
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF424242)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                  ),
-                  onPressed: onLogout,
-                  child: Text(
-                    "ESCI DAL CLUB",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      letterSpacing: 1.0,
-                      color: Colors.red.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
+            ),
           ),
         ),
       ),
@@ -354,10 +367,9 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     _profileType = _profileTypes.contains(widget.profile.profileType)
         ? widget.profile.profileType
         : null;
-    _privacyLevel =
-        _privacyOptions.containsValue(widget.profile.privacyLevel)
-            ? widget.profile.privacyLevel
-            : null;
+    _privacyLevel = _privacyOptions.containsValue(widget.profile.privacyLevel)
+        ? widget.profile.privacyLevel
+        : null;
   }
 
   @override
@@ -452,8 +464,8 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
             style: const TextStyle(color: textPrimary, fontSize: 13),
             decoration: _fieldDecoration("Livello di privacy"),
             items: _privacyOptions.entries
-                .map((e) =>
-                    DropdownMenuItem(value: e.value, child: Text(e.key)))
+                .map(
+                    (e) => DropdownMenuItem(value: e.value, child: Text(e.key)))
                 .toList(),
             onChanged: (v) => setState(() => _privacyLevel = v),
           ),
@@ -594,16 +606,52 @@ class StatMetricField extends StatelessWidget {
           children: [
             Text(
               value,
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: indicatorColor),
+              style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 24,
+                  color: indicatorColor),
             ),
             const SizedBox(height: 4),
             Text(
               label.toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10, letterSpacing: 0.5, color: textSecondary),
+              style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                  letterSpacing: 0.5,
+                  color: textSecondary),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Avatar disegnato: Luce con l'iniziale del nome (nessuna foto hardcoded).
+class _InitialAvatar extends StatelessWidget {
+  final String name;
+
+  const _InitialAvatar({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = name.trim();
+    final initial =
+        trimmed.isEmpty ? '' : trimmed.substring(0, 1).toUpperCase();
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const CustomPaint(painter: LucePainter()),
+        Center(
+          child: Text(
+            initial,
+            style: Theme.of(context)
+                .textTheme
+                .displayMedium
+                ?.copyWith(color: EcoraColors.ink),
+          ),
+        ),
+      ],
     );
   }
 }

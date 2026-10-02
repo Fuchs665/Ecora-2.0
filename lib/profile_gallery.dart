@@ -133,7 +133,7 @@ class _ProfileGallerySectionState extends State<ProfileGallerySection> {
           "LA MIA GALLERIA (${_photos.length}/${EcoraDataService.maxProfilePhotos})",
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 11,
+            fontSize: 12,
             letterSpacing: 1.0,
             color: premiumGold,
           ),
@@ -165,7 +165,7 @@ class _ProfileGallerySectionState extends State<ProfileGallerySection> {
         const SizedBox(height: 6),
         const Text(
           "Vietati contenuti espliciti (policy Google Play): comportano la rimozione dell'account.",
-          style: TextStyle(fontSize: 10, color: textSecondary, height: 1.3),
+          style: TextStyle(fontSize: 12, color: textSecondary, height: 1.3),
         ),
       ],
     );
@@ -294,7 +294,7 @@ class CandidateGalleryStrip extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 "Nessuna foto nella galleria del profilo.",
-                style: TextStyle(fontSize: 11, color: textSecondary),
+                style: TextStyle(fontSize: 12, color: textSecondary),
               ),
             );
           }

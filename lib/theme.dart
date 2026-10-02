@@ -186,6 +186,18 @@ abstract class EcoraTextStyles {
     letterSpacing: 3.6,
     color: EcoraColors.brass,
   );
+
+  /// Numero di una metrica (fascia della dashboard gestore): cifre tabulari
+  /// perché i valori cambiano senza far ballare la riga. Non ancora nel
+  /// design system su claude.ai: nasce dalla tavola "Serate".
+  static const TextStyle metric = TextStyle(
+    fontFamily: _kUiFont,
+    fontSize: 24,
+    height: 30 / 24,
+    fontWeight: FontWeight.w600,
+    fontFeatures: [FontFeature.tabularFigures()],
+    color: EcoraColors.ink,
+  );
 }
 
 const TextStyle _kButtonText = TextStyle(

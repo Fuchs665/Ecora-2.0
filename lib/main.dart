@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'birth_year.dart';
 import 'client_navigation_hub.dart';
 import 'gestore_dashboard.dart';
 import 'theme.dart';
@@ -19,6 +20,11 @@ export 'data_service.dart';
 // Privacy policy ospitata su GitHub Pages (cartella /docs del repo).
 const String kPrivacyPolicyUrl =
     'https://fuchs665.github.io/Ecora-2.0/privacy.html';
+
+/// Messaggi che devono sopravvivere al cambio di schermata (es. "Account
+/// eliminato", mostrato sopra la schermata di accesso).
+final GlobalKey<ScaffoldMessengerState> ecoraMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 // --- FLUTTER APPLICATION BARRIER ---
 
@@ -98,6 +104,7 @@ class _EcoraAppState extends State<EcoraApp> {
     return MaterialApp(
       title: 'Ecora',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: ecoraMessengerKey,
       theme: ecoraTheme(),
       home: BiometricGate(
         child: ValueListenableBuilder<SupabaseProfile?>(
@@ -105,6 +112,12 @@ class _EcoraAppState extends State<EcoraApp> {
           builder: (context, profile, _) {
             if (profile == null) {
               return const AuthScreen();
+            } else if (profile.role != 'gestore' && profile.birthYear == null) {
+              // Iscritti prima di B.2b: l'anno si chiede una volta sola.
+              return BirthYearScreen(
+                onSave: EcoraDataService.instance.saveBirthYear,
+                onLogout: EcoraDataService.instance.logout,
+              );
             } else if (profile.role == 'gestore') {
               return const GestoreDashboard();
             } else {
@@ -296,6 +309,7 @@ class _AuthScreenState extends State<AuthScreen> {
   // Registration Controllers
   final TextEditingController _regNicknameController = TextEditingController();
   final TextEditingController _regLocationController = TextEditingController();
+  final TextEditingController _regBirthYearController = TextEditingController();
   final TextEditingController _regEmailController = TextEditingController();
   final TextEditingController _regPasswordController = TextEditingController();
   bool _regPasswordVisible = false;
@@ -448,6 +462,7 @@ class _AuthScreenState extends State<AuthScreen> {
             'role': 'cliente',
             'age_confirmed_at': meta['age_confirmed_at'],
             'terms_accepted_at': meta['terms_accepted_at'],
+            'birth_year': meta['birth_year'],
           },
           onConflict: 'id',
           ignoreDuplicates: true,
@@ -511,6 +526,16 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
+    final birthYearProblem =
+        birthYearError(_regBirthYearController.text, DateTime.now());
+    if (birthYearProblem != null) {
+      setState(() {
+        _errorMessage = birthYearProblem;
+      });
+      return;
+    }
+    final int birthYear = int.parse(_regBirthYearController.text.trim());
+
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(email)) {
       setState(() {
@@ -573,6 +598,7 @@ class _AuthScreenState extends State<AuthScreen> {
         data: {
           'age_confirmed_at': consentIso,
           'terms_accepted_at': consentIso,
+          'birth_year': birthYear,
         },
       );
 
@@ -608,6 +634,7 @@ class _AuthScreenState extends State<AuthScreen> {
           'privacy_level': privacyLevel,
           'age_confirmed_at': consentIso,
           'terms_accepted_at': consentIso,
+          'birth_year': birthYear,
         });
       } catch (dbErr) {
         debugPrint("Errore nell'inserimento del profilo reale: $dbErr");
@@ -618,7 +645,7 @@ class _AuthScreenState extends State<AuthScreen> {
         id: userId,
         fullName: nickname,
         role: 'cliente',
-        age: 30,
+        birthYear: birthYear,
         gender: profileType.contains('Coppia') ? 'Coppia' : (profileType.contains('Donna') ? 'Donna' : 'Uomo'),
         noShows: 0,
         participationsCount: 0,
@@ -879,6 +906,19 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 16),
 
+                // Anno di nascita (Blocco B.2b): obbligatorio, 18+.
+                TextField(
+                  controller: _regBirthYearController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: kBirthYearInputFormatters,
+                  style: const TextStyle(color: textPrimary, fontSize: 13),
+                  decoration: ecoraInputDecoration(
+                    kBirthYearLabel,
+                    prefixIcon: Icons.cake_outlined,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 // 3. Email
                 TextField(
                   controller: _regEmailController,
@@ -1062,11 +1102,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     Expanded(
                       child: Text(
                         _isLogin
-                            ? "Protetto rigorosamente da tunnel crittografati Supabase. Anonimato assoluto end-to-end. L'identità del tuo dispositivo non viene mai registrata."
-                            : "Compilando il modulo acconsenti al pre-screening rigoroso. Il tuo nickname e la tua località non saranno rivelati finché non sarai approvato a un tavolo condiviso.",
+                            ? "La connessione con Ecora è cifrata. Gli altri iscritti vedono solo il nickname, la zona e le foto che scegli di caricare."
+                            : "Iscrivendoti accetti la verifica dei gestori: ogni richiesta di partecipazione viene valutata prima di essere approvata.",
                         style: TextStyle(
                           color: textSecondary.withValues(alpha: 0.8),
-                          fontSize: 10,
+                          fontSize: 12,
                           height: 1.4,
                         ),
                       ),

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'account_deletion.dart';
 import 'models.dart';
 
 /// Content-type per gli upload nel bucket `profile_photos`, che accetta
@@ -39,6 +40,10 @@ class EcoraDataService {
   final ValueNotifier<List<NotificationItem>> notificationsNotifier =
       ValueNotifier([]);
   final ValueNotifier<int> notificationBadgeNotifier = ValueNotifier(0);
+
+  /// Presenze/assenze dei richiedenti, per user id (Blocco B.2c).
+  final ValueNotifier<Map<String, GuestReliability>> reliabilityNotifier =
+      ValueNotifier({});
 
   final List<SupabaseProfile> _profiles = [];
   List<SupabaseEvent> _events = [];
@@ -97,6 +102,26 @@ class EcoraDataService {
     }
   }
 
+  /// Chiede al server di eliminare l'account corrente (Edge Function
+  /// `delete-account`, Blocco E.1a): la password viene riverificata lì.
+  /// Ritorna null se l'account è stato eliminato, altrimenti il messaggio da
+  /// mostrare. Non esce dall'app: dopo il successo serve [logout].
+  Future<String?> requestAccountDeletion(String password) async {
+    int? status;
+    Object? data;
+    try {
+      final res = await Supabase.instance.client.functions.invoke(
+        'delete-account',
+        body: {'password': password, 'channel': 'app'},
+      );
+      status = res.status;
+      data = res.data;
+    } catch (e) {
+      debugPrint("delete-account non raggiungibile: $e");
+    }
+    return deletionErrorMessage(status, data);
+  }
+
   /// Ripristina la sessione Supabase persistita (se presente) e carica
   /// il profilo reale, così l'utente non deve rifare il login a ogni avvio.
   Future<void> restoreSession() async {
@@ -118,6 +143,31 @@ class EcoraDataService {
       }
     } catch (e) {
       debugPrint("Errore ripristino sessione: $e");
+    }
+  }
+
+  /// Salva l'anno di nascita del profilo corrente (Blocco B.2b) e aggiorna
+  /// lo stato locale. Il trigger della migrazione 0015 lo rende immutabile
+  /// e rifiuta i minorenni. Ritorna null se ok.
+  Future<String?> saveBirthYear(int year) async {
+    try {
+      final current = currentProfileNotifier.value;
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (current == null || uid == null) {
+        return "Sessione scaduta. Accedi di nuovo.";
+      }
+      await Supabase.instance.client
+          .from('profiles')
+          .update({'birth_year': year}).eq('id', uid);
+      currentProfileNotifier.value = current.copyWith(birthYear: year);
+      return null;
+    } on PostgrestException catch (e) {
+      debugPrint("Errore nel salvataggio dell'anno di nascita: $e");
+      if (e.code == '23514') return "Ecora è riservata ai maggiorenni.";
+      return "Salvataggio non riuscito. Riprova.";
+    } catch (e) {
+      debugPrint("Errore nel salvataggio dell'anno di nascita: $e");
+      return "Salvataggio non riuscito. Riprova.";
     }
   }
 
@@ -213,12 +263,68 @@ class EcoraDataService {
           _profiles.add(prof);
         }
         profilesNotifier.value = List.from(_profiles);
+        await fetchGuestReliability(userIds);
       }
 
       _requests = requests;
       requestsNotifier.value = List.from(_requests);
     } catch (e) {
       debugPrint("Errore nel recupero delle richieste reali: $e");
+    }
+  }
+
+  /// Presenze e assenze dei richiedenti su tutti i locali. Il database
+  /// risponde solo per chi si è candidato a una serata del gestore.
+  /// In caso di errore resta l'ultimo dato: la scheda mostra solo ciò che sa.
+  Future<void> fetchGuestReliability(List<String> userIds) async {
+    if (userIds.isEmpty) return;
+    try {
+      final rows = await Supabase.instance.client
+          .rpc('get_guest_reliability', params: {'p_user_ids': userIds});
+      final next = Map<String, GuestReliability>.from(
+          reliabilityNotifier.value);
+      for (final row in (rows as List)) {
+        final map = Map<String, dynamic>.from(row as Map);
+        next[map['user_id'].toString()] = GuestReliability.fromRow(map);
+      }
+      reliabilityNotifier.value = next;
+    } catch (e) {
+      debugPrint("Errore nel recupero dell'affidabilità ospiti: $e");
+    }
+  }
+
+  /// Presenze già segnate per [requestIds]: request id -> venuto sì/no.
+  /// Le richieste senza voce non sono ancora state segnate.
+  Future<Map<String, bool>> fetchAttendance(List<String> requestIds) async {
+    if (requestIds.isEmpty) return {};
+    final rows = await Supabase.instance.client
+        .from('event_attendance')
+        .select('request_id, attended')
+        .in_('request_id', requestIds);
+    return {
+      for (final row in (rows as List))
+        row['request_id'].toString(): row['attended'] == true,
+    };
+  }
+
+  /// Segna se l'ospite di [requestId] è venuto. Le regole (solo il gestore
+  /// della serata, solo approvati, entro 7 giorni) le applica il database.
+  /// Ritorna null se ok, altrimenti il messaggio da mostrare.
+  Future<String?> markAttendance(String requestId, bool attended) async {
+    try {
+      await Supabase.instance.client.rpc('mark_attendance',
+          params: {'p_request_id': requestId, 'p_attended': attended});
+      return null;
+    } on PostgrestException catch (e) {
+      debugPrint("Errore nel segnare la presenza: $e");
+      // I messaggi della funzione SQL sono già in italiano e per l'utente.
+      const known = {'42501', '22023', '22004', 'P0002'};
+      return known.contains(e.code)
+          ? e.message
+          : "Operazione non riuscita. Riprova.";
+    } catch (e) {
+      debugPrint("Errore nel segnare la presenza: $e");
+      return "Operazione non riuscita. Riprova.";
     }
   }
 
@@ -423,7 +529,7 @@ class EcoraDataService {
             .select('id, title')
             .in_('id', eventIds);
         for (final row in (evRows as List)) {
-          titles[row['id'].toString()] = row['title']?.toString() ?? 'Evento';
+          titles[row['id'].toString()] = row['title']?.toString() ?? 'Serata';
         }
       }
 
@@ -445,7 +551,7 @@ class EcoraDataService {
           NotificationItem(
             id: id,
             eventId: r['event_id'].toString(),
-            eventTitle: titles[r['event_id'].toString()] ?? 'Evento',
+            eventTitle: titles[r['event_id'].toString()] ?? 'Serata',
             status: r['status'].toString(),
             timestamp: timestamp,
             read: _seenNotificationIds.contains(id),
@@ -609,7 +715,7 @@ class EcoraDataService {
       debugPrint("Errore creazione evento: $e");
       // Dal Block 5.1 la RLS rifiuta l'INSERT anche senza abbonamento
       // attivo, non solo senza ruolo gestore: il messaggio copre entrambi.
-      return "Creazione evento non riuscita. Verifica la connessione e che "
+      return "Creazione della serata non riuscita. Verifica la connessione e che "
           "l'abbonamento gestore sia attivo.";
     }
   }

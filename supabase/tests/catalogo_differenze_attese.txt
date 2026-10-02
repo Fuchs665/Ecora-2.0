@@ -1,0 +1,40 @@
+# Differenze ammesse tra lo staging (catena 0000 -> ultima) e
+# catalogo_produzione.txt. run_chain.sh fallisce se ne compare una nuova o
+# se una di queste sparisce: in quel caso aggiornare questo file e annotare
+# il motivo in docs/PIANO_LAVORO.md.
+#
+# 1) Il bucket event_images esiste in produzione (creato dalla dashboard;
+#    la 0004 lo dava per assente; l'app usa event_covers) e nessuna
+#    migrazione lo crea.
+# 2) I Database Webhooks verso la Edge Function push esistono solo in
+#    produzione: si configurano dalla dashboard perché contengono il segreto
+#    dell'header. Dal 02/10/2026 entrambi su event_requests (INSERT e UPDATE).
+# 3) La migrazione 0018 (niente ad anon, authenticated senza TRUNCATE/
+#    TRIGGER/REFERENCES, funzioni della dashboard ristrette) non è ancora
+#    applicata in produzione. Quando lo sarà, rigenerare
+#    catalogo_produzione.txt e togliere queste righe.
+solo produzione: bucket event_images public=f limite=- mime=-
+solo produzione: webhook event_requests.event_requests AFTER INSERT
+solo produzione: webhook event_requests.push_richiesta_aggiornata AFTER UPDATE
+solo produzione: funzione get_events_within_radius(user_lat double precision, user_lon double precision, max_distance_km double precision) -> SETOF events secdef=f vol=v lang=sql config=- acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=348d8fa73c02d69f865f95d3756ccb29
+solo produzione: funzione is_approved_for_event(target_event_id uuid) -> boolean secdef=t vol=v lang=sql config=- acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=0e032acfa4b04535307caedd12a4bde2
+solo produzione: permesso blocks anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso blocks authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso device_tokens anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso device_tokens authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso event_requests anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso event_requests authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso events anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso events authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso messages anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso messages authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso profiles anon DELETE,INSERT,REFERENCES,TRIGGER,TRUNCATE,UPDATE
+solo produzione: permesso profiles authenticated DELETE,INSERT,REFERENCES,TRIGGER,TRUNCATE,UPDATE
+solo staging: funzione get_events_within_radius(user_lat double precision, user_lon double precision, max_distance_km double precision) -> SETOF events secdef=f vol=v lang=sql config=- acl=postgres=X/postgres,service_role=X/postgres corpo=348d8fa73c02d69f865f95d3756ccb29
+solo staging: funzione is_approved_for_event(target_event_id uuid) -> boolean secdef=t vol=v lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=0e032acfa4b04535307caedd12a4bde2
+solo staging: permesso blocks authenticated DELETE,INSERT,SELECT,UPDATE
+solo staging: permesso device_tokens authenticated DELETE,INSERT,SELECT,UPDATE
+solo staging: permesso event_requests authenticated DELETE,INSERT,SELECT,UPDATE
+solo staging: permesso events authenticated DELETE,INSERT,SELECT,UPDATE
+solo staging: permesso messages authenticated DELETE,INSERT,SELECT,UPDATE
+solo staging: permesso profiles authenticated DELETE,INSERT,UPDATE

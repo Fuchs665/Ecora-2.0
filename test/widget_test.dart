@@ -76,8 +76,8 @@ void main() {
         'location_name': null,
         'approved_count': null,
       });
-      expect(e.imageUrl, contains('unsplash'));
-      expect(e.locationName, 'Località riservata');
+      expect(e.imageUrl, '');
+      expect(e.locationName, 'Indirizzo nascosto');
       expect(e.maxParticipants, 0);
       expect(e.currentApprovedCount, 0);
       expect(e.tableCompletionPercentage, 0.0);
@@ -154,12 +154,22 @@ void main() {
       expect(r.eventId, 'ev-9');
       expect(r.userId, 'u-7');
       expect(r.status, 'approved');
+      expect(
+          r.createdAt!.isAtSameMomentAs(DateTime.utc(2026, 7, 1, 10)), isTrue);
+      expect(r.createdAt!.isUtc, isFalse, reason: 'convertita in ora locale');
     });
 
     test('null status defaults to pending', () {
       final r = SupabaseParticipationRequest.fromRow(
           {'id': 'x', 'event_id': 'e', 'user_id': 'u'});
       expect(r.status, 'pending');
+      expect(r.createdAt, isNull);
+    });
+
+    test('unreadable created_at becomes null', () {
+      final r = SupabaseParticipationRequest.fromRow(
+          {'id': 'x', 'event_id': 'e', 'user_id': 'u', 'created_at': 'boh'});
+      expect(r.createdAt, isNull);
     });
   });
 
@@ -169,7 +179,7 @@ void main() {
         id: 'u1',
         fullName: 'Alex & Sofia',
         role: 'cliente',
-        age: 32,
+        birthYear: 1990,
         gender: 'Coppia',
       );
       final updated = p.copyWith(noShows: 2);
