@@ -1,68 +1,26 @@
 -- ============================================================================
 -- Prove della migrazione 0015 su un Postgres LOCALE, mai su Supabase.
--- Uno schema minimo imita Supabase: ruoli anon/authenticated, auth.uid()
--- letto da request.jwt.claim.sub, permessi di default larghi sulle tabelle
--- nuove, is_gestore() e la policy "aggiornamento solo al proprietario".
+-- Girano sopra la catena supporto_supabase.sql + 0000 -> 0014 (riga
+-- "catena-fino-a" qui sotto), quindi sullo schema vero: policy, permessi
+-- per colonna, trigger e chiavi esterne come in produzione.
+-- La 0015 la applica la prova stessa, dopo i dati: come in produzione, dove
+-- arriverà su tabelle già piene.
 --
--- Uso (database vuoto):
---   psql -v ON_ERROR_STOP=1 -d <db> -f supabase/tests/0015_presenze_e_eta_test.sql
--- Esito: termina con "TUTTE LE PROVE 0015 SUPERATE", altrimenti si ferma
--- sulla prima prova fallita.
+-- Uso: supabase/tests/run_chain.sh. Esito: termina con
+-- "TUTTE LE PROVE 0015 SUPERATE", altrimenti si ferma sulla prima prova
+-- fallita.
 -- ============================================================================
-
--- --- Schema minimo tipo Supabase --------------------------------------------
-create role anon nologin;
-create role authenticated nologin;
-create schema auth;
-grant usage on schema auth, public to anon, authenticated;
-create function auth.uid() returns uuid language sql stable as
-  $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-grant execute on function auth.uid() to anon, authenticated;
-
--- Supabase concede tutto ad anon/authenticated su tabelle e funzioni nuove.
-alter default privileges in schema public
-  grant all on tables to anon, authenticated;
-alter default privileges in schema public
-  grant execute on functions to anon, authenticated;
-
-create table public.profiles (
-  id uuid primary key,
-  role text not null default 'cliente',
-  nickname text,
-  age_confirmed_at timestamptz
-);
-alter table public.profiles enable row level security;
-create policy "Consenti aggiornamento solo al proprietario" on public.profiles
-  for update to authenticated using (auth.uid() = id);
-create policy "Ogni utente crea solo il proprio profilo" on public.profiles
-  for insert to authenticated with check (auth.uid() = id);
-create policy "lettura" on public.profiles
-  for select to authenticated using (true);
-revoke select on table public.profiles from anon, authenticated;
-grant select (id, role, nickname) on public.profiles to authenticated;
-
-create table public.events (
-  id uuid primary key,
-  host_id uuid not null,
-  event_date timestamptz not null,
-  status text not null default 'published'
-);
-create table public.event_requests (
-  id uuid primary key,
-  user_id uuid not null,
-  event_id uuid not null references public.events (id),
-  status text not null default 'pending'
-);
-
-create function public.is_gestore() returns boolean
-language sql security definer stable set search_path = public as $$
-  select exists (select 1 from public.profiles
-                 where id = auth.uid() and role = 'gestore');
-$$;
+-- catena-fino-a: 0014
 
 -- --- Dati ---------------------------------------------------------------------
 -- g1, g2 gestori; c1 cliente (ospite di g1), c2 cliente (ospite solo di g2),
 -- c3 cliente senza richieste.
+insert into auth.users (id) values
+  ('00000000-0000-0000-0000-0000000000a1'),
+  ('00000000-0000-0000-0000-0000000000a2'),
+  ('00000000-0000-0000-0000-0000000000c1'),
+  ('00000000-0000-0000-0000-0000000000c2'),
+  ('00000000-0000-0000-0000-0000000000c3');
 insert into public.profiles (id, role, nickname) values
   ('00000000-0000-0000-0000-0000000000a1', 'gestore', 'g1'),
   ('00000000-0000-0000-0000-0000000000a2', 'gestore', 'g2'),
@@ -70,13 +28,13 @@ insert into public.profiles (id, role, nickname) values
   ('00000000-0000-0000-0000-0000000000c2', 'cliente', 'c2'),
   ('00000000-0000-0000-0000-0000000000c3', 'cliente', 'c3');
 
-insert into public.events (id, host_id, event_date) values
+insert into public.events (id, host_id, title, event_date, status) values
   -- g1: serata di 2 giorni fa, di 10 giorni fa, di domani
-  ('00000000-0000-0000-0000-00000000e101', '00000000-0000-0000-0000-0000000000a1', now() - interval '2 days'),
-  ('00000000-0000-0000-0000-00000000e102', '00000000-0000-0000-0000-0000000000a1', now() - interval '10 days'),
-  ('00000000-0000-0000-0000-00000000e103', '00000000-0000-0000-0000-0000000000a1', now() + interval '1 day'),
+  ('00000000-0000-0000-0000-00000000e101', '00000000-0000-0000-0000-0000000000a1', 'g1 recente', now() - interval '2 days', 'published'),
+  ('00000000-0000-0000-0000-00000000e102', '00000000-0000-0000-0000-0000000000a1', 'g1 vecchia', now() - interval '10 days', 'published'),
+  ('00000000-0000-0000-0000-00000000e103', '00000000-0000-0000-0000-0000000000a1', 'g1 futura', now() + interval '1 day', 'published'),
   -- g2: serata di 1 giorno fa
-  ('00000000-0000-0000-0000-00000000e201', '00000000-0000-0000-0000-0000000000a2', now() - interval '1 day');
+  ('00000000-0000-0000-0000-00000000e201', '00000000-0000-0000-0000-0000000000a2', 'g2 recente', now() - interval '1 day', 'published');
 
 insert into public.event_requests (id, user_id, event_id, status) values
   -- c1 approvato alla serata recente di g1
