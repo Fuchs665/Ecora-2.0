@@ -1,6 +1,7 @@
 # Struttura della produzione Ecora (fswzykzclfrpzlufjhfg), letta il 02/10/2026
-# in sola lettura con supabase/tests/catalogo.sql (solo catalogo, nessun dato
-# utente, trigger dei webhook esclusi). Postgres 17.6.
+# dopo l'applicazione della 0015, in sola lettura con
+# supabase/tests/catalogo.sql (solo catalogo, nessun dato utente, trigger
+# dei webhook esclusi). Postgres 17.6.
 # Per rigenerarla: eseguire catalogo.sql sulla produzione e incollare qui la
 # cella risultante, una riga per oggetto. run_chain.sh la confronta con lo
 # staging; le differenze ammesse sono in catalogo_differenze_attese.txt.
@@ -18,6 +19,9 @@ colonna device_tokens.platform text null=NO default='android'::text
 colonna device_tokens.token text null=NO default=-
 colonna device_tokens.updated_at timestamp with time zone null=NO default=now()
 colonna device_tokens.user_id uuid null=NO default=-
+colonna event_attendance.attended boolean null=NO default=-
+colonna event_attendance.marked_at timestamp with time zone null=NO default=now()
+colonna event_attendance.request_id uuid null=NO default=-
 colonna event_requests.created_at timestamp with time zone null=NO default=timezone('utc'::text, now())
 colonna event_requests.event_id uuid null=NO default=-
 colonna event_requests.id uuid null=NO default=gen_random_uuid()
@@ -42,6 +46,7 @@ colonna messages.id uuid null=NO default=gen_random_uuid()
 colonna messages.sender_id uuid null=NO default=-
 colonna profiles.age_confirmed_at timestamp with time zone null=YES default=-
 colonna profiles.avatar_url text null=YES default=-
+colonna profiles.birth_year smallint null=YES default=-
 colonna profiles.created_at timestamp with time zone null=NO default=timezone('utc'::text, now())
 colonna profiles.generic_location text null=YES default=-
 colonna profiles.id uuid null=NO default=-
@@ -66,16 +71,20 @@ funzione delete_account_data(p_user_id uuid) -> jsonb secdef=f vol=v lang=plpgsq
 funzione event_requests_lock_keys() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=90bebe64ff37df6f43af9786bedba513
 funzione get_events_with_stats() -> TABLE(id uuid, host_id uuid, title text, description text, event_date timestamp with time zone, max_guests integer, status text, latitude double precision, longitude double precision, image_url text, location_name text, approved_count bigint) secdef=t vol=v lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=c86ecac586886bf4a26e7702c14b4277
 funzione get_events_within_radius(user_lat double precision, user_lon double precision, max_distance_km double precision) -> SETOF events secdef=f vol=v lang=sql config=- acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=348d8fa73c02d69f865f95d3756ccb29
+funzione get_guest_reliability(p_user_ids uuid[]) -> TABLE(user_id uuid, attended bigint, no_shows bigint) secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=373d2702e17f0ab33f6cebb81ab08ec1
 funzione has_active_subscription() -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=24528420a4d5befac52af1e930920f73
 funzione is_approved_for_event(target_event_id uuid) -> boolean secdef=t vol=v lang=sql config=- acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=0e032acfa4b04535307caedd12a4bde2
 funzione is_blocked_with(other uuid) -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=8616edfe8acf1a4a9dbb54a8e75e7d58
 funzione is_gestore() -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=a541de62a523858cb79e98ff9396700b
+funzione mark_attendance(p_request_id uuid, p_attended boolean) -> void secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=15f316cf7e341b7619166212325d31eb
+funzione profiles_birth_year_guard() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=daaaa4dcae669f5a38f9d13322f21ccd
 funzione proteggi_ruolo_profilo() -> trigger secdef=t vol=v lang=plpgsql config=- acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=b65c2ced3951d086f5558244d5bcfdb2
 funzione rls_auto_enable() -> event_trigger secdef=t vol=v lang=plpgsql config={search_path=pg_catalog} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=697b6a03c63a7628ad2808dcd2f53358
 funzione subscriptions_touch_updated_at() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=0146fd32790ffdead7f8c61f46267c34
 indice account_deletions.account_deletions_pkey CREATE UNIQUE INDEX account_deletions_pkey ON public.account_deletions USING btree (id)
 indice blocks.blocks_pkey CREATE UNIQUE INDEX blocks_pkey ON public.blocks USING btree (blocker_id, blocked_id)
 indice device_tokens.device_tokens_pkey CREATE UNIQUE INDEX device_tokens_pkey ON public.device_tokens USING btree (user_id, token)
+indice event_attendance.event_attendance_pkey CREATE UNIQUE INDEX event_attendance_pkey ON public.event_attendance USING btree (request_id)
 indice event_requests.event_requests_event_id_user_id_key CREATE UNIQUE INDEX event_requests_event_id_user_id_key ON public.event_requests USING btree (event_id, user_id)
 indice event_requests.event_requests_pkey CREATE UNIQUE INDEX event_requests_pkey ON public.event_requests USING btree (id)
 indice events.events_pkey CREATE UNIQUE INDEX events_pkey ON public.events USING btree (id)
@@ -90,6 +99,8 @@ permesso blocks service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UP
 permesso device_tokens anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso device_tokens authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso device_tokens service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+permesso event_attendance authenticated SELECT
+permesso event_attendance service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso event_requests anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso event_requests authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso event_requests service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
@@ -104,7 +115,7 @@ permesso profiles authenticated DELETE,INSERT,REFERENCES,TRIGGER,TRUNCATE,UPDATE
 permesso profiles service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso subscriptions authenticated SELECT
 permesso subscriptions service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso_colonne profiles authenticated SELECT avatar_url,created_at,generic_location,id,is_verified,nickname,privacy_level,profile_type,role
+permesso_colonne profiles authenticated SELECT avatar_url,birth_year,created_at,generic_location,id,is_verified,nickname,privacy_level,profile_type,role
 policy public.blocks "blocks_delete_own" PERMISSIVE {authenticated} DELETE using=(auth.uid() = blocker_id) check=-
 policy public.blocks "blocks_insert_own" PERMISSIVE {authenticated} INSERT using=- check=(auth.uid() = blocker_id)
 policy public.blocks "blocks_select_own" PERMISSIVE {authenticated} SELECT using=(auth.uid() = blocker_id) check=-
@@ -112,6 +123,7 @@ policy public.device_tokens "device_tokens_delete_own" PERMISSIVE {authenticated
 policy public.device_tokens "device_tokens_insert_own" PERMISSIVE {authenticated} INSERT using=- check=(auth.uid() = user_id)
 policy public.device_tokens "device_tokens_select_own" PERMISSIVE {authenticated} SELECT using=(auth.uid() = user_id) check=-
 policy public.device_tokens "device_tokens_update_own" PERMISSIVE {authenticated} UPDATE using=(auth.uid() = user_id) check=(auth.uid() = user_id)
+policy public.event_attendance "event_attendance_select_host" PERMISSIVE {authenticated} SELECT using=(EXISTS ( SELECT 1 FROM (event_requests r JOIN events e ON ((e.id = r.event_id))) WHERE ((r.id = event_attendance.request_id) AND (e.host_id = auth.uid())))) check=-
 policy public.event_requests "Clienti possono solo candidarsi" PERMISSIVE {authenticated} INSERT using=- check=((auth.uid() = user_id) AND (status = 'pending'::text) AND (NOT is_blocked_with(( SELECT e.host_id FROM events e WHERE (e.id = event_requests.event_id)))))
 policy public.event_requests "Regola blindata per la visibilità dei partecipanti" PERMISSIVE {authenticated} SELECT using=(((auth.uid() = user_id) OR (EXISTS ( SELECT 1 FROM events e WHERE ((e.id = event_requests.event_id) AND (e.host_id = auth.uid())))) OR ((status = 'approved'::text) AND is_approved_for_event(event_id))) AND (NOT is_blocked_with(user_id))) check=-
 policy public.event_requests "event_requests_review_by_gestore" PERMISSIVE {authenticated} UPDATE using=(is_gestore() AND (EXISTS ( SELECT 1 FROM events e WHERE ((e.id = event_requests.event_id) AND (e.host_id = auth.uid()))))) check=(is_gestore() AND (EXISTS ( SELECT 1 FROM events e WHERE ((e.id = event_requests.event_id) AND (e.host_id = auth.uid())))))
@@ -138,12 +150,14 @@ pubblicazione supabase_realtime public.messages
 tabella account_deletions rls=t
 tabella blocks rls=t
 tabella device_tokens rls=t
+tabella event_attendance rls=t
 tabella event_requests rls=t
 tabella events rls=t
 tabella messages rls=t
 tabella profiles rls=t
 tabella subscriptions rls=t
 trigger event_requests.trg_event_requests_lock_keys CREATE TRIGGER trg_event_requests_lock_keys BEFORE UPDATE ON public.event_requests FOR EACH ROW EXECUTE FUNCTION event_requests_lock_keys()
+trigger profiles.trg_profiles_birth_year_guard CREATE TRIGGER trg_profiles_birth_year_guard BEFORE INSERT OR UPDATE OF birth_year ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_birth_year_guard()
 trigger profiles.trigger_proteggi_profilo CREATE TRIGGER trigger_proteggi_profilo BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION proteggi_ruolo_profilo()
 trigger subscriptions.trg_subscriptions_touch_updated_at CREATE TRIGGER trg_subscriptions_touch_updated_at BEFORE UPDATE ON public.subscriptions FOR EACH ROW EXECUTE FUNCTION subscriptions_touch_updated_at()
 vincolo account_deletions.account_deletions_channel_check CHECK ((channel = ANY (ARRAY['app'::text, 'web'::text, 'email'::text])))
@@ -153,6 +167,8 @@ vincolo blocks.blocks_blocker_id_fkey FOREIGN KEY (blocker_id) REFERENCES auth.u
 vincolo blocks.blocks_pkey PRIMARY KEY (blocker_id, blocked_id)
 vincolo device_tokens.device_tokens_pkey PRIMARY KEY (user_id, token)
 vincolo device_tokens.device_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+vincolo event_attendance.event_attendance_pkey PRIMARY KEY (request_id)
+vincolo event_attendance.event_attendance_request_id_fkey FOREIGN KEY (request_id) REFERENCES event_requests(id) ON DELETE CASCADE
 vincolo event_requests.event_requests_event_id_fkey FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 vincolo event_requests.event_requests_event_id_user_id_key UNIQUE (event_id, user_id)
 vincolo event_requests.event_requests_pkey PRIMARY KEY (id)
@@ -164,6 +180,7 @@ vincolo events.events_status_check CHECK ((status = ANY (ARRAY['draft'::text, 'p
 vincolo messages.messages_event_id_fkey FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 vincolo messages.messages_pkey PRIMARY KEY (id)
 vincolo messages.messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES auth.users(id) ON DELETE CASCADE
+vincolo profiles.profiles_birth_year_range CHECK (((birth_year IS NULL) OR ((birth_year >= 1900) AND (birth_year <= 2100))))
 vincolo profiles.profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 vincolo profiles.profiles_pkey PRIMARY KEY (id)
 vincolo profiles.profiles_role_check CHECK ((role = ANY (ARRAY['cliente'::text, 'gestore'::text])))

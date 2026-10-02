@@ -3,28 +3,7 @@
 # se una di queste sparisce: in quel caso aggiornare questo file e annotare
 # il motivo in docs/PIANO_LAVORO.md.
 #
-# 1) La migrazione 0015 (età e presenze) non è applicata in produzione
-#    (verificato il 02/10/2026). Quando lo sarà, rigenerare
-#    catalogo_produzione.txt e togliere queste righe.
-# 2) Il bucket event_images esiste in produzione (creato dalla dashboard;
+# 1) Il bucket event_images esiste in produzione (creato dalla dashboard;
 #    la 0004 lo dava per assente; l'app usa event_covers) e nessuna
 #    migrazione lo crea.
 solo produzione: bucket event_images public=f limite=- mime=-
-solo produzione: permesso_colonne profiles authenticated SELECT avatar_url,created_at,generic_location,id,is_verified,nickname,privacy_level,profile_type,role
-solo staging: colonna event_attendance.attended boolean null=NO default=-
-solo staging: colonna event_attendance.marked_at timestamp with time zone null=NO default=now()
-solo staging: colonna event_attendance.request_id uuid null=NO default=-
-solo staging: colonna profiles.birth_year smallint null=YES default=-
-solo staging: funzione get_guest_reliability(p_user_ids uuid[]) -> TABLE(user_id uuid, attended bigint, no_shows bigint) secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=373d2702e17f0ab33f6cebb81ab08ec1
-solo staging: funzione mark_attendance(p_request_id uuid, p_attended boolean) -> void secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=15f316cf7e341b7619166212325d31eb
-solo staging: funzione profiles_birth_year_guard() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=daaaa4dcae669f5a38f9d13322f21ccd
-solo staging: indice event_attendance.event_attendance_pkey CREATE UNIQUE INDEX event_attendance_pkey ON public.event_attendance USING btree (request_id)
-solo staging: permesso event_attendance authenticated SELECT
-solo staging: permesso event_attendance service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-solo staging: permesso_colonne profiles authenticated SELECT avatar_url,birth_year,created_at,generic_location,id,is_verified,nickname,privacy_level,profile_type,role
-solo staging: policy public.event_attendance "event_attendance_select_host" PERMISSIVE {authenticated} SELECT using=(EXISTS ( SELECT 1 FROM (event_requests r JOIN events e ON ((e.id = r.event_id))) WHERE ((r.id = event_attendance.request_id) AND (e.host_id = auth.uid())))) check=-
-solo staging: tabella event_attendance rls=t
-solo staging: trigger profiles.trg_profiles_birth_year_guard CREATE TRIGGER trg_profiles_birth_year_guard BEFORE INSERT OR UPDATE OF birth_year ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_birth_year_guard()
-solo staging: vincolo event_attendance.event_attendance_pkey PRIMARY KEY (request_id)
-solo staging: vincolo event_attendance.event_attendance_request_id_fkey FOREIGN KEY (request_id) REFERENCES event_requests(id) ON DELETE CASCADE
-solo staging: vincolo profiles.profiles_birth_year_range CHECK (((birth_year IS NULL) OR ((birth_year >= 1900) AND (birth_year <= 2100))))
