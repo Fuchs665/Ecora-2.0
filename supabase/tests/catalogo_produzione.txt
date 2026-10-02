@@ -1,5 +1,5 @@
 # Struttura della produzione Ecora (fswzykzclfrpzlufjhfg), letta il 02/10/2026
-# dopo l'applicazione della 0015, in sola lettura con
+# dopo l'applicazione di 0015 e 0017, in sola lettura con
 # supabase/tests/catalogo.sql (solo catalogo, nessun dato utente, trigger
 # dei webhook esclusi). Postgres 17.6.
 # Per rigenerarla: eseguire catalogo.sql sulla produzione e incollare qui la
@@ -78,7 +78,7 @@ funzione is_blocked_with(other uuid) -> boolean secdef=t vol=s lang=sql config={
 funzione is_gestore() -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=a541de62a523858cb79e98ff9396700b
 funzione mark_attendance(p_request_id uuid, p_attended boolean) -> void secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=15f316cf7e341b7619166212325d31eb
 funzione profiles_birth_year_guard() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=daaaa4dcae669f5a38f9d13322f21ccd
-funzione proteggi_ruolo_profilo() -> trigger secdef=t vol=v lang=plpgsql config=- acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=b65c2ced3951d086f5558244d5bcfdb2
+funzione proteggi_ruolo_profilo() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=9c72186b1ad763d2179ce88f1b96d562
 funzione rls_auto_enable() -> event_trigger secdef=t vol=v lang=plpgsql config={search_path=pg_catalog} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=697b6a03c63a7628ad2808dcd2f53358
 funzione subscriptions_touch_updated_at() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=0146fd32790ffdead7f8c61f46267c34
 indice account_deletions.account_deletions_pkey CREATE UNIQUE INDEX account_deletions_pkey ON public.account_deletions USING btree (id)
@@ -158,7 +158,7 @@ tabella profiles rls=t
 tabella subscriptions rls=t
 trigger event_requests.trg_event_requests_lock_keys CREATE TRIGGER trg_event_requests_lock_keys BEFORE UPDATE ON public.event_requests FOR EACH ROW EXECUTE FUNCTION event_requests_lock_keys()
 trigger profiles.trg_profiles_birth_year_guard CREATE TRIGGER trg_profiles_birth_year_guard BEFORE INSERT OR UPDATE OF birth_year ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_birth_year_guard()
-trigger profiles.trigger_proteggi_profilo CREATE TRIGGER trigger_proteggi_profilo BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION proteggi_ruolo_profilo()
+trigger profiles.trigger_proteggi_profilo CREATE TRIGGER trigger_proteggi_profilo BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION proteggi_ruolo_profilo()
 trigger subscriptions.trg_subscriptions_touch_updated_at CREATE TRIGGER trg_subscriptions_touch_updated_at BEFORE UPDATE ON public.subscriptions FOR EACH ROW EXECUTE FUNCTION subscriptions_touch_updated_at()
 vincolo account_deletions.account_deletions_channel_check CHECK ((channel = ANY (ARRAY['app'::text, 'web'::text, 'email'::text])))
 vincolo account_deletions.account_deletions_pkey PRIMARY KEY (id)
