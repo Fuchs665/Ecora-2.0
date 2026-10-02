@@ -1,7 +1,10 @@
+import 'account_deletion.dart';
 import 'cover_placeholder.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'main.dart';
 import 'profile_gallery.dart';
+import 'subscription_service.dart';
 
 class UserProfilePage extends StatelessWidget {
   final SupabaseProfile profile;
@@ -38,6 +41,37 @@ class UserProfilePage extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => const BlockedUsersSheet(),
+    );
+  }
+
+  /// Eliminazione account (Blocco E.1b). Il foglio chiama il server; solo a
+  /// eliminazione riuscita si chiude e si esce, come un logout.
+  void _showDeleteAccountSheet(BuildContext context) {
+    final warnings = DeletionWarnings.compute(
+      profile: profile,
+      events: EcoraDataService.instance.eventsNotifier.value,
+      subscription: EcoraSubscriptionService.instance.statusNotifier.value,
+      now: DateTime.now(),
+    );
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      enableDrag: false,
+      backgroundColor: slateSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => DeleteAccountSheet(
+        warnings: warnings,
+        onDelete: EcoraDataService.instance.requestAccountDeletion,
+        onDeleted: () async {
+          await EcoraDataService.instance.logout();
+          ecoraMessengerKey.currentState?.showSnackBar(
+              const SnackBar(content: Text(kDeleteAccountDone)));
+        },
+        onOpenGooglePlay: () => launchUrl(Uri.parse(kPlaySubscriptionsUrl),
+            mode: LaunchMode.externalApplication),
+      ),
     );
   }
 
@@ -235,6 +269,26 @@ class UserProfilePage extends StatelessWidget {
                             ),
                           );
                         },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // --- ELIMINA ACCOUNT (E.1b) ---
+                      Card(
+                        color: slateSurface,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          leading: const Icon(Icons.delete_outline,
+                              color: EcoraColors.danger),
+                          title: const Text(
+                            kDeleteAccountEntry,
+                            style: TextStyle(
+                                color: EcoraColors.danger, fontSize: 13),
+                          ),
+                          trailing: const Icon(Icons.chevron_right,
+                              color: textSecondary),
+                          onTap: () => _showDeleteAccountSheet(context),
+                        ),
                       ),
                       const SizedBox(height: 12),
 

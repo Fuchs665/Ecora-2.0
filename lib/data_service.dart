@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'account_deletion.dart';
 import 'models.dart';
 
 /// Content-type per gli upload nel bucket `profile_photos`, che accetta
@@ -99,6 +100,26 @@ class EcoraDataService {
     } catch (e) {
       debugPrint("Errore durante il logout da Supabase: $e");
     }
+  }
+
+  /// Chiede al server di eliminare l'account corrente (Edge Function
+  /// `delete-account`, Blocco E.1a): la password viene riverificata lì.
+  /// Ritorna null se l'account è stato eliminato, altrimenti il messaggio da
+  /// mostrare. Non esce dall'app: dopo il successo serve [logout].
+  Future<String?> requestAccountDeletion(String password) async {
+    int? status;
+    Object? data;
+    try {
+      final res = await Supabase.instance.client.functions.invoke(
+        'delete-account',
+        body: {'password': password, 'channel': 'app'},
+      );
+      status = res.status;
+      data = res.data;
+    } catch (e) {
+      debugPrint("delete-account non raggiungibile: $e");
+    }
+    return deletionErrorMessage(status, data);
   }
 
   /// Ripristina la sessione Supabase persistita (se presente) e carica

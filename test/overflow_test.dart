@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:ecora/account_deletion.dart';
 import 'package:ecora/client_navigation_hub.dart';
 import 'package:ecora/event_details_page.dart';
 import 'package:ecora/gestore_dashboard.dart';
@@ -80,6 +81,17 @@ final _screens = <String, Widget Function()>{
       ),
   'EventDetailsPage': () => EventDetailsPage(event: _event()),
   'UserProfilePage': () => UserProfilePage(profile: _profile, onLogout: () {}),
+  'DeleteAccountSheet': () => DeleteAccountSheet(
+        warnings: const DeletionWarnings(
+          isGestore: true,
+          upcomingEvents: 12,
+          approvedGuests: 140,
+          activeSubscription: true,
+        ),
+        onDelete: (_) async => null,
+        onDeleted: () {},
+        onOpenGooglePlay: () {},
+      ),
   'StatMetricField': () => const StatMetricField(
         label: 'PRESENZE',
         value: '12',

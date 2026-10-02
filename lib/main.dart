@@ -21,6 +21,11 @@ export 'data_service.dart';
 const String kPrivacyPolicyUrl =
     'https://fuchs665.github.io/Ecora-2.0/privacy.html';
 
+/// Messaggi che devono sopravvivere al cambio di schermata (es. "Account
+/// eliminato", mostrato sopra la schermata di accesso).
+final GlobalKey<ScaffoldMessengerState> ecoraMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
+
 // --- FLUTTER APPLICATION BARRIER ---
 
 void main() async {
@@ -99,6 +104,7 @@ class _EcoraAppState extends State<EcoraApp> {
     return MaterialApp(
       title: 'Ecora',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: ecoraMessengerKey,
       theme: ecoraTheme(),
       home: BiometricGate(
         child: ValueListenableBuilder<SupabaseProfile?>(
