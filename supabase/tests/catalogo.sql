@@ -6,8 +6,9 @@
 --   - sullo staging locale, da run_chain.sh, dopo la catena 0000 -> ultima;
 --   - sulla produzione, in sola lettura (connector o SQL Editor), per
 --     rigenerare supabase/tests/catalogo_produzione.txt.
--- I trigger dei Database Webhooks (funzione in supabase_functions) sono
--- esclusi di proposito: i loro argomenti contengono un segreto.
+-- Dei trigger dei Database Webhooks (funzione in supabase_functions) si
+-- leggono solo tabella, nome ed eventi: i loro argomenti contengono un
+-- segreto e non vanno mai letti.
 -- I corpi delle funzioni sono confrontati per impronta md5 a spazi ridotti
 -- (la produzione li ha con a capo Windows).
 -- ============================================================================
@@ -95,6 +96,27 @@ with righe(r) as (
   where c.relnamespace = 'public'::regnamespace
     and not t.tgisinternal
     and f.pronamespace = 'public'::regnamespace
+
+  -- webhook (trigger su supabase_functions.http_request): SOLO tabella,
+  -- nome ed eventi, ricavati dal tipo del trigger. MAI pg_get_triggerdef né
+  -- tgargs: contengono il segreto dell'header.
+  union all
+  select format('webhook %s.%s %s %s', c.relname, t.tgname,
+                case when t.tgtype & 2 = 2 then 'BEFORE'
+                     when t.tgtype & 64 = 64 then 'INSTEAD OF'
+                     else 'AFTER' end,
+                concat_ws(' OR ',
+                  case when t.tgtype & 4 = 4 then 'INSERT' end,
+                  case when t.tgtype & 8 = 8 then 'DELETE' end,
+                  case when t.tgtype & 16 = 16 then 'UPDATE' end,
+                  case when t.tgtype & 32 = 32 then 'TRUNCATE' end))
+  from pg_trigger t
+  join pg_class c on c.oid = t.tgrelid
+  join pg_proc f on f.oid = t.tgfoid
+  join pg_namespace fn on fn.oid = f.pronamespace
+  where c.relnamespace = 'public'::regnamespace
+    and fn.nspname = 'supabase_functions'
+    and f.proname = 'http_request'
 
   -- event trigger con funzione in public
   union all
