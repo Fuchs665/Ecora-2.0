@@ -1,7 +1,7 @@
 # Struttura della produzione Ecora (fswzykzclfrpzlufjhfg), letta il 02/10/2026
-# dopo l'applicazione di 0015 e 0017, in sola lettura con
-# supabase/tests/catalogo.sql (solo catalogo, nessun dato utente, trigger
-# dei webhook esclusi). Postgres 17.6.
+# dopo 0015, 0017 e la correzione del webhook push, in sola lettura con
+# supabase/tests/catalogo.sql (solo catalogo, nessun dato utente; dei
+# webhook solo tabella, nome ed eventi). Postgres 17.6.
 # Per rigenerarla: eseguire catalogo.sql sulla produzione e incollare qui la
 # cella risultante, una riga per oggetto. run_chain.sh la confronta con lo
 # staging; le differenze ammesse sono in catalogo_differenze_attese.txt.
@@ -187,3 +187,5 @@ vincolo profiles.profiles_role_check CHECK ((role = ANY (ARRAY['cliente'::text, 
 vincolo subscriptions.subscriptions_pkey PRIMARY KEY (user_id)
 vincolo subscriptions.subscriptions_purchase_token_key UNIQUE (purchase_token)
 vincolo subscriptions.subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+webhook event_requests.event_requests AFTER INSERT
+webhook event_requests.push_richiesta_aggiornata AFTER UPDATE

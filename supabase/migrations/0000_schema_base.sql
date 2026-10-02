@@ -38,10 +38,11 @@
 --   messages: "Gli utenti possono leggere i messaggi degli eventi a cui
 --     partec", "Gli utenti autenticati possono inserire messaggi" (0001).
 --
--- Webhook configurati dalla dashboard, non versionati: due trigger di nome
--- "event_requests" che chiamano supabase_functions.http_request verso la
--- Edge Function push (INSERT su event_requests, UPDATE su events). Gli
--- argomenti contengono un segreto: non vanno mai copiati qui.
+-- Webhook configurati dalla dashboard, non versionati: due trigger su
+-- event_requests che chiamano supabase_functions.http_request verso la
+-- Edge Function push: "event_requests" (INSERT) e "push_richiesta_aggiornata"
+-- (UPDATE; fino al 02/10/2026 stava per errore su events). Gli argomenti
+-- contengono un segreto: non vanno mai copiati qui.
 --
 -- Idempotente e mai distruttivo: ogni oggetto si crea solo se manca, così
 -- rieseguirlo sopra la catena non riporta indietro ciò che le migrazioni

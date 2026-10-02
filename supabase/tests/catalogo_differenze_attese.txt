@@ -6,4 +6,9 @@
 # 1) Il bucket event_images esiste in produzione (creato dalla dashboard;
 #    la 0004 lo dava per assente; l'app usa event_covers) e nessuna
 #    migrazione lo crea.
+# 2) I Database Webhooks verso la Edge Function push esistono solo in
+#    produzione: si configurano dalla dashboard perché contengono il segreto
+#    dell'header. Dal 02/10/2026 entrambi su event_requests (INSERT e UPDATE).
 solo produzione: bucket event_images public=f limite=- mime=-
+solo produzione: webhook event_requests.event_requests AFTER INSERT
+solo produzione: webhook event_requests.push_richiesta_aggiornata AFTER UPDATE
