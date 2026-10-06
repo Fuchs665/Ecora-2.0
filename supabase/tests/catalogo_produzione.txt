@@ -1,5 +1,5 @@
 # Struttura della produzione Ecora (fswzykzclfrpzlufjhfg), letta il 06/10/2026
-# dopo 0015, 0017, 0018, 0019 e la correzione del webhook push, in sola lettura con
+# dopo 0015, 0017, 0018, 0019, la correzione del webhook push e il webhook push_segnalazione, in sola lettura con
 # supabase/tests/catalogo.sql (solo catalogo, nessun dato utente; dei
 # webhook solo tabella, nome ed eventi). Postgres 17.6.
 # Per rigenerarla: eseguire catalogo.sql sulla produzione e incollare qui la
@@ -240,3 +240,4 @@ vincolo subscriptions.subscriptions_purchase_token_key UNIQUE (purchase_token)
 vincolo subscriptions.subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
 webhook event_requests.event_requests AFTER INSERT
 webhook event_requests.push_richiesta_aggiornata AFTER UPDATE
+webhook reports.push_segnalazione AFTER INSERT

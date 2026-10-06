@@ -8,7 +8,9 @@
 #    migrazione lo crea.
 # 2) I Database Webhooks verso la Edge Function push esistono solo in
 #    produzione: si configurano dalla dashboard perché contengono il segreto
-#    dell'header. Dal 02/10/2026 entrambi su event_requests (INSERT e UPDATE).
+#    dell'header. Dal 02/10/2026 due su event_requests (INSERT e UPDATE); dal
+#    06/10/2026 push_segnalazione su reports (INSERT, Blocco E.2a).
 solo produzione: bucket event_images public=f limite=- mime=-
 solo produzione: webhook event_requests.event_requests AFTER INSERT
 solo produzione: webhook event_requests.push_richiesta_aggiornata AFTER UPDATE
+solo produzione: webhook reports.push_segnalazione AFTER INSERT
