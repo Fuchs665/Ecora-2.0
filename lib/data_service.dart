@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'account_deletion.dart';
 import 'models.dart';
+import 'reports.dart';
 
 /// Content-type per gli upload nel bucket `profile_photos`, che accetta
 /// solo jpeg/png/webp: derivato dall'estensione, jpeg come default sicuro.
@@ -455,9 +456,34 @@ class EcoraDataService {
         'content': text,
       });
       return null;
+    } on PostgrestException catch (e) {
+      debugPrint("Errore invio messaggio: $e");
+      return sendMessageErrorForCode(e.code);
     } catch (e) {
       debugPrint("Errore invio messaggio: $e");
-      return "Invio non riuscito. Riprova.";
+      return sendMessageErrorForCode(null);
+    }
+  }
+
+  /// Segnala un messaggio, un utente o una serata (Blocco E.2b). Solo
+  /// insert, senza `.select()`: la tabella `reports` non è leggibile dal
+  /// client (0019), e chiedere la riga indietro farebbe fallire l'insert.
+  Future<ReportResult> reportContent(
+      ReportTarget target, String reason, String note) async {
+    try {
+      if (Supabase.instance.client.auth.currentUser == null) {
+        return ReportResult.failed;
+      }
+      await Supabase.instance.client
+          .from('reports')
+          .insert(reportRow(target, reason, note));
+      return ReportResult.sent;
+    } on PostgrestException catch (e) {
+      debugPrint("Errore segnalazione: $e");
+      return reportResultFromCode(e.code);
+    } catch (e) {
+      debugPrint("Errore segnalazione: $e");
+      return ReportResult.failed;
     }
   }
 

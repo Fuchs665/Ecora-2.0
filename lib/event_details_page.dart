@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'main.dart';
 import 'motion.dart';
+import 'report_sheet.dart';
+import 'reports.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 class EventDetailsPage extends StatefulWidget {
   final SupabaseEvent event;
@@ -121,6 +123,31 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     if (error == null) Navigator.of(context).pop();
   }
 
+  /// Segnalazione della serata (Blocco E.2b); dopo l'invio propone di
+  /// bloccare l'organizzatore, con lo stesso esito di "Blocca organizzatore".
+  Future<void> _reportEvent() async {
+    final data = EcoraDataService.instance;
+    final organizer =
+        data.getProfileById(widget.event.organizerId)?.fullName ??
+            "l'organizzatore";
+    final blocked = await showReportSheet(
+      context,
+      type: ReportTargetType.event,
+      blockName: organizer,
+      onSubmit: (reason, note) => data.reportContent(
+          ReportTarget(ReportTargetType.event, widget.event.id), reason, note),
+      onBlock: () => data.blockUser(widget.event.organizerId),
+    );
+    if (blocked != true || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Organizzatore bloccato."),
+        backgroundColor: Colors.green,
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUserId = EcoraDataService.instance.currentProfileNotifier.value?.id ?? "";
@@ -141,9 +168,17 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             color: slateSurface,
             onSelected: (value) {
               if (value == 'block') _confirmAndBlockOrganizer();
+              if (value == 'report') _reportEvent();
             },
-            itemBuilder: (ctx) => const [
-              PopupMenuItem(
+            itemBuilder: (ctx) => [
+              // La propria serata non si segnala (il server lo rifiuterebbe).
+              if (widget.event.organizerId != currentUserId)
+                const PopupMenuItem(
+                  value: 'report',
+                  child: Text(kReportEventAction,
+                      style: TextStyle(color: textPrimary)),
+                ),
+              const PopupMenuItem(
                 value: 'block',
                 child: Text("Blocca organizzatore",
                     style: TextStyle(color: textPrimary)),

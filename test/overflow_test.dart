@@ -10,6 +10,8 @@ import 'package:ecora/client_navigation_hub.dart';
 import 'package:ecora/event_details_page.dart';
 import 'package:ecora/gestore_dashboard.dart';
 import 'package:ecora/models.dart';
+import 'package:ecora/report_sheet.dart';
+import 'package:ecora/reports.dart';
 import 'package:ecora/theme.dart';
 import 'package:ecora/user_profile_page.dart';
 
@@ -91,6 +93,12 @@ final _screens = <String, Widget Function()>{
         onDelete: (_) async => null,
         onDeleted: () {},
         onOpenGooglePlay: () {},
+      ),
+  'ReportSheet': () => ReportSheet(
+        type: ReportTargetType.user,
+        blockName: 'Arcadia Club Bologna',
+        onSubmit: (_, __) async => ReportResult.sent,
+        onBlock: () async => null,
       ),
   'StatMetricField': () => const StatMetricField(
         label: 'PRESENZE',

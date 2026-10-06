@@ -9,6 +9,8 @@ import 'gestore_events.dart';
 import 'gestore_metrics.dart';
 import 'motion.dart';
 import 'profile_gallery.dart';
+import 'report_sheet.dart';
+import 'reports.dart';
 import 'subscription_panel.dart';
 import 'subscription_service.dart';
 import 'user_profile_page.dart';
@@ -533,6 +535,27 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
     return confirmed == true;
   }
 
+  /// Segnalazione del candidato (Blocco E.2b). Se dopo l'invio lo si blocca
+  /// anche, la scheda si chiude come con "BLOCCA UTENTE".
+  Future<void> _reportApplicant(
+      BuildContext dialogCtx, SupabaseProfile applicant) async {
+    final data = EcoraDataService.instance;
+    final blocked = await showReportSheet(
+      dialogCtx,
+      type: ReportTargetType.user,
+      blockName: applicant.fullName,
+      onSubmit: (reason, note) => data.reportContent(
+          ReportTarget(ReportTargetType.user, applicant.id), reason, note),
+      onBlock: () => data.blockUser(applicant.id),
+    );
+    if (blocked != true || !dialogCtx.mounted) return;
+    Navigator.of(dialogCtx).pop();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("${applicant.fullName} è stato bloccato.")),
+    );
+  }
+
   void _showSafetyProfileDialog(
       BuildContext context,
       SupabaseParticipationRequest req,
@@ -677,6 +700,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                 }
               },
               confirmBlock: () => _confirmBlock(ctx, applicant.fullName),
+              onReport: () => _reportApplicant(ctx, applicant),
               onDone: (decision) {
                 Navigator.of(ctx).pop();
                 if (decision == ReviewDecision.block && mounted) {
@@ -841,11 +865,16 @@ class ReviewActions extends StatefulWidget {
   /// Dopo una decisione riuscita: chiude il dialogo.
   final void Function(ReviewDecision decision) onDone;
 
+  /// Apre la segnalazione del candidato (Blocco E.2b). Null = nessun
+  /// pulsante.
+  final VoidCallback? onReport;
+
   const ReviewActions({
     Key? key,
     required this.onDecision,
     required this.confirmBlock,
     required this.onDone,
+    this.onReport,
   }) : super(key: key);
 
   @override
@@ -920,6 +949,13 @@ class _ReviewActionsState extends State<ReviewActions> {
             overflowAlignment: OverflowBarAlignment.end,
             spacing: EcoraSpace.s8,
             children: [
+              if (widget.onReport != null)
+                TextButton(
+                  style: TextButton.styleFrom(foregroundColor: textSecondary),
+                  onPressed: busy ? null : widget.onReport,
+                  child: const Text(kReportUserAction,
+                      style: TextStyle(fontSize: 12)),
+                ),
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: textSecondary),
                 onPressed: busy ? null : () => _run(ReviewDecision.block),
