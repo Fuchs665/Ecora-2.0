@@ -13,6 +13,9 @@
 #    TRIGGER/REFERENCES, funzioni della dashboard ristrette) non è ancora
 #    applicata in produzione. Quando lo sarà, rigenerare
 #    catalogo_produzione.txt e togliere queste righe.
+# 4) La migrazione 0019 (segnalazioni, coda di moderazione, filtro dei
+#    messaggi) non è ancora applicata in produzione. Quando lo sarà,
+#    rigenerare catalogo_produzione.txt e togliere queste righe.
 solo produzione: bucket event_images public=f limite=- mime=-
 solo produzione: webhook event_requests.event_requests AFTER INSERT
 solo produzione: webhook event_requests.push_richiesta_aggiornata AFTER UPDATE
@@ -38,3 +41,60 @@ solo staging: permesso event_requests authenticated DELETE,INSERT,SELECT,UPDATE
 solo staging: permesso events authenticated DELETE,INSERT,SELECT,UPDATE
 solo staging: permesso messages authenticated DELETE,INSERT,SELECT,UPDATE
 solo staging: permesso profiles authenticated DELETE,INSERT,UPDATE
+solo staging: colonna blocked_terms.created_at timestamp with time zone null=NO default=now()
+solo staging: colonna blocked_terms.term text null=NO default=-
+solo staging: colonna reports.content_snapshot jsonb null=YES default=-
+solo staging: colonna reports.created_at timestamp with time zone null=NO default=now()
+solo staging: colonna reports.id uuid null=NO default=gen_random_uuid()
+solo staging: colonna reports.note text null=YES default=-
+solo staging: colonna reports.reason text null=NO default=-
+solo staging: colonna reports.reporter_id uuid null=YES default=auth.uid()
+solo staging: colonna reports.resolved_at timestamp with time zone null=YES default=-
+solo staging: colonna reports.status text null=NO default='open'::text
+solo staging: colonna reports.target_event_id uuid null=YES default=-
+solo staging: colonna reports.target_message_id uuid null=YES default=-
+solo staging: colonna reports.target_type text null=NO default=-
+solo staging: colonna reports.target_user_id uuid null=YES default=-
+solo staging: colonna reports_open.content_snapshot jsonb null=YES default=-
+solo staging: colonna reports_open.created_at timestamp with time zone null=YES default=-
+solo staging: colonna reports_open.id uuid null=YES default=-
+solo staging: colonna reports_open.note text null=YES default=-
+solo staging: colonna reports_open.ore_trascorse integer null=YES default=-
+solo staging: colonna reports_open.reason text null=YES default=-
+solo staging: colonna reports_open.reporter_id uuid null=YES default=-
+solo staging: colonna reports_open.target_event_id uuid null=YES default=-
+solo staging: colonna reports_open.target_message_id uuid null=YES default=-
+solo staging: colonna reports_open.target_type text null=YES default=-
+solo staging: colonna reports_open.target_user_id uuid null=YES default=-
+solo staging: funzione messages_filter_terms() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=8f4c1fc201a625aa0bc469c76e8931d9
+solo staging: funzione purge_old_reports() -> integer secdef=f vol=v lang=sql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=eacbc99fb2ba4a38eb0500ddb4d6684e
+solo staging: funzione reports_before_insert() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=39d01927ada44bfbdce651f9e3158ae9
+solo staging: indice blocked_terms.blocked_terms_pkey CREATE UNIQUE INDEX blocked_terms_pkey ON public.blocked_terms USING btree (term)
+solo staging: indice reports.reports_one_open_event CREATE UNIQUE INDEX reports_one_open_event ON public.reports USING btree (reporter_id, target_event_id) WHERE ((status = 'open'::text) AND (target_type = 'event'::text))
+solo staging: indice reports.reports_one_open_message CREATE UNIQUE INDEX reports_one_open_message ON public.reports USING btree (reporter_id, target_message_id) WHERE ((status = 'open'::text) AND (target_type = 'message'::text))
+solo staging: indice reports.reports_one_open_user CREATE UNIQUE INDEX reports_one_open_user ON public.reports USING btree (reporter_id, target_user_id) WHERE ((status = 'open'::text) AND (target_type = 'user'::text))
+solo staging: indice reports.reports_open_created CREATE INDEX reports_open_created ON public.reports USING btree (created_at) WHERE (status = 'open'::text)
+solo staging: indice reports.reports_pkey CREATE UNIQUE INDEX reports_pkey ON public.reports USING btree (id)
+solo staging: indice reports.reports_reporter_created CREATE INDEX reports_reporter_created ON public.reports USING btree (reporter_id, created_at)
+solo staging: permesso blocked_terms service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo staging: permesso reports service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+solo staging: permesso reports_open service_role SELECT
+solo staging: permesso_colonne reports authenticated INSERT note,reason,target_event_id,target_message_id,target_type,target_user_id
+solo staging: policy public.reports "reports_insert_own" PERMISSIVE {authenticated} INSERT using=- check=((reporter_id = auth.uid()) AND (status = 'open'::text) AND (target_user_id IS DISTINCT FROM auth.uid()) AND CASE target_type WHEN 'message'::text THEN (EXISTS ( SELECT 1 FROM messages m WHERE (m.id = reports.target_message_id))) WHEN 'event'::text THEN (EXISTS ( SELECT 1 FROM events e WHERE (e.id = reports.target_event_id))) WHEN 'user'::text THEN (EXISTS ( SELECT 1 FROM profiles p WHERE (p.id = reports.target_user_id))) ELSE false END)
+solo staging: tabella blocked_terms rls=t
+solo staging: tabella reports rls=t
+solo staging: trigger messages.messages_filter_terms CREATE TRIGGER messages_filter_terms BEFORE INSERT OR UPDATE OF content ON public.messages FOR EACH ROW EXECUTE FUNCTION messages_filter_terms()
+solo staging: trigger reports.reports_before_insert CREATE TRIGGER reports_before_insert BEFORE INSERT ON public.reports FOR EACH ROW EXECUTE FUNCTION reports_before_insert()
+solo staging: vincolo blocked_terms.blocked_terms_pkey PRIMARY KEY (term)
+solo staging: vincolo blocked_terms.blocked_terms_term_check CHECK (((term = lower(btrim(term))) AND (term <> ''::text)))
+solo staging: vincolo reports.reports_note_check CHECK ((char_length(note) <= 500))
+solo staging: vincolo reports.reports_pkey PRIMARY KEY (id)
+solo staging: vincolo reports.reports_reason_check CHECK ((((target_type = 'message'::text) AND (reason = ANY (ARRAY['harassment'::text, 'threats'::text, 'unwanted_sexual'::text, 'spam'::text, 'other'::text]))) OR ((target_type = 'user'::text) AND (reason = ANY (ARRAY['underage'::text, 'fake_profile'::text, 'inappropriate_photos'::text, 'harassment'::text, 'spam'::text, 'other'::text]))) OR ((target_type = 'event'::text) AND (reason = ANY (ARRAY['not_a_venue'::text, 'misleading'::text, 'inappropriate_content'::text, 'spam'::text, 'other'::text])))))
+solo staging: vincolo reports.reports_reporter_id_fkey FOREIGN KEY (reporter_id) REFERENCES profiles(id) ON DELETE SET NULL
+solo staging: vincolo reports.reports_resolved_check CHECK (((status = 'open'::text) = (resolved_at IS NULL)))
+solo staging: vincolo reports.reports_status_check CHECK ((status = ANY (ARRAY['open'::text, 'actioned'::text, 'dismissed'::text])))
+solo staging: vincolo reports.reports_target_columns_check CHECK ((((target_type = 'message'::text) AND (target_event_id IS NULL)) OR ((target_type = 'event'::text) AND (target_message_id IS NULL)) OR ((target_type = 'user'::text) AND (target_message_id IS NULL) AND (target_event_id IS NULL))))
+solo staging: vincolo reports.reports_target_event_id_fkey FOREIGN KEY (target_event_id) REFERENCES events(id) ON DELETE SET NULL
+solo staging: vincolo reports.reports_target_message_id_fkey FOREIGN KEY (target_message_id) REFERENCES messages(id) ON DELETE SET NULL
+solo staging: vincolo reports.reports_target_type_check CHECK ((target_type = ANY (ARRAY['message'::text, 'user'::text, 'event'::text])))
+solo staging: vincolo reports.reports_target_user_id_fkey FOREIGN KEY (target_user_id) REFERENCES profiles(id) ON DELETE SET NULL
