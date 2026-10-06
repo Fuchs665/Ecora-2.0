@@ -1,5 +1,5 @@
 # Struttura della produzione Ecora (fswzykzclfrpzlufjhfg), letta il 02/10/2026
-# dopo 0015, 0017 e la correzione del webhook push, in sola lettura con
+# dopo 0015, 0017, 0018 e la correzione del webhook push, in sola lettura con
 # supabase/tests/catalogo.sql (solo catalogo, nessun dato utente; dei
 # webhook solo tabella, nome ed eventi). Postgres 17.6.
 # Per rigenerarla: eseguire catalogo.sql sulla produzione e incollare qui la
@@ -70,10 +70,10 @@ funzione can_view_gallery(gallery_owner uuid) -> boolean secdef=t vol=s lang=sql
 funzione delete_account_data(p_user_id uuid) -> jsonb secdef=f vol=v lang=plpgsql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=59dded15a67a6f61e65cbf6b90982b86
 funzione event_requests_lock_keys() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=90bebe64ff37df6f43af9786bedba513
 funzione get_events_with_stats() -> TABLE(id uuid, host_id uuid, title text, description text, event_date timestamp with time zone, max_guests integer, status text, latitude double precision, longitude double precision, image_url text, location_name text, approved_count bigint) secdef=t vol=v lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=c86ecac586886bf4a26e7702c14b4277
-funzione get_events_within_radius(user_lat double precision, user_lon double precision, max_distance_km double precision) -> SETOF events secdef=f vol=v lang=sql config=- acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=348d8fa73c02d69f865f95d3756ccb29
+funzione get_events_within_radius(user_lat double precision, user_lon double precision, max_distance_km double precision) -> SETOF events secdef=f vol=v lang=sql config=- acl=postgres=X/postgres,service_role=X/postgres corpo=348d8fa73c02d69f865f95d3756ccb29
 funzione get_guest_reliability(p_user_ids uuid[]) -> TABLE(user_id uuid, attended bigint, no_shows bigint) secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=373d2702e17f0ab33f6cebb81ab08ec1
 funzione has_active_subscription() -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=24528420a4d5befac52af1e930920f73
-funzione is_approved_for_event(target_event_id uuid) -> boolean secdef=t vol=v lang=sql config=- acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=0e032acfa4b04535307caedd12a4bde2
+funzione is_approved_for_event(target_event_id uuid) -> boolean secdef=t vol=v lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=0e032acfa4b04535307caedd12a4bde2
 funzione is_blocked_with(other uuid) -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=8616edfe8acf1a4a9dbb54a8e75e7d58
 funzione is_gestore() -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=a541de62a523858cb79e98ff9396700b
 funzione mark_attendance(p_request_id uuid, p_attended boolean) -> void secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=15f316cf7e341b7619166212325d31eb
@@ -93,25 +93,19 @@ indice profiles.profiles_pkey CREATE UNIQUE INDEX profiles_pkey ON public.profil
 indice subscriptions.subscriptions_pkey CREATE UNIQUE INDEX subscriptions_pkey ON public.subscriptions USING btree (user_id)
 indice subscriptions.subscriptions_purchase_token_key CREATE UNIQUE INDEX subscriptions_purchase_token_key ON public.subscriptions USING btree (purchase_token)
 permesso account_deletions service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso blocks anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso blocks authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+permesso blocks authenticated DELETE,INSERT,SELECT,UPDATE
 permesso blocks service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso device_tokens anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso device_tokens authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+permesso device_tokens authenticated DELETE,INSERT,SELECT,UPDATE
 permesso device_tokens service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso event_attendance authenticated SELECT
 permesso event_attendance service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso event_requests anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso event_requests authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+permesso event_requests authenticated DELETE,INSERT,SELECT,UPDATE
 permesso event_requests service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso events anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso events authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+permesso events authenticated DELETE,INSERT,SELECT,UPDATE
 permesso events service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso messages anon DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso messages authenticated DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+permesso messages authenticated DELETE,INSERT,SELECT,UPDATE
 permesso messages service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
-permesso profiles anon DELETE,INSERT,REFERENCES,TRIGGER,TRUNCATE,UPDATE
-permesso profiles authenticated DELETE,INSERT,REFERENCES,TRIGGER,TRUNCATE,UPDATE
+permesso profiles authenticated DELETE,INSERT,UPDATE
 permesso profiles service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso subscriptions authenticated SELECT
 permesso subscriptions service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
