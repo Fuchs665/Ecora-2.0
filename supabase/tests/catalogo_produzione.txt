@@ -1,5 +1,5 @@
-# Struttura della produzione Ecora (fswzykzclfrpzlufjhfg), letta il 02/10/2026
-# dopo 0015, 0017, 0018 e la correzione del webhook push, in sola lettura con
+# Struttura della produzione Ecora (fswzykzclfrpzlufjhfg), letta il 06/10/2026
+# dopo 0015, 0017, 0018, 0019 e la correzione del webhook push, in sola lettura con
 # supabase/tests/catalogo.sql (solo catalogo, nessun dato utente; dei
 # webhook solo tabella, nome ed eventi). Postgres 17.6.
 # Per rigenerarla: eseguire catalogo.sql sulla produzione e incollare qui la
@@ -12,6 +12,8 @@ colonna account_deletions.channel text null=NO default=-
 colonna account_deletions.deleted_at timestamp with time zone null=NO default=now()
 colonna account_deletions.id uuid null=NO default=gen_random_uuid()
 colonna account_deletions.role text null=YES default=-
+colonna blocked_terms.created_at timestamp with time zone null=NO default=now()
+colonna blocked_terms.term text null=NO default=-
 colonna blocks.blocked_id uuid null=NO default=-
 colonna blocks.blocker_id uuid null=NO default=-
 colonna blocks.created_at timestamp with time zone null=NO default=now()
@@ -56,6 +58,29 @@ colonna profiles.privacy_level text null=YES default=-
 colonna profiles.profile_type text null=YES default=-
 colonna profiles.role text null=NO default='cliente'::text
 colonna profiles.terms_accepted_at timestamp with time zone null=YES default=-
+colonna reports.content_snapshot jsonb null=YES default=-
+colonna reports.created_at timestamp with time zone null=NO default=now()
+colonna reports.id uuid null=NO default=gen_random_uuid()
+colonna reports.note text null=YES default=-
+colonna reports.reason text null=NO default=-
+colonna reports.reporter_id uuid null=YES default=auth.uid()
+colonna reports.resolved_at timestamp with time zone null=YES default=-
+colonna reports.status text null=NO default='open'::text
+colonna reports.target_event_id uuid null=YES default=-
+colonna reports.target_message_id uuid null=YES default=-
+colonna reports.target_type text null=NO default=-
+colonna reports.target_user_id uuid null=YES default=-
+colonna reports_open.content_snapshot jsonb null=YES default=-
+colonna reports_open.created_at timestamp with time zone null=YES default=-
+colonna reports_open.id uuid null=YES default=-
+colonna reports_open.note text null=YES default=-
+colonna reports_open.ore_trascorse integer null=YES default=-
+colonna reports_open.reason text null=YES default=-
+colonna reports_open.reporter_id uuid null=YES default=-
+colonna reports_open.target_event_id uuid null=YES default=-
+colonna reports_open.target_message_id uuid null=YES default=-
+colonna reports_open.target_type text null=YES default=-
+colonna reports_open.target_user_id uuid null=YES default=-
 colonna subscriptions.auto_renewing boolean null=NO default=false
 colonna subscriptions.created_at timestamp with time zone null=NO default=now()
 colonna subscriptions.expiry_time timestamp with time zone null=NO default=-
@@ -77,11 +102,15 @@ funzione is_approved_for_event(target_event_id uuid) -> boolean secdef=t vol=v l
 funzione is_blocked_with(other uuid) -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=8616edfe8acf1a4a9dbb54a8e75e7d58
 funzione is_gestore() -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=a541de62a523858cb79e98ff9396700b
 funzione mark_attendance(p_request_id uuid, p_attended boolean) -> void secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=15f316cf7e341b7619166212325d31eb
+funzione messages_filter_terms() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=8f4c1fc201a625aa0bc469c76e8931d9
 funzione profiles_birth_year_guard() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=daaaa4dcae669f5a38f9d13322f21ccd
 funzione proteggi_ruolo_profilo() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=9c72186b1ad763d2179ce88f1b96d562
+funzione purge_old_reports() -> integer secdef=f vol=v lang=sql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=eacbc99fb2ba4a38eb0500ddb4d6684e
+funzione reports_before_insert() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=39d01927ada44bfbdce651f9e3158ae9
 funzione rls_auto_enable() -> event_trigger secdef=t vol=v lang=plpgsql config={search_path=pg_catalog} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=697b6a03c63a7628ad2808dcd2f53358
 funzione subscriptions_touch_updated_at() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=0146fd32790ffdead7f8c61f46267c34
 indice account_deletions.account_deletions_pkey CREATE UNIQUE INDEX account_deletions_pkey ON public.account_deletions USING btree (id)
+indice blocked_terms.blocked_terms_pkey CREATE UNIQUE INDEX blocked_terms_pkey ON public.blocked_terms USING btree (term)
 indice blocks.blocks_pkey CREATE UNIQUE INDEX blocks_pkey ON public.blocks USING btree (blocker_id, blocked_id)
 indice device_tokens.device_tokens_pkey CREATE UNIQUE INDEX device_tokens_pkey ON public.device_tokens USING btree (user_id, token)
 indice event_attendance.event_attendance_pkey CREATE UNIQUE INDEX event_attendance_pkey ON public.event_attendance USING btree (request_id)
@@ -90,9 +119,16 @@ indice event_requests.event_requests_pkey CREATE UNIQUE INDEX event_requests_pke
 indice events.events_pkey CREATE UNIQUE INDEX events_pkey ON public.events USING btree (id)
 indice messages.messages_pkey CREATE UNIQUE INDEX messages_pkey ON public.messages USING btree (id)
 indice profiles.profiles_pkey CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)
+indice reports.reports_one_open_event CREATE UNIQUE INDEX reports_one_open_event ON public.reports USING btree (reporter_id, target_event_id) WHERE ((status = 'open'::text) AND (target_type = 'event'::text))
+indice reports.reports_one_open_message CREATE UNIQUE INDEX reports_one_open_message ON public.reports USING btree (reporter_id, target_message_id) WHERE ((status = 'open'::text) AND (target_type = 'message'::text))
+indice reports.reports_one_open_user CREATE UNIQUE INDEX reports_one_open_user ON public.reports USING btree (reporter_id, target_user_id) WHERE ((status = 'open'::text) AND (target_type = 'user'::text))
+indice reports.reports_open_created CREATE INDEX reports_open_created ON public.reports USING btree (created_at) WHERE (status = 'open'::text)
+indice reports.reports_pkey CREATE UNIQUE INDEX reports_pkey ON public.reports USING btree (id)
+indice reports.reports_reporter_created CREATE INDEX reports_reporter_created ON public.reports USING btree (reporter_id, created_at)
 indice subscriptions.subscriptions_pkey CREATE UNIQUE INDEX subscriptions_pkey ON public.subscriptions USING btree (user_id)
 indice subscriptions.subscriptions_purchase_token_key CREATE UNIQUE INDEX subscriptions_purchase_token_key ON public.subscriptions USING btree (purchase_token)
 permesso account_deletions service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+permesso blocked_terms service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso blocks authenticated DELETE,INSERT,SELECT,UPDATE
 permesso blocks service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso device_tokens authenticated DELETE,INSERT,SELECT,UPDATE
@@ -107,9 +143,12 @@ permesso messages authenticated DELETE,INSERT,SELECT,UPDATE
 permesso messages service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso profiles authenticated DELETE,INSERT,UPDATE
 permesso profiles service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+permesso reports service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
+permesso reports_open service_role SELECT
 permesso subscriptions authenticated SELECT
 permesso subscriptions service_role DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE
 permesso_colonne profiles authenticated SELECT avatar_url,birth_year,created_at,generic_location,id,is_verified,nickname,privacy_level,profile_type,role
+permesso_colonne reports authenticated INSERT note,reason,target_event_id,target_message_id,target_type,target_user_id
 policy public.blocks "blocks_delete_own" PERMISSIVE {authenticated} DELETE using=(auth.uid() = blocker_id) check=-
 policy public.blocks "blocks_insert_own" PERMISSIVE {authenticated} INSERT using=- check=(auth.uid() = blocker_id)
 policy public.blocks "blocks_select_own" PERMISSIVE {authenticated} SELECT using=(auth.uid() = blocker_id) check=-
@@ -131,6 +170,7 @@ policy public.messages "Messaggi leggibili da host e partecipanti approvati" PER
 policy public.profiles "Consenti aggiornamento solo al proprietario" PERMISSIVE {authenticated} UPDATE using=(auth.uid() = id) check=(auth.uid() = id)
 policy public.profiles "Ogni utente crea solo il proprio profilo" PERMISSIVE {authenticated} INSERT using=- check=(auth.uid() = id)
 policy public.profiles "profiles_select_scoped" PERMISSIVE {authenticated} SELECT using=((auth.uid() = id) OR (NOT is_blocked_with(id))) check=-
+policy public.reports "reports_insert_own" PERMISSIVE {authenticated} INSERT using=- check=((reporter_id = auth.uid()) AND (status = 'open'::text) AND (target_user_id IS DISTINCT FROM auth.uid()) AND CASE target_type WHEN 'message'::text THEN (EXISTS ( SELECT 1 FROM messages m WHERE (m.id = reports.target_message_id))) WHEN 'event'::text THEN (EXISTS ( SELECT 1 FROM events e WHERE (e.id = reports.target_event_id))) WHEN 'user'::text THEN (EXISTS ( SELECT 1 FROM profiles p WHERE (p.id = reports.target_user_id))) ELSE false END)
 policy public.subscriptions "subscriptions_select_own" PERMISSIVE {authenticated} SELECT using=(auth.uid() = user_id) check=-
 policy storage.objects "event_covers_delete_own" PERMISSIVE {authenticated} DELETE using=((bucket_id = 'event_covers'::text) AND (owner = auth.uid())) check=-
 policy storage.objects "event_covers_insert_gestore" PERMISSIVE {authenticated} INSERT using=- check=((bucket_id = 'event_covers'::text) AND is_gestore())
@@ -142,6 +182,7 @@ policy storage.objects "profile_photos_select" PERMISSIVE {authenticated} SELECT
 policy storage.objects "profile_photos_update_own" PERMISSIVE {authenticated} UPDATE using=((bucket_id = 'profile_photos'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text)) check=((bucket_id = 'profile_photos'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))
 pubblicazione supabase_realtime public.messages
 tabella account_deletions rls=t
+tabella blocked_terms rls=t
 tabella blocks rls=t
 tabella device_tokens rls=t
 tabella event_attendance rls=t
@@ -149,13 +190,18 @@ tabella event_requests rls=t
 tabella events rls=t
 tabella messages rls=t
 tabella profiles rls=t
+tabella reports rls=t
 tabella subscriptions rls=t
 trigger event_requests.trg_event_requests_lock_keys CREATE TRIGGER trg_event_requests_lock_keys BEFORE UPDATE ON public.event_requests FOR EACH ROW EXECUTE FUNCTION event_requests_lock_keys()
+trigger messages.messages_filter_terms CREATE TRIGGER messages_filter_terms BEFORE INSERT OR UPDATE OF content ON public.messages FOR EACH ROW EXECUTE FUNCTION messages_filter_terms()
 trigger profiles.trg_profiles_birth_year_guard CREATE TRIGGER trg_profiles_birth_year_guard BEFORE INSERT OR UPDATE OF birth_year ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_birth_year_guard()
 trigger profiles.trigger_proteggi_profilo CREATE TRIGGER trigger_proteggi_profilo BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION proteggi_ruolo_profilo()
+trigger reports.reports_before_insert CREATE TRIGGER reports_before_insert BEFORE INSERT ON public.reports FOR EACH ROW EXECUTE FUNCTION reports_before_insert()
 trigger subscriptions.trg_subscriptions_touch_updated_at CREATE TRIGGER trg_subscriptions_touch_updated_at BEFORE UPDATE ON public.subscriptions FOR EACH ROW EXECUTE FUNCTION subscriptions_touch_updated_at()
 vincolo account_deletions.account_deletions_channel_check CHECK ((channel = ANY (ARRAY['app'::text, 'web'::text, 'email'::text])))
 vincolo account_deletions.account_deletions_pkey PRIMARY KEY (id)
+vincolo blocked_terms.blocked_terms_pkey PRIMARY KEY (term)
+vincolo blocked_terms.blocked_terms_term_check CHECK (((term = lower(btrim(term))) AND (term <> ''::text)))
 vincolo blocks.blocks_blocked_id_fkey FOREIGN KEY (blocked_id) REFERENCES auth.users(id) ON DELETE CASCADE
 vincolo blocks.blocks_blocker_id_fkey FOREIGN KEY (blocker_id) REFERENCES auth.users(id) ON DELETE CASCADE
 vincolo blocks.blocks_pkey PRIMARY KEY (blocker_id, blocked_id)
@@ -178,6 +224,17 @@ vincolo profiles.profiles_birth_year_range CHECK (((birth_year IS NULL) OR ((bir
 vincolo profiles.profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 vincolo profiles.profiles_pkey PRIMARY KEY (id)
 vincolo profiles.profiles_role_check CHECK ((role = ANY (ARRAY['cliente'::text, 'gestore'::text])))
+vincolo reports.reports_note_check CHECK ((char_length(note) <= 500))
+vincolo reports.reports_pkey PRIMARY KEY (id)
+vincolo reports.reports_reason_check CHECK ((((target_type = 'message'::text) AND (reason = ANY (ARRAY['harassment'::text, 'threats'::text, 'unwanted_sexual'::text, 'spam'::text, 'other'::text]))) OR ((target_type = 'user'::text) AND (reason = ANY (ARRAY['underage'::text, 'fake_profile'::text, 'inappropriate_photos'::text, 'harassment'::text, 'spam'::text, 'other'::text]))) OR ((target_type = 'event'::text) AND (reason = ANY (ARRAY['not_a_venue'::text, 'misleading'::text, 'inappropriate_content'::text, 'spam'::text, 'other'::text])))))
+vincolo reports.reports_reporter_id_fkey FOREIGN KEY (reporter_id) REFERENCES profiles(id) ON DELETE SET NULL
+vincolo reports.reports_resolved_check CHECK (((status = 'open'::text) = (resolved_at IS NULL)))
+vincolo reports.reports_status_check CHECK ((status = ANY (ARRAY['open'::text, 'actioned'::text, 'dismissed'::text])))
+vincolo reports.reports_target_columns_check CHECK ((((target_type = 'message'::text) AND (target_event_id IS NULL)) OR ((target_type = 'event'::text) AND (target_message_id IS NULL)) OR ((target_type = 'user'::text) AND (target_message_id IS NULL) AND (target_event_id IS NULL))))
+vincolo reports.reports_target_event_id_fkey FOREIGN KEY (target_event_id) REFERENCES events(id) ON DELETE SET NULL
+vincolo reports.reports_target_message_id_fkey FOREIGN KEY (target_message_id) REFERENCES messages(id) ON DELETE SET NULL
+vincolo reports.reports_target_type_check CHECK ((target_type = ANY (ARRAY['message'::text, 'user'::text, 'event'::text])))
+vincolo reports.reports_target_user_id_fkey FOREIGN KEY (target_user_id) REFERENCES profiles(id) ON DELETE SET NULL
 vincolo subscriptions.subscriptions_pkey PRIMARY KEY (user_id)
 vincolo subscriptions.subscriptions_purchase_token_key UNIQUE (purchase_token)
 vincolo subscriptions.subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
