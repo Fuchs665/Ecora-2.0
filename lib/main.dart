@@ -1,11 +1,10 @@
-
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'birth_year.dart';
 import 'client_navigation_hub.dart';
+import 'consent_text.dart';
 import 'gestore_dashboard.dart';
 import 'theme.dart';
 export 'theme.dart';
@@ -17,9 +16,10 @@ import 'subscription_service.dart';
 export 'models.dart';
 export 'data_service.dart';
 
-// Privacy policy ospitata su GitHub Pages (cartella /docs del repo).
+// Privacy policy e Termini ospitati su GitHub Pages (cartella /docs del repo).
 const String kPrivacyPolicyUrl =
     'https://fuchs665.github.io/Ecora-2.0/privacy.html';
+const String kTermsUrl = 'https://fuchs665.github.io/Ecora-2.0/terms.html';
 
 /// Messaggi che devono sopravvivere al cambio di schermata (es. "Account
 /// eliminato", mostrato sopra la schermata di accesso).
@@ -333,22 +333,11 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _ageConfirmed = false;
   bool _termsAccepted = false;
 
-  // Rende cliccabile il link alla privacy policy nel testo di consenso.
-  late final TapGestureRecognizer _privacyRecognizer = TapGestureRecognizer()
-    ..onTap = _openPrivacyPolicy;
-
-  @override
-  void dispose() {
-    _privacyRecognizer.dispose();
-    super.dispose();
-  }
-
-  Future<void> _openPrivacyPolicy() async {
-    final uri = Uri.parse(kPrivacyPolicyUrl);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (mounted) {
-        setState(() => _errorMessage = "Impossibile aprire la Privacy Policy.");
-      }
+  // Link del testo di consenso (Termini e Privacy): pagina nel browser.
+  Future<void> _openLegalPage(String url, String failureMessage) async {
+    if (!await launchUrl(Uri.parse(url),
+        mode: LaunchMode.externalApplication)) {
+      if (mounted) setState(() => _errorMessage = failureMessage);
     }
   }
 
@@ -575,7 +564,7 @@ class _AuthScreenState extends State<AuthScreen> {
     if (!_termsAccepted) {
       setState(() {
         _errorMessage =
-            "Devi accettare la Privacy Policy e i Termini di Servizio.";
+            "Devi accettare i Termini di Servizio e l'Informativa sulla Privacy.";
       });
       return;
     }
@@ -969,23 +958,11 @@ class _AuthScreenState extends State<AuthScreen> {
                   value: _termsAccepted,
                   onChanged: (v) =>
                       setState(() => _termsAccepted = v ?? false),
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                          color: textSecondary, fontSize: 12),
-                      children: [
-                        const TextSpan(text: "Ho letto e accetto la "),
-                        TextSpan(
-                          text: "Privacy Policy e i Termini di Servizio",
-                          style: const TextStyle(
-                            color: premiumGold,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          recognizer: _privacyRecognizer,
-                        ),
-                        const TextSpan(text: "."),
-                      ],
-                    ),
+                  child: ConsentText(
+                    onOpenTerms: () => _openLegalPage(
+                        kTermsUrl, "Impossibile aprire i Termini di Servizio."),
+                    onOpenPrivacy: () => _openLegalPage(kPrivacyPolicyUrl,
+                        "Impossibile aprire la Privacy Policy."),
                   ),
                 ),
                 const SizedBox(height: 16),
