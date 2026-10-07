@@ -14,13 +14,3 @@ solo produzione: bucket event_images public=f limite=- mime=-
 solo produzione: webhook event_requests.event_requests AFTER INSERT
 solo produzione: webhook event_requests.push_richiesta_aggiornata AFTER UPDATE
 solo produzione: webhook reports.push_segnalazione AFTER INSERT
-# 3) La 0020 (Blocco E.4a, consensi lato server) non è ancora applicata in
-#    produzione. Dopo l'applicazione: rifare la fotografia
-#    catalogo_produzione.txt e togliere queste righe.
-solo staging: colonna profiles.sensitive_consent_at timestamp with time zone null=YES default=-
-solo staging: colonna profiles.terms_version text null=YES default=-
-solo staging: funzione accept_terms(p_version text) -> void secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=a29ca7975146cc3807f17794f30e9898
-solo staging: funzione current_terms_version() -> text secdef=f vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=3e8b4bbe19ede38571783589919e0b9a
-solo staging: funzione proteggi_consensi() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=9434d0de5247f56060f8d54f55f5f737
-solo staging: funzione terms_to_accept() -> text secdef=t vol=s lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=4a5e9885e1b4dc3aa0eab5d982fb91bb
-solo staging: trigger profiles.trg_profiles_proteggi_consensi CREATE TRIGGER trg_profiles_proteggi_consensi BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION proteggi_consensi()

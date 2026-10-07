@@ -1,5 +1,5 @@
-# Struttura della produzione Ecora (fswzykzclfrpzlufjhfg), letta il 06/10/2026
-# dopo 0015, 0017, 0018, 0019, la correzione del webhook push e il webhook push_segnalazione, in sola lettura con
+# Struttura della produzione Ecora (fswzykzclfrpzlufjhfg), letta il 07/10/2026
+# dopo 0015, 0017, 0018, 0019, 0020, la correzione del webhook push e il webhook push_segnalazione, in sola lettura con
 # supabase/tests/catalogo.sql (solo catalogo, nessun dato utente; dei
 # webhook solo tabella, nome ed eventi). Postgres 17.6.
 # Per rigenerarla: eseguire catalogo.sql sulla produzione e incollare qui la
@@ -57,7 +57,9 @@ colonna profiles.nickname text null=YES default=-
 colonna profiles.privacy_level text null=YES default=-
 colonna profiles.profile_type text null=YES default=-
 colonna profiles.role text null=NO default='cliente'::text
+colonna profiles.sensitive_consent_at timestamp with time zone null=YES default=-
 colonna profiles.terms_accepted_at timestamp with time zone null=YES default=-
+colonna profiles.terms_version text null=YES default=-
 colonna reports.content_snapshot jsonb null=YES default=-
 colonna reports.created_at timestamp with time zone null=NO default=now()
 colonna reports.id uuid null=NO default=gen_random_uuid()
@@ -90,8 +92,10 @@ colonna subscriptions.purchase_token text null=NO default=-
 colonna subscriptions.updated_at timestamp with time zone null=NO default=now()
 colonna subscriptions.user_id uuid null=NO default=-
 event_trigger ensure_rls ddl_command_end rls_auto_enable {"CREATE TABLE","CREATE TABLE AS","SELECT INTO"} enabled=O
+funzione accept_terms(p_version text) -> void secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=a29ca7975146cc3807f17794f30e9898
 funzione account_deletion_files(p_user_id uuid) -> TABLE(bucket text, path text) secdef=f vol=s lang=sql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=4a1df1cf26c42181df7db6046fc0193e
 funzione can_view_gallery(gallery_owner uuid) -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=f924e218d8b9967b9e91ec9399d66b8b
+funzione current_terms_version() -> text secdef=f vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=3e8b4bbe19ede38571783589919e0b9a
 funzione delete_account_data(p_user_id uuid) -> jsonb secdef=f vol=v lang=plpgsql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=59dded15a67a6f61e65cbf6b90982b86
 funzione event_requests_lock_keys() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=90bebe64ff37df6f43af9786bedba513
 funzione get_events_with_stats() -> TABLE(id uuid, host_id uuid, title text, description text, event_date timestamp with time zone, max_guests integer, status text, latitude double precision, longitude double precision, image_url text, location_name text, approved_count bigint) secdef=t vol=v lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=c86ecac586886bf4a26e7702c14b4277
@@ -104,11 +108,13 @@ funzione is_gestore() -> boolean secdef=t vol=s lang=sql config={search_path=pub
 funzione mark_attendance(p_request_id uuid, p_attended boolean) -> void secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=15f316cf7e341b7619166212325d31eb
 funzione messages_filter_terms() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=8f4c1fc201a625aa0bc469c76e8931d9
 funzione profiles_birth_year_guard() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=daaaa4dcae669f5a38f9d13322f21ccd
+funzione proteggi_consensi() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=9434d0de5247f56060f8d54f55f5f737
 funzione proteggi_ruolo_profilo() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=9c72186b1ad763d2179ce88f1b96d562
 funzione purge_old_reports() -> integer secdef=f vol=v lang=sql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=eacbc99fb2ba4a38eb0500ddb4d6684e
 funzione reports_before_insert() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=39d01927ada44bfbdce651f9e3158ae9
 funzione rls_auto_enable() -> event_trigger secdef=t vol=v lang=plpgsql config={search_path=pg_catalog} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=697b6a03c63a7628ad2808dcd2f53358
 funzione subscriptions_touch_updated_at() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=0146fd32790ffdead7f8c61f46267c34
+funzione terms_to_accept() -> text secdef=t vol=s lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=4a5e9885e1b4dc3aa0eab5d982fb91bb
 indice account_deletions.account_deletions_pkey CREATE UNIQUE INDEX account_deletions_pkey ON public.account_deletions USING btree (id)
 indice blocked_terms.blocked_terms_pkey CREATE UNIQUE INDEX blocked_terms_pkey ON public.blocked_terms USING btree (term)
 indice blocks.blocks_pkey CREATE UNIQUE INDEX blocks_pkey ON public.blocks USING btree (blocker_id, blocked_id)
@@ -195,6 +201,7 @@ tabella subscriptions rls=t
 trigger event_requests.trg_event_requests_lock_keys CREATE TRIGGER trg_event_requests_lock_keys BEFORE UPDATE ON public.event_requests FOR EACH ROW EXECUTE FUNCTION event_requests_lock_keys()
 trigger messages.messages_filter_terms CREATE TRIGGER messages_filter_terms BEFORE INSERT OR UPDATE OF content ON public.messages FOR EACH ROW EXECUTE FUNCTION messages_filter_terms()
 trigger profiles.trg_profiles_birth_year_guard CREATE TRIGGER trg_profiles_birth_year_guard BEFORE INSERT OR UPDATE OF birth_year ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_birth_year_guard()
+trigger profiles.trg_profiles_proteggi_consensi CREATE TRIGGER trg_profiles_proteggi_consensi BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION proteggi_consensi()
 trigger profiles.trigger_proteggi_profilo CREATE TRIGGER trigger_proteggi_profilo BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION proteggi_ruolo_profilo()
 trigger reports.reports_before_insert CREATE TRIGGER reports_before_insert BEFORE INSERT ON public.reports FOR EACH ROW EXECUTE FUNCTION reports_before_insert()
 trigger subscriptions.trg_subscriptions_touch_updated_at CREATE TRIGGER trg_subscriptions_touch_updated_at BEFORE UPDATE ON public.subscriptions FOR EACH ROW EXECUTE FUNCTION subscriptions_touch_updated_at()
