@@ -15,6 +15,18 @@ bool isAttendanceOpen(DateTime eventDate, DateTime now) {
       !now.isAfter(eventDate.add(kAttendanceWindow));
 }
 
+/// Pulsante "Porta" (Blocco C.5d, testo approvato il 07/10/2026): nelle
+/// prime ore della serata il foglio "Chi è venuto?" fa da check-in.
+const String kDoorButton = "Porta";
+const Duration kDoorWindow = Duration(hours: 12);
+
+/// Vero dall'inizio della serata fino a [kDoorWindow] dopo. Pura.
+bool isAtDoor(SupabaseEvent event, DateTime now) {
+  final date = DateTime.tryParse(event.eventDate)?.toLocal();
+  if (date == null) return false;
+  return !now.isBefore(date) && now.isBefore(date.add(kDoorWindow));
+}
+
 /// Le serate del gestore in cui segnare chi è venuto: iniziate da non più
 /// di 7 giorni e con almeno un ospite approvato. Più recenti prima. Pura.
 List<SupabaseEvent> eventsAwaitingAttendance(

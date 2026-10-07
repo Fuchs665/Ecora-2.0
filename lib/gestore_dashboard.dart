@@ -4,9 +4,11 @@ import 'package:image_picker/image_picker.dart';
 import 'main.dart';
 import 'attendance.dart';
 import 'client_navigation_hub.dart' show ChatRoomCard;
+import 'category_limits_field.dart';
 import 'dashboard_skeleton.dart';
 import 'gestore_events.dart';
 import 'gestore_metrics.dart';
+import 'guest_categories.dart';
 import 'motion.dart';
 import 'profile_gallery.dart';
 import 'report_sheet.dart';
@@ -409,9 +411,13 @@ class ClubDashboardScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: EcoraSpace.s8),
+                            // Nelle prime ore della serata è il check-in
+                            // all'ingresso: "Porta" (Blocco C.5d).
                             OutlinedButton(
                               onPressed: () => _openAttendance(context, event),
-                              child: const Text("Chi è venuto?"),
+                              child: Text(isAtDoor(event, DateTime.now())
+                                  ? kDoorButton
+                                  : "Chi è venuto?"),
                             ),
                           ],
                         ),
@@ -1025,6 +1031,10 @@ class _CreateEventFormState extends State<CreateEventForm> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   double _maxParticipants = 8.0;
+  // Posti per tipologia (Blocco C.5d): null = nessun limite.
+  final Map<GuestCategory, int?> _categoryLimits = {
+    for (final c in GuestCategory.values) c: null,
+  };
   DateTime? _eventDate;
   bool _isSubmitting = false;
 
@@ -1183,8 +1193,20 @@ class _CreateEventFormState extends State<CreateEventForm> {
                 onChanged: (val) {
                   setState(() {
                     _maxParticipants = val;
+                    for (final c in GuestCategory.values) {
+                      _categoryLimits[c] =
+                          clampLimit(_categoryLimits[c], val.toInt());
+                    }
                   });
                 },
+              ),
+              const SizedBox(height: 8),
+              CategoryLimitsField(
+                total: _maxParticipants.toInt(),
+                limits: _categoryLimits,
+                enabled: !_isSubmitting,
+                onChanged: (category, value) =>
+                    setState(() => _categoryLimits[category] = value),
               ),
               const SizedBox(height: 16),
 
@@ -1297,6 +1319,9 @@ class _CreateEventFormState extends State<CreateEventForm> {
                             eventDate: _eventDate!,
                             maxGuests: _maxParticipants.toInt(),
                             locationName: _locationController.text,
+                            maxCouples: _categoryLimits[GuestCategory.coppia],
+                            maxWomen: _categoryLimits[GuestCategory.donna],
+                            maxMen: _categoryLimits[GuestCategory.uomo],
                           );
 
                           if (!mounted) return;

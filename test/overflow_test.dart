@@ -6,6 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:ecora/account_deletion.dart';
+import 'package:ecora/category_limits_field.dart';
+import 'package:ecora/gestore_events.dart';
+import 'package:ecora/guest_categories.dart';
 import 'package:ecora/client_navigation_hub.dart';
 import 'package:ecora/event_details_page.dart';
 import 'package:ecora/gestore_dashboard.dart';
@@ -117,6 +120,48 @@ final _screens = <String, Widget Function()>{
       ),
   'TermsCheckErrorScreen': () =>
       TermsCheckErrorScreen(onRetry: () {}, onLogout: () {}),
+  'CategoryLimitsField': () => Scaffold(
+        body: CategoryLimitsField(
+          total: 20,
+          limits: const {
+            GuestCategory.coppia: null,
+            GuestCategory.donna: 12,
+            GuestCategory.uomo: 0,
+          },
+          onChanged: (_, __) {},
+        ),
+      ),
+  'CreateEventForm': () =>
+      CreateEventForm(organizerId: 'h1', onDismiss: () {}),
+  'NextEventCard con posti per tipologia': () => Scaffold(
+        body: SingleChildScrollView(
+          child: NextEventCard(
+            event: SupabaseEvent(
+              id: 'e2',
+              title: 'Serata di apertura con titolo lungo',
+              description: '',
+              organizerId: 'h1',
+              latitude: 0,
+              longitude: 0,
+              imageUrl: '',
+              eventDate: DateTime.now()
+                  .add(const Duration(days: 3))
+                  .toIso8601String(),
+              maxParticipants: 20,
+              currentApprovedCount: 18,
+              maxCouples: 10,
+              maxWomen: 5,
+              maxMen: 5,
+              approvedCouples: 10,
+              approvedWomen: 5,
+              approvedMen: 3,
+            ),
+            pendingCount: 12,
+            onTap: () {},
+            onEvaluate: () {},
+          ),
+        ),
+      ),
   'StatMetricField': () => const StatMetricField(
         label: 'PRESENZE',
         value: '12',

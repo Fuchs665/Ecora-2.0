@@ -117,6 +117,15 @@ class SupabaseEvent {
   final int currentApprovedCount;
   final String locationName;
 
+  /// Posti per tipologia (Blocco C.5d, migrazione 0022): null = nessun
+  /// limite. Gli approvati per categoria vengono da get_events_with_stats.
+  final int? maxCouples;
+  final int? maxWomen;
+  final int? maxMen;
+  final int approvedCouples;
+  final int approvedWomen;
+  final int approvedMen;
+
   SupabaseEvent({
     required this.id,
     required this.title,
@@ -129,6 +138,12 @@ class SupabaseEvent {
     required this.maxParticipants,
     this.currentApprovedCount = 0,
     this.locationName = "Secret Florence Villa",
+    this.maxCouples,
+    this.maxWomen,
+    this.maxMen,
+    this.approvedCouples = 0,
+    this.approvedWomen = 0,
+    this.approvedMen = 0,
   });
 
   double get tableCompletionPercentage =>
@@ -150,6 +165,12 @@ class SupabaseEvent {
       maxParticipants: (json['max_guests'] as num?)?.toInt() ?? 0,
       currentApprovedCount: (json['approved_count'] as num?)?.toInt() ?? 0,
       locationName: json['location_name']?.toString() ?? 'Indirizzo nascosto',
+      maxCouples: (json['max_couples'] as num?)?.toInt(),
+      maxWomen: (json['max_women'] as num?)?.toInt(),
+      maxMen: (json['max_men'] as num?)?.toInt(),
+      approvedCouples: (json['approved_couples'] as num?)?.toInt() ?? 0,
+      approvedWomen: (json['approved_women'] as num?)?.toInt() ?? 0,
+      approvedMen: (json['approved_men'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -166,6 +187,7 @@ class SupabaseEvent {
     int? currentApprovedCount,
     String? locationName,
   }) {
+    // I posti per tipologia restano quelli della serata.
     return SupabaseEvent(
       id: id ?? this.id,
       title: title ?? this.title,
@@ -178,6 +200,12 @@ class SupabaseEvent {
       maxParticipants: maxParticipants ?? this.maxParticipants,
       currentApprovedCount: currentApprovedCount ?? this.currentApprovedCount,
       locationName: locationName ?? this.locationName,
+      maxCouples: maxCouples,
+      maxWomen: maxWomen,
+      maxMen: maxMen,
+      approvedCouples: approvedCouples,
+      approvedWomen: approvedWomen,
+      approvedMen: approvedMen,
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'account_deletion.dart';
+import 'guest_categories.dart';
 import 'logout_everywhere.dart';
 import 'models.dart';
 import 'reports.dart';
@@ -442,6 +443,11 @@ class EcoraDataService {
       await fetchHostRequests();
       await fetchEvents();
       return null;
+    } on PostgrestException catch (e) {
+      // Posti finiti (trigger della 0022): messaggio chiaro, nient'altro.
+      debugPrint("Errore nella revisione della richiesta: $e");
+      return capacityErrorMessage(e.code) ??
+          "Operazione non riuscita. Riprova.";
     } catch (e) {
       debugPrint("Errore nella revisione della richiesta: $e");
       return "Operazione non riuscita. Riprova.";
@@ -823,6 +829,9 @@ class EcoraDataService {
     required DateTime eventDate,
     required int maxGuests,
     required String locationName,
+    int? maxCouples,
+    int? maxWomen,
+    int? maxMen,
   }) async {
     try {
       await Supabase.instance.client.from('events').insert({
@@ -836,6 +845,9 @@ class EcoraDataService {
         'longitude': longitude,
         'image_url': imageUrl,
         'location_name': locationName,
+        'max_couples': maxCouples,
+        'max_women': maxWomen,
+        'max_men': maxMen,
       });
       await fetchEvents();
       return null;

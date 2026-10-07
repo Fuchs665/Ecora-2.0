@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'cover_placeholder.dart';
+import 'guest_categories.dart';
 import 'italian_dates.dart';
 import 'models.dart';
 import 'motion.dart';
@@ -117,6 +118,9 @@ class NextEventCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(_confirmedLabel(event), style: textTheme.bodyMedium),
+                      if (categoryLimitsLabel(event).isNotEmpty)
+                        Text(categoryLimitsLabel(event),
+                            style: textTheme.bodySmall),
                       EcoraAnimatedSize(
                         child: pendingCount > 0
                             ? Text(
@@ -209,6 +213,9 @@ class UpcomingEventTile extends StatelessWidget {
                   children: [
                     Text(event.title, style: textTheme.titleMedium),
                     Text(_confirmedLabel(event), style: textTheme.bodySmall),
+                    if (categoryLimitsLabel(event).isNotEmpty)
+                      Text(categoryLimitsLabel(event),
+                          style: textTheme.bodySmall),
                     if (pendingCount > 0)
                       Text(
                         pendingCount == 1
