@@ -14,6 +14,7 @@ export 'theme.dart';
 import 'models.dart';
 import 'data_service.dart';
 import 'push_service.dart';
+import 'secure_session_storage.dart';
 import 'subscription_service.dart';
 export 'models.dart';
 export 'data_service.dart';
@@ -40,6 +41,8 @@ void main() async {
     await Supabase.initialize(
       url: 'https://fswzykzclfrpzlufjhfg.supabase.co',
       anonKey: 'sb_publishable_qv2R89l53F8gK_cJ6rS66Q_7TLWe_-B',
+      // Sessione cifrata nel Keystore invece che in chiaro (Blocco E.4e).
+      localStorage: SecureSessionStorage(),
     );
     await EcoraDataService.instance.restoreSession();
   } catch (e) {
