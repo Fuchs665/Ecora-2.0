@@ -23,6 +23,10 @@ class SupabaseProfile {
   final String? privacyLevel;
   final String? genericLocation;
 
+  /// Locale verificato da noi (solo gestori, Blocco V.2): senza, non
+  /// pubblica serate e quelle pubblicate non sono visibili (migrazione 0021).
+  final bool isVerified;
+
   SupabaseProfile({
     required this.id,
     required this.fullName,
@@ -34,6 +38,7 @@ class SupabaseProfile {
     this.profileType,
     this.privacyLevel,
     this.genericLocation,
+    this.isVerified = false,
   });
 
   SupabaseProfile copyWith({
@@ -47,6 +52,7 @@ class SupabaseProfile {
     String? profileType,
     String? privacyLevel,
     String? genericLocation,
+    bool? isVerified,
   }) {
     return SupabaseProfile(
       id: id ?? this.id,
@@ -59,6 +65,7 @@ class SupabaseProfile {
       profileType: profileType ?? this.profileType,
       privacyLevel: privacyLevel ?? this.privacyLevel,
       genericLocation: genericLocation ?? this.genericLocation,
+      isVerified: isVerified ?? this.isVerified,
     );
   }
 
@@ -92,6 +99,7 @@ class SupabaseProfile {
       profileType: profileType,
       privacyLevel: row['privacy_level']?.toString(),
       genericLocation: row['generic_location']?.toString(),
+      isVerified: row['is_verified'] == true,
     );
   }
 }

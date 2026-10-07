@@ -14,6 +14,7 @@ import 'reports.dart';
 import 'subscription_panel.dart';
 import 'subscription_service.dart';
 import 'user_profile_page.dart';
+import 'venue_status.dart';
 import 'event_details_page.dart';
 
 class GestoreDashboard extends StatefulWidget {
@@ -65,6 +66,13 @@ class _GestoreDashboardState extends State<GestoreDashboard> {
   /// Lo stato viene riletto dal DB a ogni tentativo: e' una SELECT leggera
   /// e copre il caso "ho appena comprato su un altro device".
   Future<void> _tryOpenCreateForm() async {
+    // Locale non attivo (Blocco V.2): il server rifiuterebbe comunque la
+    // serata (0021), e non deve arrivare al pagamento.
+    final host = EcoraDataService.instance.currentProfileNotifier.value;
+    if (host == null || !host.isVerified) {
+      await showVenueInactiveSheet(context);
+      return;
+    }
     final service = EcoraSubscriptionService.instance;
     await service.refreshStatus();
     if (!mounted) return;
@@ -344,6 +352,10 @@ class ClubDashboardScreen extends StatelessWidget {
             const SizedBox(height: EcoraSpace.s4),
             Text("Le tue serate", style: textTheme.displayMedium),
             const SizedBox(height: EcoraSpace.s16),
+            if (!host.isVerified) ...[
+              const VenueInactiveNotice(),
+              const SizedBox(height: EcoraSpace.s16),
+            ],
 
             // Azione primaria (Blocco C.4): sempre in vista, stesso gate
             // d'abbonamento del resto.

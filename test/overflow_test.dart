@@ -78,6 +78,13 @@ final _screens = <String, Widget Function()>{
         onSelectRequestInspector: () {},
         onCreateEvent: () {},
       ),
+  'ClubDashboardScreen non attivo': () => ClubDashboardScreen(
+        host: _profile.copyWith(role: 'gestore', isVerified: false),
+        events: [_event()],
+        requests: const [],
+        onSelectRequestInspector: () {},
+        onCreateEvent: () {},
+      ),
   'RequestInspectorScreen': () => RequestInspectorScreen(
         events: [_event()],
         requests: [_request],

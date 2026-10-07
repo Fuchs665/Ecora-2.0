@@ -16,6 +16,7 @@ final _host = SupabaseProfile(
   role: 'gestore',
   gender: 'Coppia',
   genericLocation: 'Bologna',
+  isVerified: true,
 );
 
 SupabaseEvent _event(String id, String hostId) {
