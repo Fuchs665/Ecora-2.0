@@ -1,5 +1,5 @@
 # Struttura della produzione Ecora (fswzykzclfrpzlufjhfg), letta il 07/10/2026
-# dopo 0015, 0017, 0018, 0019, 0020, 0021, la correzione del webhook push e il webhook push_segnalazione, in sola lettura con
+# dopo 0015, 0017, 0018, 0019, 0020, 0021, 0022, la correzione del webhook push e il webhook push_segnalazione, in sola lettura con
 # supabase/tests/catalogo.sql (solo catalogo, nessun dato utente; dei
 # webhook solo tabella, nome ed eventi). Postgres 17.6.
 # Per rigenerarla: eseguire catalogo.sql sulla produzione e incollare qui la
@@ -38,7 +38,10 @@ colonna events.image_url text null=YES default=-
 colonna events.latitude double precision null=YES default=-
 colonna events.location_name text null=YES default=-
 colonna events.longitude double precision null=YES default=-
+colonna events.max_couples integer null=YES default=-
 colonna events.max_guests integer null=YES default=50
+colonna events.max_men integer null=YES default=-
+colonna events.max_women integer null=YES default=-
 colonna events.status text null=YES default='draft'::text
 colonna events.title text null=NO default=-
 colonna messages.content text null=NO default=-
@@ -97,10 +100,12 @@ funzione account_deletion_files(p_user_id uuid) -> TABLE(bucket text, path text)
 funzione can_view_gallery(gallery_owner uuid) -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=f924e218d8b9967b9e91ec9399d66b8b
 funzione current_terms_version() -> text secdef=f vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=3e8b4bbe19ede38571783589919e0b9a
 funzione delete_account_data(p_user_id uuid) -> jsonb secdef=f vol=v lang=plpgsql config={search_path=public} acl=postgres=X/postgres,service_role=X/postgres corpo=59dded15a67a6f61e65cbf6b90982b86
+funzione event_requests_check_capacity() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=18515ca13de5889acb9eacf4731a23ab
 funzione event_requests_lock_keys() -> trigger secdef=f vol=v lang=plpgsql config={search_path=public} acl==X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=90bebe64ff37df6f43af9786bedba513
-funzione get_events_with_stats() -> TABLE(id uuid, host_id uuid, title text, description text, event_date timestamp with time zone, max_guests integer, status text, latitude double precision, longitude double precision, image_url text, location_name text, approved_count bigint) secdef=t vol=v lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=21a7d95726e6873cd3832cc02091c330
+funzione get_events_with_stats() -> TABLE(id uuid, host_id uuid, title text, description text, event_date timestamp with time zone, max_guests integer, status text, latitude double precision, longitude double precision, image_url text, location_name text, approved_count bigint, max_couples integer, max_women integer, max_men integer, approved_couples bigint, approved_women bigint, approved_men bigint) secdef=t vol=v lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=19b9debf4e4257830879b1ac13737395
 funzione get_events_within_radius(user_lat double precision, user_lon double precision, max_distance_km double precision) -> SETOF events secdef=f vol=v lang=sql config=- acl=postgres=X/postgres,service_role=X/postgres corpo=348d8fa73c02d69f865f95d3756ccb29
 funzione get_guest_reliability(p_user_ids uuid[]) -> TABLE(user_id uuid, attended bigint, no_shows bigint) secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=373d2702e17f0ab33f6cebb81ab08ec1
+funzione guest_category(p_profile_type text) -> text secdef=f vol=i lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=5408dc26fe0ab8c886883e597b2c5c79
 funzione has_active_subscription() -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=24528420a4d5befac52af1e930920f73
 funzione host_is_verified(p_host uuid) -> boolean secdef=t vol=s lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=aa2ce58b6f80790b4bf89e41b3fcc40b
 funzione is_approved_for_event(target_event_id uuid) -> boolean secdef=t vol=v lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=0e032acfa4b04535307caedd12a4bde2
@@ -200,6 +205,7 @@ tabella messages rls=t
 tabella profiles rls=t
 tabella reports rls=t
 tabella subscriptions rls=t
+trigger event_requests.trg_event_requests_check_capacity CREATE TRIGGER trg_event_requests_check_capacity BEFORE UPDATE ON public.event_requests FOR EACH ROW EXECUTE FUNCTION event_requests_check_capacity()
 trigger event_requests.trg_event_requests_lock_keys CREATE TRIGGER trg_event_requests_lock_keys BEFORE UPDATE ON public.event_requests FOR EACH ROW EXECUTE FUNCTION event_requests_lock_keys()
 trigger messages.messages_filter_terms CREATE TRIGGER messages_filter_terms BEFORE INSERT OR UPDATE OF content ON public.messages FOR EACH ROW EXECUTE FUNCTION messages_filter_terms()
 trigger profiles.trg_profiles_birth_year_guard CREATE TRIGGER trg_profiles_birth_year_guard BEFORE INSERT OR UPDATE OF birth_year ON public.profiles FOR EACH ROW EXECUTE FUNCTION profiles_birth_year_guard()
@@ -223,6 +229,7 @@ vincolo event_requests.event_requests_event_id_user_id_key UNIQUE (event_id, use
 vincolo event_requests.event_requests_pkey PRIMARY KEY (id)
 vincolo event_requests.event_requests_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'approved'::text, 'rejected'::text])))
 vincolo event_requests.event_requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+vincolo events.events_category_limits_check CHECK ((((max_couples IS NULL) OR ((max_couples >= 0) AND ((max_guests IS NULL) OR (max_couples <= max_guests)))) AND ((max_women IS NULL) OR ((max_women >= 0) AND ((max_guests IS NULL) OR (max_women <= max_guests)))) AND ((max_men IS NULL) OR ((max_men >= 0) AND ((max_guests IS NULL) OR (max_men <= max_guests))))))
 vincolo events.events_host_id_fkey FOREIGN KEY (host_id) REFERENCES profiles(id) ON DELETE CASCADE
 vincolo events.events_pkey PRIMARY KEY (id)
 vincolo events.events_status_check CHECK ((status = ANY (ARRAY['draft'::text, 'published'::text, 'cancelled'::text, 'archived'::text])))
