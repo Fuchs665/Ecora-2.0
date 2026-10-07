@@ -210,6 +210,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             tag: eventCoverHeroTag(widget.event.id),
                             child: EcoraNetworkImage(
                               url: widget.event.imageUrl,
+                              seedId: widget.event.id,
+                              animated: true,
                               width: double.infinity,
                               height: 240,
                             ),

@@ -122,7 +122,9 @@ void main() {
         expect(find.text('Valuta'), findsOneWidget);
 
         await tester.pumpWidget(card(0));
-        await tester.pumpAndSettle();
+        // Non pumpAndSettle: la copertina Luce della card si muove sempre
+        // (Blocco D.3). Un secondo basta alle transizioni di "Valuta".
+        await tester.pump(const Duration(seconds: 1));
         expect(find.textContaining('da valutare'), findsNothing);
         expect(find.text('Valuta'), findsNothing);
         expect(tester.takeException(), isNull);

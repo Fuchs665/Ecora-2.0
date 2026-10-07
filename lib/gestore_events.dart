@@ -77,7 +77,11 @@ class NextEventCard extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        EcoraNetworkImage(url: event.imageUrl),
+                        EcoraNetworkImage(
+                          url: event.imageUrl,
+                          seedId: event.id,
+                          animated: true,
+                        ),
                       ],
                     ),
                   ),

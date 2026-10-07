@@ -573,6 +573,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                     child: EcoraNetworkImage(
                                                       url: _selectedPointEvent!
                                                           .imageUrl,
+                                                      seedId:
+                                                          _selectedPointEvent!
+                                                              .id,
                                                       width: 64,
                                                       height: 64,
                                                     ),
@@ -790,6 +793,7 @@ class EventFeedCard extends StatelessWidget {
                     tag: eventCoverHeroTag(event.id),
                     child: EcoraNetworkImage(
                       url: event.imageUrl,
+                      seedId: event.id,
                       width: double.infinity,
                       height: 180,
                     ),
