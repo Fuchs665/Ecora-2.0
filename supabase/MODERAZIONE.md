@@ -74,7 +74,8 @@ Linea di condotta, nell'ordine:
 2. **Minacce, molestie, contenuti sessuali non richiesti** → cancella il
    contenuto; al secondo caso per lo stesso utente, ban.
 3. **Serata non in un locale** (assunzione di dominio: i gestori sono locali
-   commerciali con indirizzo pubblico) → annulla la serata e scrivi al gestore.
+   commerciali con indirizzo pubblico) → annulla la serata e sospendi il
+   locale (`VERIFICA_LOCALI.md`, punto 2), poi scrivi al gestore.
 4. **Profilo falso, spam, truffa** → ban se è evidente, altrimenti cancella il
    contenuto e annota.
 5. **Segnalazione infondata o ritorsiva** → chiudila come `dismissed`. Se un
@@ -117,7 +118,9 @@ Scrivi al gestore dal suo indirizzo email (Authentication → Users).
    ```sql
    delete from public.device_tokens where user_id = '<USER_UID>';
    ```
-3. Se è un gestore, le sue serate restano pubblicate: annullale tutte.
+3. Se è un gestore, le sue serate restano pubblicate: sospendi il locale
+   (`VERIFICA_LOCALI.md`, punto 2), così spariscono subito tutte; per toglierle
+   per sempre annullale anche:
 
    ```sql
    update public.events set status = 'cancelled'
