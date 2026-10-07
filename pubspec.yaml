@@ -18,6 +18,9 @@ dependencies:
   firebase_messaging: ^16.4.1
   url_launcher: ^6.3.0
   in_app_purchase: ^3.2.0
+  cached_network_image: ^3.4.1
+  # Sessione di Supabase cifrata con il Keystore (Blocco E.4e, audit A4).
+  flutter_secure_storage: ^11.2.0
 
 dev_dependencies:
   flutter_test:

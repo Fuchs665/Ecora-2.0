@@ -1,24 +1,37 @@
-
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'biometric_gate.dart';
+import 'birth_year.dart';
 import 'client_navigation_hub.dart';
+import 'consent_text.dart';
+import 'account_deletion.dart';
 import 'gestore_dashboard.dart';
+import 'terms_update.dart';
 import 'theme.dart';
 export 'theme.dart';
 
 import 'models.dart';
 import 'data_service.dart';
 import 'push_service.dart';
+import 'secure_session_storage.dart';
 import 'subscription_service.dart';
 export 'models.dart';
 export 'data_service.dart';
 
-// Privacy policy ospitata su GitHub Pages (cartella /docs del repo).
+// Privacy policy e Termini ospitati su GitHub Pages (cartella /docs del repo).
 const String kPrivacyPolicyUrl =
     'https://fuchs665.github.io/Ecora-2.0/privacy.html';
+const String kTermsUrl = 'https://fuchs665.github.io/Ecora-2.0/terms.html';
+
+/// Il profilo non è stato creato (audit A2): testo approvato il 07/10/2026.
+const String kRegistrationIncomplete =
+    "Registrazione non completata. Riprova ad accedere tra poco.";
+
+/// Messaggi che devono sopravvivere al cambio di schermata (es. "Account
+/// eliminato", mostrato sopra la schermata di accesso).
+final GlobalKey<ScaffoldMessengerState> ecoraMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 // --- FLUTTER APPLICATION BARRIER ---
 
@@ -28,6 +41,8 @@ void main() async {
     await Supabase.initialize(
       url: 'https://fswzykzclfrpzlufjhfg.supabase.co',
       anonKey: 'sb_publishable_qv2R89l53F8gK_cJ6rS66Q_7TLWe_-B',
+      // Sessione cifrata nel Keystore invece che in chiaro (Blocco E.4e).
+      localStorage: SecureSessionStorage(),
     );
     await EcoraDataService.instance.restoreSession();
   } catch (e) {
@@ -61,6 +76,7 @@ class _EcoraAppState extends State<EcoraApp> {
     if (EcoraDataService.instance.currentProfileNotifier.value != null) {
       EcoraPushService.instance.registerDevice();
       _initSubscriptionsIfGestore();
+      EcoraDataService.instance.checkTerms();
     }
   }
 
@@ -90,6 +106,12 @@ class _EcoraAppState extends State<EcoraApp> {
       // e, per i gestori, aggancia il flusso abbonamento.
       EcoraPushService.instance.registerDevice();
       _initSubscriptionsIfGestore();
+      // Termini: una volta per accesso (il notifier del profilo cambia
+      // anche per le modifiche al profilo).
+      if (EcoraDataService.instance.termsCheckNotifier.value.state ==
+          TermsCheckState.checking) {
+        EcoraDataService.instance.checkTerms();
+      }
     }
   }
 
@@ -98,178 +120,109 @@ class _EcoraAppState extends State<EcoraApp> {
     return MaterialApp(
       title: 'Ecora',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: ecoraMessengerKey,
       theme: ecoraTheme(),
-      home: BiometricGate(
-        child: ValueListenableBuilder<SupabaseProfile?>(
-          valueListenable: EcoraDataService.instance.currentProfileNotifier,
-          builder: (context, profile, _) {
-            if (profile == null) {
-              return const AuthScreen();
-            } else if (profile.role == 'gestore') {
-              return const GestoreDashboard();
-            } else {
-              // Default sicuro: qualunque ruolo non-gestore -> area cliente.
-              return const ClientNavigationHub();
-            }
-          },
-        ),
+      // Il gate avvolge il Navigator, così il blocco copre anche le pagine
+      // aperte sopra la home (chat, dettaglio serata): Blocco E.4d.
+      builder: (context, child) =>
+          BiometricGate(child: child ?? const SizedBox.shrink()),
+      home: ValueListenableBuilder<SupabaseProfile?>(
+        valueListenable: EcoraDataService.instance.currentProfileNotifier,
+        builder: (context, profile, _) {
+          if (profile == null) {
+            return const AuthScreen();
+          }
+          return ValueListenableBuilder<TermsCheck>(
+            valueListenable: EcoraDataService.instance.termsCheckNotifier,
+            builder: (context, terms, _) =>
+                _homeFor(context, profile, terms),
+          );
+        },
       ),
     );
   }
-}
 
-// --- BIOMETRIC SECURITY GATEWAY ---
-class BiometricGate extends StatefulWidget {
-  final Widget child;
-  const BiometricGate({Key? key, required this.child}) : super(key: key);
-
-  @override
-  State<BiometricGate> createState() => _BiometricGateState();
-}
-
-class _BiometricGateState extends State<BiometricGate> {
-  final LocalAuthentication _auth = LocalAuthentication();
-  String _authState = 'checking'; // 'checking', 'authenticated', 'failed'
-
-  @override
-  void initState() {
-    super.initState();
-    _checkBiometrics();
+  Widget _homeFor(
+      BuildContext context, SupabaseProfile profile, TermsCheck terms) {
+    switch (terms.state) {
+      case TermsCheckState.checking:
+        return const TermsCheckingScreen();
+      case TermsCheckState.failed:
+        return TermsCheckErrorScreen(
+          onRetry: EcoraDataService.instance.checkTerms,
+          onLogout: EcoraDataService.instance.logout,
+        );
+      case TermsCheckState.mustAccept:
+        return TermsUpdateScreen(
+          onAccept: EcoraDataService.instance.acceptTerms,
+          onLogout: EcoraDataService.instance.logout,
+          onDeleteAccount: () => _showDeleteAccountSheet(context, profile),
+          onOpenTerms: () => _openLegalPage(context, kTermsUrl,
+              "Impossibile aprire i Termini di Servizio."),
+          onOpenPrivacy: () => _openLegalPage(context, kPrivacyPolicyUrl,
+              "Impossibile aprire la Privacy Policy."),
+        );
+      case TermsCheckState.ok:
+        break;
+    }
+    if (profile.role != 'gestore' && profile.birthYear == null) {
+      // Iscritti prima di B.2b: l'anno si chiede una volta sola.
+      return BirthYearScreen(
+        onSave: EcoraDataService.instance.saveBirthYear,
+        onLogout: EcoraDataService.instance.logout,
+      );
+    } else if (profile.role == 'gestore') {
+      return const GestoreDashboard();
+    }
+    // Default sicuro: qualunque ruolo non-gestore -> area cliente.
+    return const ClientNavigationHub();
   }
 
-  Future<void> _checkBiometrics() async {
-    try {
-      final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
-      final bool hasBiometrics = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
-
-      if (!hasBiometrics) {
-        setState(() {
-          _authState = 'authenticated'; // Bypass automatically if biometrics not supported
-        });
-        return;
-      }
-
-      final List<BiometricType> availableBiometrics = await _auth.getAvailableBiometrics();
-      if (availableBiometrics.isEmpty) {
-        setState(() {
-          _authState = 'authenticated'; // Bypass if no biometric templates are enrolled
-        });
-        return;
-      }
-
-      _authenticate();
-    } catch (e) {
-      debugPrint("Errore verifica biometria: $e");
-      setState(() {
-        _authState = 'authenticated'; // Safe fallback bypass on exception
-      });
+  Future<void> _openLegalPage(
+      BuildContext context, String url, String failureMessage) async {
+    if (!await launchUrl(Uri.parse(url),
+        mode: LaunchMode.externalApplication)) {
+      ecoraMessengerKey.currentState
+          ?.showSnackBar(SnackBar(content: Text(failureMessage)));
     }
   }
 
-  Future<void> _authenticate() async {
-    try {
-      final bool authenticated = await _auth.authenticate(
-        localizedReason: 'Autenticati per accedere al tuo profilo riservato',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
-      );
-
-      if (authenticated) {
-        setState(() {
-          _authState = 'authenticated';
-        });
-      } else {
-        setState(() {
-          _authState = 'failed';
-        });
-      }
-    } catch (e) {
-      debugPrint("Errore autenticazione biometrica: $e");
-      setState(() {
-        _authState = 'failed';
-      });
+  /// "Elimina l'account" dalla schermata dei Termini (punto 13: chi non li
+  /// accetta può eliminare l'account). Stesso foglio del profilo; per il
+  /// gestore prima si caricano le serate, per gli avvisi del foglio.
+  Future<void> _showDeleteAccountSheet(
+      BuildContext context, SupabaseProfile profile) async {
+    if (profile.role == 'gestore') {
+      await EcoraDataService.instance.fetchEvents();
+      await EcoraSubscriptionService.instance.refreshStatus();
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_authState == 'checking') {
-      return const Scaffold(
-        backgroundColor: matteDark,
-        body: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(premiumGold),
-          ),
-        ),
-      );
-    }
-
-    if (_authState == 'failed') {
-      return Scaffold(
-        backgroundColor: matteDark,
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Spacer(),
-                const Icon(
-                  Icons.fingerprint,
-                  color: premiumGold,
-                  size: 80,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  "ACCESSO BLOCCATO",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 20,
-                    letterSpacing: 4,
-                    fontFamily: 'Serif',
-                    color: premiumGold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "È necessaria l'autenticazione biometrica per sbloccare l'applicazione e proteggere i tuoi dati sensibili.",
-                  style: TextStyle(
-                    color: textSecondary,
-                    fontSize: 13,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    style: ecoraPrimaryButtonStyle(),
-                    onPressed: _authenticate,
-                    child: const Text(
-                      "RIPROVA LO SBLOCCO",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return widget.child;
+    if (!context.mounted) return;
+    final warnings = DeletionWarnings.compute(
+      profile: profile,
+      events: EcoraDataService.instance.eventsNotifier.value,
+      subscription: EcoraSubscriptionService.instance.statusNotifier.value,
+      now: DateTime.now(),
+    );
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      enableDrag: false,
+      backgroundColor: slateSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => DeleteAccountSheet(
+        warnings: warnings,
+        onDelete: EcoraDataService.instance.requestAccountDeletion,
+        onDeleted: () async {
+          await EcoraDataService.instance.logout();
+          ecoraMessengerKey.currentState?.showSnackBar(
+              const SnackBar(content: Text(kDeleteAccountDone)));
+        },
+        onOpenGooglePlay: () => launchUrl(Uri.parse(kPlaySubscriptionsUrl),
+            mode: LaunchMode.externalApplication),
+      ),
+    );
   }
 }
 
@@ -296,6 +249,7 @@ class _AuthScreenState extends State<AuthScreen> {
   // Registration Controllers
   final TextEditingController _regNicknameController = TextEditingController();
   final TextEditingController _regLocationController = TextEditingController();
+  final TextEditingController _regBirthYearController = TextEditingController();
   final TextEditingController _regEmailController = TextEditingController();
   final TextEditingController _regPasswordController = TextEditingController();
   bool _regPasswordVisible = false;
@@ -318,23 +272,13 @@ class _AuthScreenState extends State<AuthScreen> {
   // Consenso obbligatorio alla registrazione (Fase 3 — Trust & Safety).
   bool _ageConfirmed = false;
   bool _termsAccepted = false;
+  bool _sensitiveConsent = false;
 
-  // Rende cliccabile il link alla privacy policy nel testo di consenso.
-  late final TapGestureRecognizer _privacyRecognizer = TapGestureRecognizer()
-    ..onTap = _openPrivacyPolicy;
-
-  @override
-  void dispose() {
-    _privacyRecognizer.dispose();
-    super.dispose();
-  }
-
-  Future<void> _openPrivacyPolicy() async {
-    final uri = Uri.parse(kPrivacyPolicyUrl);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (mounted) {
-        setState(() => _errorMessage = "Impossibile aprire la Privacy Policy.");
-      }
+  // Link del testo di consenso (Termini e Privacy): pagina nel browser.
+  Future<void> _openLegalPage(String url, String failureMessage) async {
+    if (!await launchUrl(Uri.parse(url),
+        mode: LaunchMode.externalApplication)) {
+      if (mounted) setState(() => _errorMessage = failureMessage);
     }
   }
 
@@ -437,17 +381,16 @@ class _AuthScreenState extends State<AuthScreen> {
       // ma non era leggibile per un problema transitorio.
       if (profileData == null) {
         final fallbackNickname = email.split('@').first;
-        // Consenso raccolto alla registrazione e conservato nei metadati auth:
-        // lo rispecchiamo qui quando la riga profilo nasce al primo login
-        // (flusso con conferma email attiva).
+        // Flusso con conferma email: la riga profilo nasce al primo login.
+        // I consensi non passano da qui: li scrive il server con
+        // accept_terms (EcoraDataService.checkTerms, migrazione 0020).
         final meta = user.userMetadata ?? {};
         await Supabase.instance.client.from('profiles').upsert(
           {
             'id': user.id,
             'nickname': fallbackNickname,
             'role': 'cliente',
-            'age_confirmed_at': meta['age_confirmed_at'],
-            'terms_accepted_at': meta['terms_accepted_at'],
+            'birth_year': meta['birth_year'],
           },
           onConflict: 'id',
           ignoreDuplicates: true,
@@ -457,11 +400,14 @@ class _AuthScreenState extends State<AuthScreen> {
             .select(kProfileSelectColumns)
             .eq('id', user.id)
             .maybeSingle();
-        profileData ??= {
-          'id': user.id,
-          'nickname': fallbackNickname,
-          'role': 'cliente',
-        };
+        if (profileData == null) {
+          // Audit A2: mai entrare con un profilo che esiste solo in memoria.
+          await Supabase.instance.client.auth
+              .signOut(scope: SignOutScope.local);
+          if (!mounted) return;
+          setState(() => _errorMessage = kRegistrationIncomplete);
+          return;
+        }
       }
 
       final prof =
@@ -511,6 +457,16 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
+    final birthYearProblem =
+        birthYearError(_regBirthYearController.text, DateTime.now());
+    if (birthYearProblem != null) {
+      setState(() {
+        _errorMessage = birthYearProblem;
+      });
+      return;
+    }
+    final int birthYear = int.parse(_regBirthYearController.text.trim());
+
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(email)) {
       setState(() {
@@ -550,10 +506,13 @@ class _AuthScreenState extends State<AuthScreen> {
     if (!_termsAccepted) {
       setState(() {
         _errorMessage =
-            "Devi accettare la Privacy Policy e i Termini di Servizio.";
+            "Devi accettare i Termini di Servizio e l'Informativa sulla Privacy.";
       });
       return;
     }
+
+    // Il pulsante resta spento finché manca: qui solo per sicurezza.
+    if (!_sensitiveConsent) return;
 
     setState(() {
       _isLoading = true;
@@ -561,18 +520,17 @@ class _AuthScreenState extends State<AuthScreen> {
       _infoMessage = null;
     });
 
-    // Timestamp del consenso: salvato nei metadati auth (sopravvive al gap
-    // della conferma email) e rispecchiato nella riga profiles.
-    final String consentIso = DateTime.now().toUtc().toIso8601String();
-
     try {
       // 1. Registrazione reale su Supabase Auth
       final response = await Supabase.instance.client.auth.signUp(
         email: email,
         password: password,
+        // terms_consent: le caselle sono state spuntate. Data e versione
+        // dei Termini le scrive il server con accept_terms, al primo
+        // controllo dopo l'accesso (EcoraDataService.checkTerms).
         data: {
-          'age_confirmed_at': consentIso,
-          'terms_accepted_at': consentIso,
+          'terms_consent': true,
+          'birth_year': birthYear,
         },
       );
 
@@ -606,11 +564,20 @@ class _AuthScreenState extends State<AuthScreen> {
           'is_verified': false,
           'profile_type': profileType,
           'privacy_level': privacyLevel,
-          'age_confirmed_at': consentIso,
-          'terms_accepted_at': consentIso,
+          'birth_year': birthYear,
         });
       } catch (dbErr) {
+        // Audit A2: senza riga profilo non si entra. Al prossimo accesso
+        // il percorso di riparazione del login la crea.
         debugPrint("Errore nell'inserimento del profilo reale: $dbErr");
+        await Supabase.instance.client.auth
+            .signOut(scope: SignOutScope.local);
+        if (!mounted) return;
+        setState(() {
+          _isLogin = true;
+          _errorMessage = kRegistrationIncomplete;
+        });
+        return;
       }
 
       // 3. Registrazione nello stato locale (in-memory simulator)
@@ -618,7 +585,7 @@ class _AuthScreenState extends State<AuthScreen> {
         id: userId,
         fullName: nickname,
         role: 'cliente',
-        age: 30,
+        birthYear: birthYear,
         gender: profileType.contains('Coppia') ? 'Coppia' : (profileType.contains('Donna') ? 'Donna' : 'Uomo'),
         noShows: 0,
         participationsCount: 0,
@@ -879,6 +846,19 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 16),
 
+                // Anno di nascita (Blocco B.2b): obbligatorio, 18+.
+                TextField(
+                  controller: _regBirthYearController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: kBirthYearInputFormatters,
+                  style: const TextStyle(color: textPrimary, fontSize: 13),
+                  decoration: ecoraInputDecoration(
+                    kBirthYearLabel,
+                    prefixIcon: Icons.cake_outlined,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 // 3. Email
                 TextField(
                   controller: _regEmailController,
@@ -921,7 +901,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   value: _ageConfirmed,
                   onChanged: (v) => setState(() => _ageConfirmed = v ?? false),
                   child: const Text(
-                    "Dichiaro di avere almeno 18 anni.",
+                    kAgeConsentText,
                     style: TextStyle(color: textSecondary, fontSize: 12),
                   ),
                 ),
@@ -929,23 +909,20 @@ class _AuthScreenState extends State<AuthScreen> {
                   value: _termsAccepted,
                   onChanged: (v) =>
                       setState(() => _termsAccepted = v ?? false),
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                          color: textSecondary, fontSize: 12),
-                      children: [
-                        const TextSpan(text: "Ho letto e accetto la "),
-                        TextSpan(
-                          text: "Privacy Policy e i Termini di Servizio",
-                          style: const TextStyle(
-                            color: premiumGold,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          recognizer: _privacyRecognizer,
-                        ),
-                        const TextSpan(text: "."),
-                      ],
-                    ),
+                  child: ConsentText(
+                    onOpenTerms: () => _openLegalPage(
+                        kTermsUrl, "Impossibile aprire i Termini di Servizio."),
+                    onOpenPrivacy: () => _openLegalPage(kPrivacyPolicyUrl,
+                        "Impossibile aprire la Privacy Policy."),
+                  ),
+                ),
+                _buildConsentCheckbox(
+                  value: _sensitiveConsent,
+                  onChanged: (v) =>
+                      setState(() => _sensitiveConsent = v ?? false),
+                  child: const Text(
+                    kSensitiveConsentText,
+                    style: TextStyle(color: textSecondary, fontSize: 12),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -956,7 +933,10 @@ class _AuthScreenState extends State<AuthScreen> {
                   height: 48,
                   child: ElevatedButton(
                     style: ecoraPrimaryButtonStyle(),
-                    onPressed: (_isLoading || !_ageConfirmed || !_termsAccepted)
+                    onPressed: (_isLoading ||
+                            !_ageConfirmed ||
+                            !_termsAccepted ||
+                            !_sensitiveConsent)
                         ? null
                         : _handleRegister,
                     child: _isLoading
@@ -1062,11 +1042,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     Expanded(
                       child: Text(
                         _isLogin
-                            ? "Protetto rigorosamente da tunnel crittografati Supabase. Anonimato assoluto end-to-end. L'identità del tuo dispositivo non viene mai registrata."
-                            : "Compilando il modulo acconsenti al pre-screening rigoroso. Il tuo nickname e la tua località non saranno rivelati finché non sarai approvato a un tavolo condiviso.",
+                            ? "La connessione con Ecora è cifrata. Gli altri iscritti vedono solo il nickname, la zona e le foto che scegli di caricare."
+                            : "Iscrivendoti accetti la verifica dei gestori: ogni richiesta di partecipazione viene valutata prima di essere approvata.",
                         style: TextStyle(
                           color: textSecondary.withValues(alpha: 0.8),
-                          fontSize: 10,
+                          fontSize: 12,
                           height: 1.4,
                         ),
                       ),

@@ -1,6 +1,8 @@
+import 'cover_placeholder.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'motion.dart';
 import 'chat_screen.dart';
 import 'event_details_page.dart';
 import 'user_profile_page.dart';
@@ -48,7 +50,13 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
     ];
 
     return Scaffold(
-      body: pages[_currentIndex],
+      body: AnimatedSwitcher(
+        duration: motionDuration(context, EcoraMotion.base),
+        child: KeyedSubtree(
+          key: ValueKey(_currentIndex),
+          child: pages[_currentIndex],
+        ),
+      ),
       bottomNavigationBar: Container(
         height: 76,
         decoration: BoxDecoration(
@@ -77,8 +85,8 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
           selectedItemColor: premiumGold,
           unselectedItemColor: textSecondary,
           type: BottomNavigationBarType.fixed,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
+          showSelectedLabels: true,
+          showUnselectedLabels: true,
           elevation: 0,
           items: [
             const BottomNavigationBarItem(
@@ -112,7 +120,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
                             '$badgeCount',
                             style: const TextStyle(
                               color: matteDark,
-                              fontSize: 9,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,
@@ -127,7 +135,7 @@ class _ClientNavigationHubState extends State<ClientNavigationHub> {
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.chat_bubble, size: 26),
-              label: "Forum",
+              label: "Chat",
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.person, size: 28),
@@ -265,7 +273,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        "Tavoli del Momento",
+                        "Serate",
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -297,7 +305,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 child: Text(
                                   "Lista",
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color:
                                         !_isMapView ? matteDark : textSecondary,
@@ -319,7 +327,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 child: Text(
                                   "Mappa",
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color:
                                         _isMapView ? matteDark : textSecondary,
@@ -394,7 +402,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             min: 1.0,
                             max: 50.0,
                             activeColor: premiumGold,
-                            inactiveColor: const Color(0xFF424242),
+                            inactiveColor: EcoraColors.lineStrong,
                             onChanged: (val) {
                               setState(() {
                                 _radiusKm = val;
@@ -419,7 +427,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                   color: textSecondary, size: 48),
                               SizedBox(height: 12),
                               Text(
-                                "Nessun evento riservato nel raggio selezionato",
+                                "Nessuna serata nel raggio selezionato",
                                 style: TextStyle(
                                     color: textSecondary, fontSize: 14),
                               ),
@@ -430,57 +438,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           ? ListView.builder(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 12),
-                              itemCount: filteredEvents.length + 1,
+                              itemCount: filteredEvents.length,
                               itemBuilder: (context, index) {
-                                if (index == 0) {
-                                  // --- PRIVACY BANNER NOTE ---
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 16),
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: premiumGold.withValues(alpha: 0.05),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                          color: premiumGold.withValues(alpha: 0.15)),
-                                    ),
-                                    child: const Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Icon(Icons.privacy_tip,
-                                            color: premiumGold, size: 20),
-                                        SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "BLOCCO PRIVACY DI PRECISIONE",
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 1.0,
-                                                  color: premiumGold,
-                                                ),
-                                              ),
-                                              SizedBox(height: 3),
-                                              Text(
-                                                "I dettagli GPS precisi e l'organizzatore sono bloccati finché il tuo profilo non viene approvato dall'organizzatore dell'evento. Ecora dà priorità al tuo anonimato.",
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: textSecondary,
-                                                  height: 1.4,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-                                final ev = filteredEvents[index - 1];
+                                final ev = filteredEvents[index];
                                 return EventFeedCard(
                                   event: ev,
                                   onClick: () {
@@ -564,9 +524,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                 textSecondary.withValues(alpha: 0.1)),
                                       ),
                                       child: const Text(
-                                        "Mappa Dark CartoDB — Tocca i nodi luminosi per i dettagli",
+                                        "Tocca un punto per i dettagli",
                                         style: TextStyle(
-                                            color: textSecondary, fontSize: 11),
+                                            color: textSecondary, fontSize: 12),
                                       ),
                                     ),
                                   ),
@@ -606,16 +566,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                 ClipRRect(
                                                   borderRadius:
                                                       BorderRadius.circular(8),
-                                                  child: Image.network(
-                                                    _selectedPointEvent!
-                                                        .imageUrl,
-                                                    width: 64,
-                                                    height: 64,
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder:
-                                                        (context, _, __) =>
-                                                            Container(
-                                                      color: Colors.grey,
+                                                  child: EcoraHero(
+                                                    tag: eventCoverHeroTag(
+                                                        _selectedPointEvent!
+                                                            .id),
+                                                    child: EcoraNetworkImage(
+                                                      url: _selectedPointEvent!
+                                                          .imageUrl,
                                                       width: 64,
                                                       height: 64,
                                                     ),
@@ -638,7 +595,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                             color: textPrimary),
                                                       ),
                                                       Text(
-                                                        "Tavolo al ${(_selectedPointEvent!.tableCompletionPercentage * 100).toInt()}% Riservato",
+                                                        "${(_selectedPointEvent!.tableCompletionPercentage * 100).toInt()}% dei posti occupati",
                                                         style: const TextStyle(
                                                             fontWeight:
                                                                 FontWeight.bold,
@@ -648,7 +605,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                                       const Text(
                                                         "Firenze Sud — Tocca per richiedere l'accesso",
                                                         style: TextStyle(
-                                                            fontSize: 11,
+                                                            fontSize: 12,
                                                             color:
                                                                 textSecondary),
                                                         maxLines: 1,
@@ -829,13 +786,10 @@ class EventFeedCard extends StatelessWidget {
                   borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24)),
-                  child: Image.network(
-                    event.imageUrl,
-                    width: double.infinity,
-                    height: 180,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, _, __) => Container(
-                      color: Colors.grey,
+                  child: EcoraHero(
+                    tag: eventCoverHeroTag(event.id),
+                    child: EcoraNetworkImage(
+                      url: event.imageUrl,
                       width: double.infinity,
                       height: 180,
                     ),
@@ -873,9 +827,9 @@ class EventFeedCard extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      "URGENTE: ${(event.tableCompletionPercentage * 100).toInt()}% RISERVATO",
+                      "URGENTE: ${(event.tableCompletionPercentage * 100).toInt()}% DEI POSTI OCCUPATI",
                       style: const TextStyle(
-                        fontSize: 9,
+                        fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: matteDark,
                         letterSpacing: 0.5,
@@ -924,7 +878,7 @@ class EventFeedCard extends StatelessWidget {
                             Text(
                               "Alta Affidabilità",
                               style: TextStyle(
-                                fontSize: 8,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: premiumGold,
                               ),
@@ -941,9 +895,11 @@ class EventFeedCard extends StatelessWidget {
                     children: [
                       Icon(Icons.location_on, color: premiumGold, size: 14),
                       SizedBox(width: 4),
-                      Text(
-                        "Zona Colline del Sud, Firenze (Solo Approvati)",
-                        style: TextStyle(fontSize: 11, color: textSecondary),
+                      Expanded(
+                        child: Text(
+                          "Zona Colline del Sud, Firenze (Solo Approvati)",
+                          style: TextStyle(fontSize: 12, color: textSecondary),
+                        ),
                       ),
                     ],
                   ),
@@ -962,17 +918,23 @@ class EventFeedCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        "${event.currentApprovedCount} di ${event.maxParticipants} coppie confermate",
-                        style: const TextStyle(
-                            fontSize: 11,
-                            color: premiumGold,
-                            fontWeight: FontWeight.w600),
+                      Flexible(
+                        child: Text(
+                          "${event.currentApprovedCount} di ${event.maxParticipants} ospiti confermati",
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: premiumGold,
+                              fontWeight: FontWeight.w600),
+                        ),
                       ),
-                      Text(
-                        "${(event.tableCompletionPercentage * 100).toInt()}% posti riservati",
-                        style:
-                            const TextStyle(fontSize: 10, color: textSecondary),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          "${(event.tableCompletionPercentage * 100).toInt()}% dei posti occupati",
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                              fontSize: 12, color: textSecondary),
+                        ),
                       )
                     ],
                   ),
@@ -1038,7 +1000,7 @@ class NotificationsScreen extends StatelessWidget {
                                 color: textSecondary, size: 48),
                             SizedBox(height: 12),
                             Text(
-                              "Il tuo feed degli inviti privati è vuoto.",
+                              "Nessuna notifica per ora.",
                               style:
                                   TextStyle(fontSize: 13, color: textSecondary),
                             ),
@@ -1111,7 +1073,7 @@ class NotificationsScreen extends StatelessWidget {
                                           Text(
                                             item.status == "approved"
                                                 ? "Stato approvato per ${item.eventTitle}. Coordinate GPS sbloccate."
-                                                : "La tua richiesta per ${item.eventTitle} è stata riservatamente declinata.",
+                                                : "La tua richiesta per ${item.eventTitle} è stata stata rifiutata.",
                                             style: const TextStyle(
                                                 fontSize: 12,
                                                 color: textSecondary,
@@ -1121,7 +1083,7 @@ class NotificationsScreen extends StatelessWidget {
                                           Text(
                                             item.timestamp,
                                             style: const TextStyle(
-                                                fontSize: 10,
+                                                fontSize: 12,
                                                 color: premiumGold),
                                           ),
                                         ],
@@ -1159,7 +1121,7 @@ class MessagesScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "STANZE CHAT PRIVATE",
+                "CHAT DELLE SERATE",
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
@@ -1169,7 +1131,7 @@ class MessagesScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                "La chat di un evento si apre quando l'organizzatore approva la tua richiesta.",
+                "La chat di una serata si apre quando l'organizzatore approva la tua richiesta.",
                 style: TextStyle(
                     fontSize: 12, color: textSecondary, height: 1.5),
               ),
@@ -1200,7 +1162,7 @@ class MessagesScreen extends StatelessWidget {
                                       color: premiumGold, size: 48),
                                   SizedBox(height: 16),
                                   Text(
-                                    "Conversazioni Riservate",
+                                    "Nessuna chat aperta",
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -1208,7 +1170,7 @@ class MessagesScreen extends StatelessWidget {
                                   ),
                                   SizedBox(height: 8),
                                   Text(
-                                    "Nessuna chat attiva al momento. Invia una richiesta di partecipazione a un evento: appena approvata, la stanza apparirà qui.",
+                                    "Nessuna chat attiva al momento. Invia una richiesta di partecipazione a una serata: appena approvata, la chat apparirà qui.",
                                     style: TextStyle(
                                         fontSize: 12,
                                         color: textSecondary,

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'theme.dart';
 import 'models.dart';
 import 'data_service.dart';
+import 'report_sheet.dart';
+import 'reports.dart';
 
 /// Chat privata di un evento: host + partecipanti approvati.
 /// La visibilità è garantita dalle RLS su `messages` (inclusi i blocchi
@@ -24,6 +26,10 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _loading = true;
   String? _error;
   bool _sending = false;
+
+  /// Utenti bloccati da questa schermata: i loro messaggi spariscono subito,
+  /// senza aspettare che lo stream torni a leggere con la RLS dei blocchi.
+  final Set<String> _hiddenSenders = {};
 
   @override
   void initState() {
@@ -87,6 +93,28 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  /// Pressione lunga su un messaggio altrui: segnalazione, poi il blocco
+  /// del mittente se lo si vuole (Blocco E.2b).
+  Future<void> _report(ChatMessage message) async {
+    final data = EcoraDataService.instance;
+    final name = data.getProfileById(message.senderId)?.fullName;
+    final blocked = await showReportSheet(
+      context,
+      type: ReportTargetType.message,
+      blockName: name ?? "questo utente",
+      onSubmit: (reason, note) => data.reportContent(
+          ReportTarget(ReportTargetType.message, message.id), reason, note),
+      onBlock: () => data.blockUser(message.senderId),
+    );
+    if (blocked != true || !mounted) return;
+    setState(() => _hiddenSenders.add(message.senderId));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Text(
+              name == null ? "Utente bloccato." : "$name è stato bloccato.")),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,9 +125,9 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "CHAT EVENTO",
+              "CHAT DELLA SERATA",
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 letterSpacing: 1.5,
                 fontWeight: FontWeight.w900,
                 color: premiumGold,
@@ -165,11 +193,14 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       );
     }
+    final visible = _messages
+        .where((m) => !_hiddenSenders.contains(m.senderId))
+        .toList();
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
-      itemCount: _messages.length,
-      itemBuilder: (context, index) => _buildBubble(_messages[index]),
+      itemCount: visible.length,
+      itemBuilder: (context, index) => _buildBubble(visible[index]),
     );
   }
 
@@ -185,9 +216,7 @@ class _ChatScreenState extends State<ChatScreen> {
         : "${created.hour.toString().padLeft(2, '0')}:"
             "${created.minute.toString().padLeft(2, '0')}";
 
-    return Align(
-      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
+    final bubble = Container(
         constraints: BoxConstraints(
             maxWidth: MediaQuery.of(context).size.width * 0.75),
         margin: const EdgeInsets.only(bottom: 10),
@@ -217,7 +246,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Text(
                   senderName,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: premiumGold,
                   ),
@@ -234,12 +263,24 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Text(
                   time,
                   style:
-                      const TextStyle(fontSize: 10, color: textSecondary),
+                      const TextStyle(fontSize: 12, color: textSecondary),
                 ),
               ),
           ],
         ),
-      ),
+      );
+
+    return Align(
+      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+      child: isMine
+          ? bubble
+          : Semantics(
+              onLongPressHint: kReportMessageAction,
+              child: GestureDetector(
+                onLongPress: () => _report(message),
+                child: bubble,
+              ),
+            ),
     );
   }
 

@@ -60,6 +60,37 @@ void main() {
     });
   });
 
+  group('subscriptionActiveLine', () {
+    test('con rinnovo automatico indica la data del rinnovo', () {
+      expect(
+        subscriptionActiveLine(
+            _status(expiry: DateTime(2026, 8, 16), autoRenewing: true)),
+        'Abbonamento attivo · si rinnova il 16 agosto',
+      );
+    });
+
+    test('senza rinnovo indica la scadenza, con l\'articolo giusto', () {
+      expect(subscriptionActiveLine(_status(expiry: DateTime(2026, 11, 12))),
+          'Abbonamento attivo fino al 12 novembre');
+      expect(subscriptionActiveLine(_status(expiry: DateTime(2026, 11, 8))),
+          "Abbonamento attivo fino all'8 novembre");
+    });
+
+    test('senza data resta solo lo stato', () {
+      expect(subscriptionActiveLine(_status(expiry: null)),
+          'Abbonamento attivo');
+    });
+  });
+
+  test('il link "Gestisci" apre gli abbonamenti Play di Ecora', () {
+    expect(kManageSubscriptionUri.host, 'play.google.com');
+    expect(kManageSubscriptionUri.path, '/store/account/subscriptions');
+    expect(kManageSubscriptionUri.queryParameters, {
+      'sku': kSubscriptionProductId,
+      'package': 'com.ecora.app',
+    });
+  });
+
   group('SubscriptionStatusCard', () {
     Future<void> pumpCard(WidgetTester tester) {
       return tester.pumpWidget(const MaterialApp(
@@ -78,15 +109,31 @@ void main() {
       expect(find.text('Ripristina'), findsOneWidget);
     });
 
-    testWidgets('with active subscription hides the CTA', (tester) async {
+    testWidgets('with active subscription becomes a discreet line',
+        (tester) async {
       EcoraSubscriptionService.instance.statusNotifier.value = _status(
         expiry: DateTime.now().add(const Duration(days: 30)),
         autoRenewing: true,
       );
       await pumpCard(tester);
 
-      expect(find.textContaining('Attivo • si rinnova il'), findsOneWidget);
+      expect(find.textContaining('Abbonamento attivo · si rinnova'),
+          findsOneWidget);
+      expect(find.text('Gestisci'), findsOneWidget);
+      expect(find.text('ABBONAMENTO GESTORE'), findsNothing);
       expect(find.text('Abbonati'), findsNothing);
+    });
+
+    testWidgets('feedback is shown under the active line too',
+        (tester) async {
+      EcoraSubscriptionService.instance.statusNotifier.value = _status(
+        expiry: DateTime.now().add(const Duration(days: 30)),
+      );
+      EcoraSubscriptionService.instance.feedbackNotifier.value =
+          'Abbonamento ripristinato.';
+      await pumpCard(tester);
+
+      expect(find.text('Abbonamento ripristinato.'), findsOneWidget);
     });
 
     testWidgets('feedback from the purchase flow is shown and dismissable',

@@ -1,9 +1,10 @@
 // ============================================================================
 // Block 4.3b: Edge Function "push" — invio notifiche FCM
 //
-// Invocata dai Database Webhooks su event_requests:
-//   INSERT                  -> push al GESTORE ("nuova richiesta")
-//   UPDATE (cambio status)  -> push al CLIENTE ("approvata"/"non accettata")
+// Invocata dai Database Webhooks:
+//   event_requests INSERT                 -> push al GESTORE ("nuova richiesta")
+//   event_requests UPDATE (cambio status) -> push al CLIENTE ("approvata"/"non accettata")
+//   reports INSERT                        -> push al MODERATORE (Blocco E.2a)
 //
 // Deploy (dashboard Supabase, zero budget):
 //   1. Edge Functions -> New function -> nome "push" -> incolla questo file.
@@ -11,11 +12,17 @@
 //   2. Secrets della funzione:
 //        FIREBASE_SERVICE_ACCOUNT = intero JSON della chiave service account
 //        WEBHOOK_SECRET           = stringa lunga casuale (generata da te)
+//        MODERATOR_USER_ID        = uid dell'account che riceve le
+//                                   segnalazioni (senza questo secret le
+//                                   push di moderazione non partono, e la
+//                                   coda si legge solo dal SQL Editor)
 //      (SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY sono iniettate in automatico.)
-//   3. Database -> Webhooks -> due webhook sulla tabella event_requests
-//      (uno per INSERT, uno per UPDATE), method POST, URL:
+//   3. Database -> Webhooks -> tre webhook, method POST, URL:
 //        https://<project-ref>.supabase.co/functions/v1/push
 //      con HTTP header:  x-webhook-secret: <lo stesso WEBHOOK_SECRET>
+//      - event_requests INSERT
+//      - event_requests UPDATE
+//      - reports INSERT
 //
 // Sicurezza: service role e chiave Firebase vivono SOLO qui come secret;
 // nessuna chiave di invio nell'app. Il testo delle notifiche resta discreto
@@ -162,46 +169,63 @@ Deno.serve(async (req: Request): Promise<Response> => {
   } catch {
     return Response.json({ error: "bad payload" }, { status: 400 });
   }
-  if (payload.table !== "event_requests" || !payload.record) {
-    return Response.json({ skipped: true });
-  }
-
+  if (!payload.record) return Response.json({ skipped: true });
   const record = payload.record;
-  const eventId = String(record.event_id ?? "");
-  const newStatus = String(record.status ?? "");
-  const oldStatus = String(payload.old_record?.status ?? "");
-
-  // Titolo evento + host (service role: bypassa RLS, solo lato server).
-  const { data: event } = await supabase
-    .from("events")
-    .select("title, host_id")
-    .eq("id", eventId)
-    .maybeSingle();
-  if (!event) return Response.json({ skipped: "event not found" });
 
   // Destinatario e testo (copy discreta: finisce sulla lock screen).
   let recipient: string;
   let title: string;
   let body: string;
-  if (payload.type === "INSERT") {
-    recipient = String(event.host_id);
-    title = "Nuova richiesta ospiti";
-    body = `Un profilo si e' candidato per "${event.title}".`;
-  } else if (
-    payload.type === "UPDATE" &&
-    newStatus !== oldStatus &&
-    (newStatus === "approved" || newStatus === "rejected")
-  ) {
-    recipient = String(record.user_id ?? "");
-    if (newStatus === "approved") {
-      title = "Richiesta approvata";
-      body = `Sei in lista per "${event.title}". Benvenuto al tavolo.`;
+
+  if (payload.table === "reports") {
+    // Segnalazione nuova -> push al moderatore. Nessun dato del contenuto
+    // segnalato nella notifica: la coda si legge dal SQL Editor
+    // (supabase/MODERAZIONE.md).
+    if (payload.type !== "INSERT") {
+      return Response.json({ skipped: "no notification for this change" });
+    }
+    recipient = Deno.env.get("MODERATOR_USER_ID") ?? "";
+    if (!recipient) {
+      console.error("MODERATOR_USER_ID non impostato: segnalazione non notificata");
+      return Response.json({ sent: 0, reason: "no moderator configured" });
+    }
+    title = "Ecora";
+    body = "Nuova segnalazione da esaminare.";
+  } else if (payload.table === "event_requests") {
+    const eventId = String(record.event_id ?? "");
+    const newStatus = String(record.status ?? "");
+    const oldStatus = String(payload.old_record?.status ?? "");
+
+    // Titolo evento + host (service role: bypassa RLS, solo lato server).
+    const { data: event } = await supabase
+      .from("events")
+      .select("title, host_id")
+      .eq("id", eventId)
+      .maybeSingle();
+    if (!event) return Response.json({ skipped: "event not found" });
+
+    if (payload.type === "INSERT") {
+      recipient = String(event.host_id);
+      title = "Nuova richiesta ospiti";
+      body = `Un profilo si e' candidato per "${event.title}".`;
+    } else if (
+      payload.type === "UPDATE" &&
+      newStatus !== oldStatus &&
+      (newStatus === "approved" || newStatus === "rejected")
+    ) {
+      recipient = String(record.user_id ?? "");
+      if (newStatus === "approved") {
+        title = "Richiesta approvata";
+        body = `Sei in lista per "${event.title}". Benvenuto al tavolo.`;
+      } else {
+        title = "Richiesta non accettata";
+        body = `La candidatura per "${event.title}" non e' andata a buon fine.`;
+      }
     } else {
-      title = "Richiesta non accettata";
-      body = `La candidatura per "${event.title}" non e' andata a buon fine.`;
+      return Response.json({ skipped: "no notification for this change" });
     }
   } else {
-    return Response.json({ skipped: "no notification for this change" });
+    return Response.json({ skipped: true });
   }
 
   const { data: tokens } = await supabase

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Ecora — Eliminare l'account</title>
+  <!--
+    Blocco E.1c: percorso web di eliminazione account richiesto da Google
+    Play (URL da indicare in Play Console). Il form chiama la stessa Edge
+    Function dell'app, "delete-account", che riverifica la password lato
+    server. La chiave qui sotto è la chiave pubblica (publishable) già
+    presente nell'app: non dà alcun permesso senza login. Nessuna sessione
+    viene salvata nel browser.
+  -->
+  <style>
+    /* Colori del design system v2 "Club privato" (lib/theme.dart). */
+    :root {
+      --canvas: #0E1814;
+      --surface: #14211C;
+      --line: rgba(237, 232, 220, 0.13);
+      --line-strong: rgba(237, 232, 220, 0.22);
+      --ink: #EDE8DC;
+      --ink-muted: #A1ABA3;
+      --brass: #C3A56C;
+      --on-brass: #0E1814;
+      --danger: #EC7F72;
+      --warning: #E2B25C;
+      --success: #7DBFE0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.7;
+      padding: 24px 16px 64px;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; }
+    header { text-align: center; padding: 24px 0 8px; }
+    .logo { color: var(--brass); font-weight: 900; letter-spacing: 6px; font-size: 22px; }
+    h1 {
+      font-family: "Bodoni Moda", "Bodoni 72", Didot, Georgia, serif;
+      font-style: italic; font-weight: 500;
+      font-size: 30px; margin: 24px 0 4px;
+    }
+    h2 { color: var(--brass); font-size: 18px; margin: 32px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+    p, li { color: var(--ink); font-size: 15px; }
+    .muted { color: var(--ink-muted); font-size: 13px; }
+    a { color: var(--brass); }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin: 16px 0; }
+    ul { padding-left: 20px; }
+    label { display: block; font-size: 14px; color: var(--ink-muted); margin: 12px 0 4px; }
+    input[type="email"], input[type="password"] {
+      width: 100%; padding: 12px; font-size: 16px;
+      color: var(--ink); background: var(--canvas);
+      border: 1px solid var(--line-strong); border-radius: 10px;
+    }
+    input:focus { outline: 2px solid var(--brass); outline-offset: 1px; }
+    .check { display: flex; gap: 10px; align-items: flex-start; margin: 16px 0; color: var(--ink); font-size: 15px; }
+    .check input { margin-top: 6px; width: 18px; height: 18px; accent-color: var(--brass); }
+    button {
+      width: 100%; padding: 14px; margin-top: 8px;
+      font-size: 14px; font-weight: 700; letter-spacing: 1px;
+      color: var(--on-brass); background: var(--danger);
+      border: 0; border-radius: 24px; cursor: pointer;
+    }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    #status { min-height: 1.7em; margin: 12px 0 0; font-size: 15px; }
+    #status.error { color: var(--danger); }
+    #status.done { color: var(--success); }
+    .warning { border-color: var(--warning); }
+    footer { text-align: center; margin-top: 48px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">E&nbsp;C&nbsp;O&nbsp;R&nbsp;A</div>
+      <p class="muted">Applicazione riservata a un pubblico adulto (18+)</p>
+    </header>
+
+    <h1>Eliminare l'account Ecora</h1>
+    <p>Puoi eliminare il tuo account Ecora e i dati collegati dall'app oppure da questa pagina. L'eliminazione è definitiva.</p>
+
+    <h2>Dall'app</h2>
+    <p>Apri Ecora, vai su Profilo, tocca "Elimina account", inserisci la password e conferma.</p>
+
+    <h2>Da questa pagina</h2>
+    <p>Accedi con l'email e la password del tuo account. La password serve solo a confermare che sei tu: questa pagina non la conserva.</p>
+    <form id="delete-form" class="card" novalidate>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" required>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <label class="check" for="ack">
+        <input id="ack" type="checkbox">
+        <span>Ho capito che l'eliminazione è definitiva</span>
+      </label>
+      <button id="submit" type="submit" disabled>ELIMINA ACCOUNT</button>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+
+    <h2>Senza password</h2>
+    <p>Se non ricordi la password o non hai mai confermato l'email, scrivi a
+    <a href="mailto:furchia96@gmail.com?subject=Eliminazione%20account">furchia96@gmail.com</a>
+    dall'indirizzo con cui ti sei registrato, con oggetto "Eliminazione account".
+    Ti chiederemo una conferma rispondendo allo stesso indirizzo ed elimineremo l'account entro 30 giorni.</p>
+
+    <h2>Cosa cancelliamo</h2>
+    <ul>
+      <li>profilo: nickname, tipologia, località, anno di nascita, data dei consensi;</li>
+      <li>foto della galleria;</li>
+      <li>richieste di partecipazione e presenze registrate;</li>
+      <li>messaggi inviati;</li>
+      <li>blocchi fatti e ricevuti;</li>
+      <li>dispositivi registrati per le notifiche;</li>
+      <li>per i locali, anche l'abbonamento registrato e le serate.</li>
+    </ul>
+
+    <h2>Cosa resta</h2>
+    <ul>
+      <li>Una registrazione anonima dell'eliminazione (data, tipo di account e canale), senza email né altri dati che ti identifichino. Serve a dimostrare che la richiesta è stata eseguita.</li>
+      <li>Per i locali: le serate già concluse con presenze registrate restano in forma anonima, senza nome del locale, luogo e descrizione, così gli ospiti conservano il proprio storico.</li>
+      <li>Le segnalazioni che hai fatto o ricevuto, per 12 mesi dalla loro data, con la copia del contenuto segnalato (ad esempio il testo di un messaggio e il nickname di chi l'ha scritto): servono come prova per la moderazione. Poi vengono cancellate.</li>
+      <li>Per un periodo limitato, le copie di sicurezza tecniche del nostro fornitore, che vengono sovrascritte periodicamente.</li>
+    </ul>
+
+    <h2>Abbonamento dei locali</h2>
+    <div class="card warning">
+      <p>Eliminare l'account non annulla l'abbonamento Google Play: disdicilo da
+      <a href="https://play.google.com/store/account/subscriptions?sku=ecora_gestore_monthly&amp;package=com.ecora.app" rel="noopener">Google Play</a>.
+      Lo storico degli acquisti resta a Google, che gestisce il pagamento.</p>
+    </div>
+
+    <footer>
+      <p class="muted"><a href="privacy.html">Informativa sulla Privacy</a></p>
+      <p class="muted">© 2026 Ecora — Tutti i diritti riservati.</p>
+    </footer>
+  </div>
+
+  <!-- supabase-js con versione fissata e hash di integrità: se il file sul
+       CDN cambiasse, il browser si rifiuterebbe di eseguirlo. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"
+          integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"
+          crossorigin="anonymous"></script>
+  <script>
+    (function () {
+      var SUPABASE_URL = 'https://fswzykzclfrpzlufjhfg.supabase.co';
+      var SUPABASE_KEY = 'sb_publishable_qv2R89l53F8gK_cJ6rS66Q_7TLWe_-B';
+
+      var MSG_BUSY = 'Eliminazione in corso…';
+      var MSG_DONE = 'Account eliminato. Puoi chiudere questa pagina.';
+      var MSG_CREDENTIALS = 'Email o password non corretti.';
+      var MSG_RATE_LIMITED = 'Troppi tentativi. Riprova tra qualche minuto.';
+      var MSG_FAILED = 'Eliminazione non riuscita. Riprova; se il problema continua scrivi a furchia96@gmail.com.';
+
+      var form = document.getElementById('delete-form');
+      var email = document.getElementById('email');
+      var password = document.getElementById('password');
+      var ack = document.getElementById('ack');
+      var submit = document.getElementById('submit');
+      var status = document.getElementById('status');
+      var busy = false;
+
+      function refresh() {
+        submit.disabled = busy || !ack.checked || !email.value.trim() || !password.value;
+      }
+      function show(text, kind) {
+        status.textContent = text;
+        status.className = kind || '';
+      }
+      [email, password, ack].forEach(function (el) {
+        el.addEventListener('input', refresh);
+        el.addEventListener('change', refresh);
+      });
+
+      // Risposta della Edge Function -> messaggio (stessi codici dell'app).
+      function messageFor(httpStatus, body) {
+        var code = body && body.error;
+        if (code === 'wrong_password') return MSG_CREDENTIALS;
+        if (httpStatus === 429 || code === 'rate_limited') return MSG_RATE_LIMITED;
+        return MSG_FAILED;
+      }
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (submit.disabled) return;
+        if (!window.supabase) { show(MSG_FAILED, 'error'); return; }
+        busy = true;
+        refresh();
+        show(MSG_BUSY);
+
+        var pw = password.value;
+        try {
+          var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+          });
+          var login = await client.auth.signInWithPassword({ email: email.value.trim(), password: pw });
+          if (login.error || !login.data.session) {
+            show(login.error && login.error.status === 429 ? MSG_RATE_LIMITED : MSG_CREDENTIALS, 'error');
+            return;
+          }
+          var res = await fetch(SUPABASE_URL + '/functions/v1/delete-account', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + login.data.session.access_token,
+              'apikey': SUPABASE_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password: pw, channel: 'web' })
+          });
+          var body = null;
+          try { body = await res.json(); } catch (e) { body = null; }
+          if (res.ok) {
+            form.querySelectorAll('input, button').forEach(function (el) { el.disabled = true; });
+            show(MSG_DONE, 'done');
+            return;
+          }
+          show(messageFor(res.status, body), 'error');
+        } catch (e) {
+          show(MSG_FAILED, 'error');
+        } finally {
+          password.value = '';
+          pw = '';
+          busy = false;
+          if (status.className !== 'done') refresh();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

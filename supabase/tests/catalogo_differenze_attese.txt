@@ -1,0 +1,29 @@
+# Differenze ammesse tra lo staging (catena 0000 -> ultima) e
+# catalogo_produzione.txt. run_chain.sh fallisce se ne compare una nuova o
+# se una di queste sparisce: in quel caso aggiornare questo file e annotare
+# il motivo in docs/PIANO_LAVORO.md.
+#
+# 1) Il bucket event_images esiste in produzione (creato dalla dashboard;
+#    la 0004 lo dava per assente; l'app usa event_covers) e nessuna
+#    migrazione lo crea.
+# 2) I Database Webhooks verso la Edge Function push esistono solo in
+#    produzione: si configurano dalla dashboard perché contengono il segreto
+#    dell'header. Dal 02/10/2026 due su event_requests (INSERT e UPDATE); dal
+#    06/10/2026 push_segnalazione su reports (INSERT, Blocco E.2a).
+solo produzione: bucket event_images public=f limite=- mime=-
+solo produzione: webhook event_requests.event_requests AFTER INSERT
+solo produzione: webhook event_requests.push_richiesta_aggiornata AFTER UPDATE
+solo produzione: webhook reports.push_segnalazione AFTER INSERT
+# 3) La 0022 (Blocco C.5c, posti per tipologia) non è ancora applicata in
+#    produzione: get_events_with_stats() nella versione della 0021, colonne,
+#    vincolo, funzioni e trigger nuovi assenti. Dopo l'applicazione: rifare
+#    la fotografia catalogo_produzione.txt e togliere queste righe.
+solo produzione: funzione get_events_with_stats() -> TABLE(id uuid, host_id uuid, title text, description text, event_date timestamp with time zone, max_guests integer, status text, latitude double precision, longitude double precision, image_url text, location_name text, approved_count bigint) secdef=t vol=v lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=21a7d95726e6873cd3832cc02091c330
+solo staging: colonna events.max_couples integer null=YES default=-
+solo staging: colonna events.max_men integer null=YES default=-
+solo staging: colonna events.max_women integer null=YES default=-
+solo staging: funzione event_requests_check_capacity() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=18515ca13de5889acb9eacf4731a23ab
+solo staging: funzione get_events_with_stats() -> TABLE(id uuid, host_id uuid, title text, description text, event_date timestamp with time zone, max_guests integer, status text, latitude double precision, longitude double precision, image_url text, location_name text, approved_count bigint, max_couples integer, max_women integer, max_men integer, approved_couples bigint, approved_women bigint, approved_men bigint) secdef=t vol=v lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=19b9debf4e4257830879b1ac13737395
+solo staging: funzione guest_category(p_profile_type text) -> text secdef=f vol=i lang=sql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=5408dc26fe0ab8c886883e597b2c5c79
+solo staging: trigger event_requests.trg_event_requests_check_capacity CREATE TRIGGER trg_event_requests_check_capacity BEFORE UPDATE ON public.event_requests FOR EACH ROW EXECUTE FUNCTION event_requests_check_capacity()
+solo staging: vincolo events.events_category_limits_check CHECK ((((max_couples IS NULL) OR ((max_couples >= 0) AND ((max_guests IS NULL) OR (max_couples <= max_guests)))) AND ((max_women IS NULL) OR ((max_women >= 0) AND ((max_guests IS NULL) OR (max_women <= max_guests)))) AND ((max_men IS NULL) OR ((max_men >= 0) AND ((max_guests IS NULL) OR (max_men <= max_guests))))))
