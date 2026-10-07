@@ -3,6 +3,16 @@ import 'package:flutter/material.dart';
 
 import 'theme.dart';
 
+/// Casella 18+ (registrazione e "Termini aggiornati").
+const String kAgeConsentText = "Dichiaro di avere almeno 18 anni.";
+
+/// Consenso esplicito art. 9 GDPR, separato dai Termini (Blocco E.4b,
+/// testo approvato il 07/10/2026).
+const String kSensitiveConsentText =
+    "Acconsento espressamente al trattamento dei dati sulla mia vita "
+    "sessuale e sul mio orientamento sessuale, come descritto "
+    "nell'Informativa sulla Privacy.";
+
 /// Testo della casella di consenso in registrazione, con due link separati:
 /// Termini di Servizio e Informativa sulla Privacy (Blocco E.3b).
 class ConsentText extends StatefulWidget {

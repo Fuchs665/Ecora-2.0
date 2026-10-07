@@ -12,6 +12,7 @@ import 'package:ecora/gestore_dashboard.dart';
 import 'package:ecora/models.dart';
 import 'package:ecora/report_sheet.dart';
 import 'package:ecora/reports.dart';
+import 'package:ecora/terms_update.dart';
 import 'package:ecora/theme.dart';
 import 'package:ecora/user_profile_page.dart';
 
@@ -100,6 +101,15 @@ final _screens = <String, Widget Function()>{
         onSubmit: (_, __) async => ReportResult.sent,
         onBlock: () async => null,
       ),
+  'TermsUpdateScreen': () => TermsUpdateScreen(
+        onAccept: () async => null,
+        onLogout: () {},
+        onDeleteAccount: () {},
+        onOpenTerms: () {},
+        onOpenPrivacy: () {},
+      ),
+  'TermsCheckErrorScreen': () =>
+      TermsCheckErrorScreen(onRetry: () {}, onLogout: () {}),
   'StatMetricField': () => const StatMetricField(
         label: 'PRESENZE',
         value: '12',

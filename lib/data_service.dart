@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'account_deletion.dart';
 import 'models.dart';
 import 'reports.dart';
+import 'terms_update.dart';
 
 /// Content-type per gli upload nel bucket `profile_photos`, che accetta
 /// solo jpeg/png/webp: derivato dall'estensione, jpeg come default sicuro.
@@ -36,6 +37,10 @@ class EcoraDataService {
   final ValueNotifier<List<SupabaseProfile>> profilesNotifier =
       ValueNotifier([]);
   final ValueNotifier<List<SupabaseEvent>> eventsNotifier = ValueNotifier([]);
+  /// Termini per l'utente collegato (Blocco E.4b). Torna a checking a ogni
+  /// logout; lo aggiorna [checkTerms].
+  final ValueNotifier<TermsCheck> termsCheckNotifier =
+      ValueNotifier(TermsCheck.checking);
   final ValueNotifier<List<SupabaseParticipationRequest>> requestsNotifier =
       ValueNotifier([]);
   final ValueNotifier<List<NotificationItem>> notificationsNotifier =
@@ -88,6 +93,7 @@ class EcoraDataService {
     // Prima si sblocca la UI, poi si revoca la sessione in rete:
     // la chiamata HTTP non deve mai tenere l'utente bloccato sulla schermata.
     currentProfileNotifier.value = null;
+    termsCheckNotifier.value = TermsCheck.checking;
     try {
       // Va eseguito PRIMA della signOut: la RLS own-rows su device_tokens
       // richiede la sessione ancora valida.
@@ -144,6 +150,77 @@ class EcoraDataService {
       }
     } catch (e) {
       debugPrint("Errore ripristino sessione: $e");
+    }
+  }
+
+  /// Chiede al server se l'utente collegato deve accettare i Termini
+  /// (migrazione 0020). Se il consenso dato in registrazione copre già la
+  /// versione in vigore (flusso con conferma email, profilo nato al primo
+  /// accesso), la accetta subito: data e versione le scrive il server.
+  Future<void> checkTerms() async {
+    termsCheckNotifier.value = TermsCheck.checking;
+    try {
+      final client = Supabase.instance.client;
+      final user = client.auth.currentUser;
+      if (user == null) {
+        termsCheckNotifier.value = TermsCheck.failed;
+        return;
+      }
+      final version = await client.rpc('terms_to_accept') as String?;
+      if (version == null) {
+        termsCheckNotifier.value = TermsCheck.ok;
+        return;
+      }
+      if (signupConsentCovers(
+          metadata: user.userMetadata,
+          createdAt: user.createdAt,
+          version: version)) {
+        await client.rpc('accept_terms', params: {'p_version': version});
+        termsCheckNotifier.value = TermsCheck.ok;
+        return;
+      }
+      termsCheckNotifier.value = TermsCheck.mustAccept(version);
+    } catch (e) {
+      debugPrint("Errore nel controllo dei Termini: $e");
+      termsCheckNotifier.value = TermsCheck.failed;
+    }
+  }
+
+  /// Registra l'accettazione della versione mostrata. Ritorna null se ok,
+  /// altrimenti il messaggio da mostrare.
+  Future<String?> acceptTerms() async {
+    final check = termsCheckNotifier.value;
+    if (check.state != TermsCheckState.mustAccept || check.version == null) {
+      return kTermsSaveFailed;
+    }
+    try {
+      await Supabase.instance.client
+          .rpc('accept_terms', params: {'p_version': check.version});
+      termsCheckNotifier.value = TermsCheck.ok;
+      return null;
+    } on PostgrestException catch (e) {
+      debugPrint("Errore nell'accettazione dei Termini: $e");
+      if (e.code == '22023') {
+        // La versione è cambiata mentre la schermata era aperta: si
+        // rilegge quella nuova e si resta sulla schermata.
+        final again = await _termsToAccept();
+        if (again != null) {
+          termsCheckNotifier.value = TermsCheck.mustAccept(again);
+        }
+      }
+      return acceptTermsErrorMessage(e.code);
+    } catch (e) {
+      debugPrint("Errore nell'accettazione dei Termini: $e");
+      return kTermsSaveFailed;
+    }
+  }
+
+  Future<String?> _termsToAccept() async {
+    try {
+      return await Supabase.instance.client.rpc('terms_to_accept') as String?;
+    } catch (e) {
+      debugPrint("Errore nel controllo dei Termini: $e");
+      return null;
     }
   }
 
