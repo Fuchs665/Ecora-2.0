@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'account_deletion.dart';
+import 'logout_everywhere.dart';
 import 'models.dart';
 import 'reports.dart';
 import 'terms_update.dart';
@@ -107,6 +108,30 @@ class EcoraDataService {
     } catch (e) {
       debugPrint("Errore durante il logout da Supabase: $e");
     }
+  }
+
+  /// "Esci da tutti i dispositivi" (Blocco E.4d, audit A3). Ordine:
+  /// 1. cancella tutti i token push dell'utente (RLS own-rows della 0009),
+  ///    così un telefono perso smette di ricevere notifiche;
+  /// 2. revoca le sessioni degli altri dispositivi (scope others: la
+  ///    sessione di qui resta, quindi se la rete manca si resta dentro e si
+  ///    mostra l'errore; signOut global toglierebbe prima quella locale);
+  /// 3. logout normale di questo dispositivo, che revoca anche la sua.
+  /// Gli access token già emessi valgono fino alla scadenza (1 ora).
+  /// Ritorna null se riuscito, altrimenti il messaggio da mostrare.
+  Future<String?> logoutEverywhere() async {
+    try {
+      final client = Supabase.instance.client;
+      final uid = client.auth.currentUser?.id;
+      if (uid == null) return kLogoutEverywhereFailed;
+      await client.from('device_tokens').delete().eq('user_id', uid);
+      await client.auth.signOut(scope: SignOutScope.others);
+    } catch (e) {
+      debugPrint("Errore nell'uscita da tutti i dispositivi: $e");
+      return kLogoutEverywhereFailed;
+    }
+    await logout();
+    return null;
   }
 
   /// Chiede al server di eliminare l'account corrente (Edge Function

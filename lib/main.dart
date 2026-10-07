@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'biometric_gate.dart';
 import 'birth_year.dart';
 import 'client_navigation_hub.dart';
 import 'consent_text.dart';
@@ -119,20 +119,22 @@ class _EcoraAppState extends State<EcoraApp> {
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: ecoraMessengerKey,
       theme: ecoraTheme(),
-      home: BiometricGate(
-        child: ValueListenableBuilder<SupabaseProfile?>(
-          valueListenable: EcoraDataService.instance.currentProfileNotifier,
-          builder: (context, profile, _) {
-            if (profile == null) {
-              return const AuthScreen();
-            }
-            return ValueListenableBuilder<TermsCheck>(
-              valueListenable: EcoraDataService.instance.termsCheckNotifier,
-              builder: (context, terms, _) =>
-                  _homeFor(context, profile, terms),
-            );
-          },
-        ),
+      // Il gate avvolge il Navigator, così il blocco copre anche le pagine
+      // aperte sopra la home (chat, dettaglio serata): Blocco E.4d.
+      builder: (context, child) =>
+          BiometricGate(child: child ?? const SizedBox.shrink()),
+      home: ValueListenableBuilder<SupabaseProfile?>(
+        valueListenable: EcoraDataService.instance.currentProfileNotifier,
+        builder: (context, profile, _) {
+          if (profile == null) {
+            return const AuthScreen();
+          }
+          return ValueListenableBuilder<TermsCheck>(
+            valueListenable: EcoraDataService.instance.termsCheckNotifier,
+            builder: (context, terms, _) =>
+                _homeFor(context, profile, terms),
+          );
+        },
       ),
     );
   }
@@ -218,161 +220,6 @@ class _EcoraAppState extends State<EcoraApp> {
             mode: LaunchMode.externalApplication),
       ),
     );
-  }
-}
-
-// --- BIOMETRIC SECURITY GATEWAY ---
-class BiometricGate extends StatefulWidget {
-  final Widget child;
-  const BiometricGate({Key? key, required this.child}) : super(key: key);
-
-  @override
-  State<BiometricGate> createState() => _BiometricGateState();
-}
-
-class _BiometricGateState extends State<BiometricGate> {
-  final LocalAuthentication _auth = LocalAuthentication();
-  String _authState = 'checking'; // 'checking', 'authenticated', 'failed'
-
-  @override
-  void initState() {
-    super.initState();
-    _checkBiometrics();
-  }
-
-  Future<void> _checkBiometrics() async {
-    try {
-      final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
-      final bool hasBiometrics = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
-
-      if (!hasBiometrics) {
-        setState(() {
-          _authState = 'authenticated'; // Bypass automatically if biometrics not supported
-        });
-        return;
-      }
-
-      final List<BiometricType> availableBiometrics = await _auth.getAvailableBiometrics();
-      if (availableBiometrics.isEmpty) {
-        setState(() {
-          _authState = 'authenticated'; // Bypass if no biometric templates are enrolled
-        });
-        return;
-      }
-
-      _authenticate();
-    } catch (e) {
-      debugPrint("Errore verifica biometria: $e");
-      setState(() {
-        _authState = 'authenticated'; // Safe fallback bypass on exception
-      });
-    }
-  }
-
-  Future<void> _authenticate() async {
-    try {
-      final bool authenticated = await _auth.authenticate(
-        localizedReason: 'Autenticati per accedere al tuo profilo riservato',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
-      );
-
-      if (authenticated) {
-        setState(() {
-          _authState = 'authenticated';
-        });
-      } else {
-        setState(() {
-          _authState = 'failed';
-        });
-      }
-    } catch (e) {
-      debugPrint("Errore autenticazione biometrica: $e");
-      setState(() {
-        _authState = 'failed';
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_authState == 'checking') {
-      return const Scaffold(
-        backgroundColor: matteDark,
-        body: Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(premiumGold),
-          ),
-        ),
-      );
-    }
-
-    if (_authState == 'failed') {
-      return Scaffold(
-        backgroundColor: matteDark,
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Spacer(),
-                const Icon(
-                  Icons.fingerprint,
-                  color: premiumGold,
-                  size: 80,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  "ACCESSO BLOCCATO",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 20,
-                    letterSpacing: 4,
-                    fontFamily: 'Serif',
-                    color: premiumGold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "È necessaria l'autenticazione biometrica per sbloccare l'applicazione e proteggere i tuoi dati sensibili.",
-                  style: TextStyle(
-                    color: textSecondary,
-                    fontSize: 13,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    style: ecoraPrimaryButtonStyle(),
-                    onPressed: _authenticate,
-                    child: const Text(
-                      "RIPROVA LO SBLOCCO",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return widget.child;
   }
 }
 

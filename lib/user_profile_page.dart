@@ -2,9 +2,13 @@ import 'account_deletion.dart';
 import 'cover_placeholder.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'logout_everywhere.dart';
 import 'main.dart';
 import 'profile_gallery.dart';
 import 'subscription_service.dart';
+
+Future<String?> _logoutEverywhere() =>
+    EcoraDataService.instance.logoutEverywhere();
 
 class UserProfilePage extends StatelessWidget {
   final SupabaseProfile profile;
@@ -269,6 +273,33 @@ class UserProfilePage extends StatelessWidget {
                             ),
                           );
                         },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // --- ESCI DA TUTTI I DISPOSITIVI (E.4d) ---
+                      Card(
+                        color: slateSurface,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          leading: const Icon(Icons.devices_outlined,
+                              color: textSecondary),
+                          title: const Text(
+                            kLogoutEverywhereEntry,
+                            style:
+                                TextStyle(color: textPrimary, fontSize: 13),
+                          ),
+                          trailing: const Icon(Icons.chevron_right,
+                              color: textSecondary),
+                          onTap: () => showDialog<void>(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (_) => const LogoutEverywhereDialog(
+                              onConfirm:
+                                  _logoutEverywhere,
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 12),
 
