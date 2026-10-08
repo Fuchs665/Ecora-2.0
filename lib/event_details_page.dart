@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'main.dart';
 import 'motion.dart';
 import 'report_sheet.dart';
+import 'waitlist.dart';
 import 'reports.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 class EventDetailsPage extends StatefulWidget {
@@ -21,6 +22,9 @@ class EventDetailsPage extends StatefulWidget {
 
 class _EventDetailsPageState extends State<EventDetailsPage> {
   String _requestStatus = 'none';
+
+  /// Posizione in lista d'attesa (Blocco L.2), se ci si è.
+  int? _waitlistPosition;
 
   @override
   void initState() {
@@ -46,9 +50,21 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             _requestStatus = response['status'].toString();
           });
         }
+        if (_requestStatus == 'waitlisted') await _loadWaitlistPosition();
       }
     } catch (e) {
       debugPrint("Errore durante il recupero dello stato della richiesta: $e");
+    }
+  }
+
+  Future<void> _loadWaitlistPosition() async {
+    try {
+      final position = await Supabase.instance.client.rpc(
+          'my_waitlist_position',
+          params: {'p_event_id': widget.event.id}) as int?;
+      if (mounted) setState(() => _waitlistPosition = position);
+    } catch (e) {
+      debugPrint("Errore nella lettura della posizione in lista: $e");
     }
   }
 
@@ -62,11 +78,20 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     });
 
     try {
-      await Supabase.instance.client.from('event_requests').insert({
-        'event_id': widget.event.id,
-        'user_id': currentUser.id,
-        'status': 'pending',
-      });
+      // Lo stato lo decide il server (0023): 'pending' o, se la serata è
+      // piena, 'waitlisted'.
+      final row = await Supabase.instance.client
+          .from('event_requests')
+          .insert({
+            'event_id': widget.event.id,
+            'user_id': currentUser.id,
+            'status': 'pending',
+          })
+          .select('status')
+          .single();
+      final status = row['status']?.toString() ?? 'pending';
+      if (mounted) setState(() => _requestStatus = status);
+      if (status == 'waitlisted') await _loadWaitlistPosition();
     } catch (e) {
       debugPrint("Errore nell'inserimento della richiesta reale: $e");
       if (!mounted) return;
@@ -520,6 +545,39 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                           ),
                         ),
+                      );
+                    } else if (requestStatus == "waitlisted") {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: slateSurface,
+                                foregroundColor: EcoraColors.warning,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24)),
+                              ),
+                              onPressed: null,
+                              child: const Text(
+                                kWaitlistStatus,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                    color: EcoraColors.warning),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: EcoraSpace.s8),
+                          Text(
+                            waitlistDetail(_waitlistPosition),
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
                       );
                     } else if (requestStatus == "approved") {
                       return SizedBox(

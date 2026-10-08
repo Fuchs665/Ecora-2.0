@@ -16,6 +16,7 @@ import 'reports.dart';
 import 'subscription_panel.dart';
 import 'subscription_service.dart';
 import 'user_profile_page.dart';
+import 'waitlist.dart';
 import 'venue_status.dart';
 import 'event_details_page.dart';
 
@@ -740,6 +741,14 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
   Widget build(BuildContext context) {
     final pendingRequests =
         widget.requests.where((r) => r.status == 'pending').toList();
+    // Sotto quelle da valutare, la lista d'attesa in ordine di arrivo
+    // (Blocco L.2); null segna l'intestazione della sezione.
+    final waitlisted = waitlistedInOrder(widget.requests);
+    final entries = <SupabaseParticipationRequest?>[
+      ...pendingRequests,
+      if (waitlisted.isNotEmpty) null,
+      ...waitlisted,
+    ];
 
     return Scaffold(
       body: SafeArea(
@@ -764,7 +773,7 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: pendingRequests.isEmpty
+                child: entries.isEmpty
                     ? const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -782,9 +791,17 @@ class _RequestInspectorScreenState extends State<RequestInspectorScreen> {
                         ),
                       )
                     : ListView.builder(
-                        itemCount: pendingRequests.length,
+                        itemCount: entries.length,
                         itemBuilder: (context, index) {
-                          final req = pendingRequests[index];
+                          final req = entries[index];
+                          if (req == null) {
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  top: EcoraSpace.s16, bottom: EcoraSpace.s8),
+                              child: Text(kWaitlistSection.toUpperCase(),
+                                  style: Theme.of(context).textTheme.labelSmall),
+                            );
+                          }
                           final applicant = EcoraDataService.instance
                               .getProfileById(req.userId);
                           final eventIdx = widget.events

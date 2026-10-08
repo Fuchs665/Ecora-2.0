@@ -92,6 +92,10 @@ final _screens = <String, Widget Function()>{
         events: [_event()],
         requests: [_request],
       ),
+  'RequestInspectorScreen con lista d\'attesa': () => RequestInspectorScreen(
+        events: [_event()],
+        requests: [_request, _request.copyWith(id: 'r2', status: 'waitlisted')],
+      ),
   'EventDetailsPage': () => EventDetailsPage(event: _event()),
   'UserProfilePage': () => UserProfilePage(profile: _profile, onLogout: () {}),
   'DeleteAccountSheet': () => DeleteAccountSheet(

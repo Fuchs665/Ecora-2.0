@@ -647,7 +647,8 @@ class EcoraDataService {
           .from('event_requests')
           .select()
           .eq('user_id', uid)
-          .neq('status', 'pending')
+          // Solo le richieste valutate: né in attesa né in lista d'attesa.
+          .in_('status', ['approved', 'rejected'])
           .order('created_at', ascending: true);
 
       final requests = (reqRows as List)
