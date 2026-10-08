@@ -21,6 +21,9 @@ name: APK di prova
 on:
   push:
     branches: [claude/peaceful-cori-q5pzdt]
+    # Le modifiche ai soli documenti non cambiano l'APK.
+    paths-ignore:
+      - "docs/**"
   workflow_dispatch:
 
 concurrency:
