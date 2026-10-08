@@ -14,14 +14,3 @@ solo produzione: bucket event_images public=f limite=- mime=-
 solo produzione: webhook event_requests.event_requests AFTER INSERT
 solo produzione: webhook event_requests.push_richiesta_aggiornata AFTER UPDATE
 solo produzione: webhook reports.push_segnalazione AFTER INSERT
-# 3) La 0023 (Blocco L.1, lista d'attesa) non è ancora applicata in
-#    produzione: policy di candidatura e vincolo sugli stati nella versione
-#    di prima, trigger e funzioni nuovi assenti. Dopo l'applicazione: rifare
-#    la fotografia catalogo_produzione.txt e togliere queste righe.
-solo produzione: policy public.event_requests "Clienti possono solo candidarsi" PERMISSIVE {authenticated} INSERT using=- check=((auth.uid() = user_id) AND (status = 'pending'::text) AND (NOT is_blocked_with(( SELECT e.host_id FROM events e WHERE (e.id = event_requests.event_id)))) AND (EXISTS ( SELECT 1 FROM events e WHERE ((e.id = event_requests.event_id) AND (e.status = 'published'::text) AND host_is_verified(e.host_id)))))
-solo produzione: vincolo event_requests.event_requests_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'approved'::text, 'rejected'::text])))
-solo staging: funzione event_requests_assign_status() -> trigger secdef=t vol=v lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=8d4ec41be8bd6c2138895c3e3fad1940
-solo staging: funzione my_waitlist_position(p_event_id uuid) -> integer secdef=t vol=s lang=plpgsql config={search_path=public} acl=authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres corpo=299fcd9914c728ddad9cdc0d239555b0
-solo staging: policy public.event_requests "Clienti possono solo candidarsi" PERMISSIVE {authenticated} INSERT using=- check=((auth.uid() = user_id) AND (status = ANY (ARRAY['pending'::text, 'waitlisted'::text])) AND (NOT is_blocked_with(( SELECT e.host_id FROM events e WHERE (e.id = event_requests.event_id)))) AND (EXISTS ( SELECT 1 FROM events e WHERE ((e.id = event_requests.event_id) AND (e.status = 'published'::text) AND host_is_verified(e.host_id)))))
-solo staging: trigger event_requests.trg_event_requests_assign_status CREATE TRIGGER trg_event_requests_assign_status BEFORE INSERT ON public.event_requests FOR EACH ROW EXECUTE FUNCTION event_requests_assign_status()
-solo staging: vincolo event_requests.event_requests_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'approved'::text, 'rejected'::text, 'waitlisted'::text])))
