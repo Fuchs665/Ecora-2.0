@@ -1,4 +1,5 @@
 import 'cover_placeholder.dart';
+import 'device_tilt.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'main.dart';
@@ -200,20 +201,35 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  child: Column(
+                  // Profondità che segue il telefono (Blocco D.4): si
+                  // inclina solo la copertina, il titolo si sposta appena.
+                  child: DeviceTilt(
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // --- TOP HERO COVER PHOTO WITH OVERLAYS ---
-                      Stack(
+                      TiltingCover(
+                        child: Stack(
                         children: [
                           EcoraHero(
                             tag: eventCoverHeroTag(widget.event.id),
-                            child: EcoraNetworkImage(
-                              url: widget.event.imageUrl,
-                              seedId: widget.event.id,
-                              animated: true,
-                              width: double.infinity,
-                              height: 240,
+                            // Luce o foto si spostano dentro la copertina
+                            // (parallax-cover): ingrandite quanto basta a
+                            // non scoprire i bordi.
+                            child: ClipRect(
+                              child: TiltParallax(
+                                distance: EcoraDepth.parallaxCover,
+                                child: Transform.scale(
+                                  scale: 1.16,
+                                  child: EcoraNetworkImage(
+                                    url: widget.event.imageUrl,
+                                    seedId: widget.event.id,
+                                    animated: true,
+                                    width: double.infinity,
+                                    height: 240,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                           // Premium dark shader gradient
@@ -251,6 +267,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                           ),
                         ],
                       ),
+                      ),
 
                       // --- CONTENT CORE ---
                       Padding(
@@ -258,13 +275,17 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              widget.event.title.toUpperCase(),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 24,
-                                letterSpacing: 1.0,
-                                color: textPrimary,
+                            TiltParallax(
+                              distance: EcoraDepth.parallaxLayer,
+                              direction: -1,
+                              child: Text(
+                                widget.event.title.toUpperCase(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 24,
+                                  letterSpacing: 1.0,
+                                  color: textPrimary,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -450,6 +471,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         ),
                       )
                     ],
+                  ),
                   ),
                 ),
               ),

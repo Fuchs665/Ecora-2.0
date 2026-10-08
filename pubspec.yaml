@@ -21,6 +21,8 @@ dependencies:
   cached_network_image: ^3.4.1
   # Sessione di Supabase cifrata con il Keystore (Blocco E.4e, audit A4).
   flutter_secure_storage: ^11.2.0
+  # Inclinazione della copertina nella pagina della serata (Blocco D.4).
+  sensors_plus: ^7.1.1
 
 dev_dependencies:
   flutter_test:
