@@ -4,6 +4,8 @@
 // Invocata dai Database Webhooks:
 //   event_requests INSERT                 -> push al GESTORE ("nuova richiesta")
 //   event_requests UPDATE (cambio status) -> push al CLIENTE ("approvata"/"non accettata")
+//                                            e, se si libera un posto, a chi e' in
+//                                            lista d'attesa e puo' entrarci (Blocco L.3)
 //   reports INSERT                        -> push al MODERATORE (Blocco E.2a)
 //
 // Deploy (dashboard Supabase, zero budget):
@@ -30,6 +32,7 @@
 // ============================================================================
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { guestCategory, seatFreed, waitlistToNotify } from "./waitlist.ts";
 
 type WebhookPayload = {
   type: "INSERT" | "UPDATE" | "DELETE";
@@ -172,10 +175,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (!payload.record) return Response.json({ skipped: true });
   const record = payload.record;
 
-  // Destinatario e testo (copy discreta: finisce sulla lock screen).
-  let recipient: string;
-  let title: string;
-  let body: string;
+  // Destinatari e testi (copy discreta: finisce sulla lock screen).
+  const messages: { recipient: string; title: string; body: string }[] = [];
 
   if (payload.table === "reports") {
     // Segnalazione nuova -> push al moderatore. Nessun dato del contenuto
@@ -184,56 +185,97 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (payload.type !== "INSERT") {
       return Response.json({ skipped: "no notification for this change" });
     }
-    recipient = Deno.env.get("MODERATOR_USER_ID") ?? "";
-    if (!recipient) {
+    const moderator = Deno.env.get("MODERATOR_USER_ID") ?? "";
+    if (!moderator) {
       console.error("MODERATOR_USER_ID non impostato: segnalazione non notificata");
       return Response.json({ sent: 0, reason: "no moderator configured" });
     }
-    title = "Ecora";
-    body = "Nuova segnalazione da esaminare.";
+    messages.push({
+      recipient: moderator,
+      title: "Ecora",
+      body: "Nuova segnalazione da esaminare.",
+    });
   } else if (payload.table === "event_requests") {
     const eventId = String(record.event_id ?? "");
     const newStatus = String(record.status ?? "");
     const oldStatus = String(payload.old_record?.status ?? "");
 
-    // Titolo evento + host (service role: bypassa RLS, solo lato server).
+    // Titolo evento, host e posti per tipologia (service role: bypassa RLS,
+    // solo lato server).
     const { data: event } = await supabase
       .from("events")
-      .select("title, host_id")
+      .select("title, host_id, max_couples, max_women, max_men")
       .eq("id", eventId)
       .maybeSingle();
     if (!event) return Response.json({ skipped: "event not found" });
 
     if (payload.type === "INSERT") {
-      recipient = String(event.host_id);
-      title = "Nuova richiesta ospiti";
-      body = `Un profilo si e' candidato per "${event.title}".`;
-    } else if (
-      payload.type === "UPDATE" &&
-      newStatus !== oldStatus &&
-      (newStatus === "approved" || newStatus === "rejected")
-    ) {
-      recipient = String(record.user_id ?? "");
+      messages.push({
+        recipient: String(event.host_id),
+        title: "Nuova richiesta ospiti",
+        body: `Un profilo si e' candidato per "${event.title}".`,
+      });
+    } else if (payload.type === "UPDATE" && newStatus !== oldStatus) {
+      const user = String(record.user_id ?? "");
       if (newStatus === "approved") {
-        title = "Richiesta approvata";
-        body = `Sei in lista per "${event.title}". Benvenuto al tavolo.`;
-      } else {
-        title = "Richiesta non accettata";
-        body = `La candidatura per "${event.title}" non e' andata a buon fine.`;
+        messages.push({
+          recipient: user,
+          title: "Richiesta approvata",
+          body: `Sei in lista per "${event.title}". Benvenuto al tavolo.`,
+        });
+      } else if (newStatus === "rejected") {
+        messages.push({
+          recipient: user,
+          title: "Richiesta non accettata",
+          body: `La candidatura per "${event.title}" non e' andata a buon fine.`,
+        });
       }
-    } else {
+
+      // Si e' liberato un posto: avvisa chi e' in lista e puo' entrarci.
+      // Nessuna promozione automatica: decide il gestore.
+      if (seatFreed(oldStatus, newStatus)) {
+        const { data: freedProfile } = await supabase
+          .from("profiles")
+          .select("profile_type")
+          .eq("id", user)
+          .maybeSingle();
+        const { data: waiting } = await supabase
+          .from("event_requests")
+          .select("user_id")
+          .eq("event_id", eventId)
+          .eq("status", "waitlisted");
+        const waitingIds = (waiting ?? []).map((r) => String(r.user_id));
+        if (waitingIds.length > 0) {
+          const { data: waitingProfiles } = await supabase
+            .from("profiles")
+            .select("id, profile_type")
+            .in("id", waitingIds);
+          const types = new Map(
+            (waitingProfiles ?? []).map((p) => [String(p.id), p.profile_type]),
+          );
+          const toNotify = waitlistToNotify(
+            guestCategory(freedProfile?.profile_type),
+            event,
+            waitingIds.map((id) => ({
+              user_id: id,
+              profile_type: types.get(id) ?? null,
+            })),
+          );
+          for (const recipient of toNotify) {
+            messages.push({
+              recipient,
+              title: "Si è liberato un posto",
+              body: `Per "${event.title}" il locale può ora confermare la tua richiesta.`,
+            });
+          }
+        }
+      }
+    }
+    if (messages.length === 0) {
       return Response.json({ skipped: "no notification for this change" });
     }
   } else {
     return Response.json({ skipped: true });
-  }
-
-  const { data: tokens } = await supabase
-    .from("device_tokens")
-    .select("token")
-    .eq("user_id", recipient);
-  if (!tokens || tokens.length === 0) {
-    return Response.json({ sent: 0, reason: "no device tokens" });
   }
 
   const sa: ServiceAccount = JSON.parse(
@@ -242,25 +284,35 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const accessToken = await getFcmAccessToken(sa);
 
   let sent = 0;
-  const stale: string[] = [];
-  for (const row of tokens) {
-    const outcome = await sendPush(
-      sa.project_id,
-      accessToken,
-      row.token,
-      title,
-      body,
-    );
-    if (outcome === "ok") sent++;
-    if (outcome === "unregistered") stale.push(row.token);
-  }
-  if (stale.length > 0) {
-    await supabase
+  let staleCount = 0;
+  for (const { recipient, title, body } of messages) {
+    const { data: tokens } = await supabase
       .from("device_tokens")
-      .delete()
-      .eq("user_id", recipient)
-      .in("token", stale);
+      .select("token")
+      .eq("user_id", recipient);
+    if (!tokens || tokens.length === 0) continue;
+
+    const stale: string[] = [];
+    for (const row of tokens) {
+      const outcome = await sendPush(
+        sa.project_id,
+        accessToken,
+        row.token,
+        title,
+        body,
+      );
+      if (outcome === "ok") sent++;
+      if (outcome === "unregistered") stale.push(row.token);
+    }
+    if (stale.length > 0) {
+      staleCount += stale.length;
+      await supabase
+        .from("device_tokens")
+        .delete()
+        .eq("user_id", recipient)
+        .in("token", stale);
+    }
   }
 
-  return Response.json({ sent, stale: stale.length });
+  return Response.json({ sent, stale: staleCount });
 });
