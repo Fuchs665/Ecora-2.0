@@ -1,6 +1,6 @@
 # Ecora — Piano di lavoro operativo
-**Approvato:** 28 luglio 2026 · **Strategia:** prima i locali → poi lo Store → poi gli utenti
-**Documenti collegati:** `docs/AUDIT_2026-07-28.md` · `docs/ecora-design-system.html`
+**Approvato:** 28 luglio 2026 · **Aggiornato:** 22 ottobre 2026 · **Strategia:** prima i locali → poi lo Store → poi gli utenti
+**Documenti collegati:** `docs/AUDIT_2026-07-28.md` · `docs/ecora-design-system.html` · "Ecora · Piano di lancio, costi e ricavi" e "Ecora tra i concorrenti" su claude.ai (privati)
 
 ---
 
@@ -11,9 +11,52 @@
 | 0.1 · CLAUDE.md allineato | ✅ fatto | assunzione di dominio e divieti presenti |
 | 0.2 · `.env.example` ripulito | ✅ fatto | |
 | A.1 · Revoca accesso anonimo | ✅ fatto | `0014_revoke_anon_events.sql`, verificato |
-| A.2 · Dipendenze inutilizzate | ⚠️ **aperto** | `flutter_map`, `latlong2`, `geolocator` sono ancora in `pubspec.yaml`. Verificare il diff dell'ultimo commit e se `ACCESS_FINE_LOCATION` compare nel merged manifest. Se si decide di tenerle per la mappa futura, scrivere il perché nel CLAUDE.md. |
+| A.2 · Dipendenze inutilizzate | ✅ fatto | `geolocator`, `flutter_map`, `latlong2` rimosse da `pubspec.yaml` nel commit 4a02143 |
 | B.1 · Design system | ✅ v2 nel tema | Direzione "Club privato" (combinazione 7 + copertina Luce, scelta il 30/09/2026). Specifica: design system "Ecora" su claude.ai; tavole della dashboard gestore nella tela "Dashboard gestore Ecora". In `lib/theme.dart` colori, caratteri (Bodoni Moda, Hanken Grotesk), `EcoraDepth`; `test/theme_test.dart` controlla i contrasti. `docs/ecora-design-system.html` descrive la v1 ed è superato. Le schermate con colori scritti a mano si migrano nei blocchi C e D. |
-| B.2 → E.4 | ⬜ da fare | |
+| B.2 → E.4 | ⬜ da fare | Rinumerati come task T01–T26 nella sezione "Piano di lancio" qui sotto |
+
+---
+
+## Piano di lancio (22 ottobre 2026)
+
+Dopo l'analisi dei concorrenti il piano è diventato una lista di task, **una chat per task**. Obiettivo: lancio Android il **1 febbraio 2027** (3 sessioni a settimana), città pilota **Firenze**. Sviluppo da solo, account Play personale (quindi test chiuso con almeno 12 tester per 14 giorni, da aprire entro il 1 dicembre).
+
+Regola per il modello: Opus 5.5 per tutto ciò che tocca RLS, login o pagamenti; Sonnet 5.5 per le schermate; Haiku 5.5 per i testi; Fable 5.1 solo per T21. Le chat di codice si aprono sul PC Windows, dove c'è Flutter.
+
+| # | Task | Origine | Modello · effort | Dopo |
+|---|---|---|---|---|
+| **Fase 1** | **Dati veri e verifica dei locali** | | | |
+| T01 | Verifica dei locali: `is_verified` applicato, P.IVA o codice fiscale dell'associazione, indirizzo pubblico, badge. Tocca RLS | concorrenti #1 | Opus 5.5 · high | — |
+| T02 | Assenze ed età vere. Tocca RLS | B.2 | Opus 5.5 · high | — |
+| T03 | Badge "Verificato dal locale" dopo la prima presenza confermata. Tocca RLS | concorrenti #2 | Opus 5.5 · high | T02 |
+| T04 | Coordinate approssimate per chi non è approvato all'evento. Tocca RLS | audit C1 | Opus 5.5 · high | — |
+| T05 | Testi onesti e via il filtro "raggio" calcolato da Firenze fissa | B.3, audit A6 | Sonnet 5.5 · medium | T02 |
+| T06 | Ordine delle operazioni in `_reviewRequest` | B.4 | Sonnet 5.5 · low | — |
+| **Fase 2** | **La dashboard che vende** | | | |
+| T07 | Fascia metriche, abbonamento in basso | C.1 | Sonnet 5.5 · medium | T02 |
+| T08 | Skeleton ed empty state | C.2 | Sonnet 5.5 · medium | — |
+| T09 | Vocabolario unico ed etichette di navigazione | C.3 | Sonnet 5.5 · medium | — |
+| T10 | Navigazione e "Crea evento" | C.4 | Sonnet 5.5 · medium | T09 |
+| T11 | Copertine Luce al posto di Unsplash, colori v2 in tutte le schermate | D.2 | Sonnet 5.5 · high | — |
+| T12 | Movimento e haptic | D.1 | Sonnet 5.5 · medium | T10 |
+| **Fase 3** | **Requisiti Store e sicurezza** | | | |
+| T13 | `supabase_flutter` 2.x. Tocca login | audit igiene | Opus 5.5 · high | T12 |
+| T14 | Cancellazione account in app e da web, foto in Storage comprese. Tocca login | E.1, audit C2 | Opus 5.5 · high | T13 |
+| T15 | Segnalazioni e moderazione trasparente (motivo, ricorso, 24h). Tocca RLS | E.2, audit C3, concorrenti #3 | Opus 5.5 · high | T13 |
+| T16 | Termini di servizio | E.3, audit C4 | Opus 5.5 · medium | — |
+| T17 | Consenso 18+ scritto dal server, errore creazione profilo visibile. Tocca login | audit A1, A2 | Opus 5.5 · high | T13 |
+| T18 | Re-lock biometrico, FLAG_SECURE, `allowBackup=false`, signOut globale. Tocca login | E.4, audit A3–A5 | Opus 5.5 · high | T13 |
+| T19 | Privacy policy (Nominatim, cancellazione) e Data Safety | audit M8 | Sonnet 5.5 · medium | T14 |
+| T20 | Test su `data_service.dart` e regressione ruolo gestore | audit M9 | Sonnet 5.5 · high | T13 |
+| T21 | Attacco simulato alle API (agente `supabase-rls-auditor`) | concorrenti #4 | Fable 5.1 · high | T14–T18 |
+| T22 | Scheda Store: testi, screenshot neutri, target 18+ | concorrenti #5 | Haiku 5.5 · low | T11 |
+| **Fase 4** | **Dopo il lancio** | | | |
+| T23 | Pass d'ingresso QR | concorrenti #7 | Opus 5.5 · high | lancio |
+| T24 | Link condivisibile della serata | concorrenti #8 | Opus 5.5 · high | lancio |
+| T25 | Profilo di coppia collegato. Tocca login | concorrenti #9 | Opus 5.5 · high | lancio |
+| T26 | Versione iOS | — | Sonnet 5.5 · high | lancio |
+
+Le sezioni qui sotto restano il riferimento per il contenuto dei blocchi B–E.
 
 ---
 
@@ -125,10 +168,10 @@ Da affrontare **dopo** la validazione nei locali, **prima** della pubblicazione.
 ## Ordine consigliato
 
 ```
-0.1 → 0.2 → A.1 → A.2 → B.1 → B.2 → B.3 → B.4
-   → C.1 → C.2 → C.3 → C.4 → D.1 → D.2
-   → [demo ai locali + closed testing 12 tester]
-   → E.1 → E.2 → E.3 → E.4 → pubblicazione
+T01 → T06 (Fase 1) → T07 → T12 (Fase 2)
+   → [demo ai locali di Firenze + test chiuso dal 1 dicembre]
+   → T13 → T22 (Fase 3) → richiesta di pubblicazione → lancio
+   → T23 → T26 (Fase 4)
 ```
 
-B.1 è il collo di bottiglia: tutto il lavoro visivo a valle dipende da un design system che oggi non esiste.
+B.1 è chiuso: il design system v2 è nel tema, il resto del lavoro visivo lo usa.
